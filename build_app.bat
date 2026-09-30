@@ -18,7 +18,7 @@ set "PYINSTALLER_EXE=.venv\Scripts\pyinstaller.exe"
 echo [2/3] Installing build dependencies and generating App Icon...
 "%PYTHON_EXE%" -m pip install --upgrade pip
 "%PIP_EXE%" install -r requirements.txt
-"%PIP_EXE%" install pyinstaller pillow
+"%PIP_EXE%" install pyinstaller pillow pymupdf pypdf pdf2docx
 "%PYTHON_EXE%" -c "from core.app_icon import ensure_ico_file; ensure_ico_file()"
 
 echo [3/4] Compiling Executable...

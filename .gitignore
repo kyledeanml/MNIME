@@ -21,4 +21,8 @@ OmniMesh Builder and Installer.txt
 # Documents and Test files
 *.pdf
 *.docx
+*_bookmarked.pdf
+*_compressed.pdf
+*_merged.pdf
+*_converted.pdf
 .DS_Store

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Build, Dist, and Installer outputs
+build/
+dist/
+installer/
+*.exe
+
+# IDEs
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs and temp files
+*.log
+OmniMesh Builder and Installer.txt

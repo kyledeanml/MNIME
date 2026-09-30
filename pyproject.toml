@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnimesh-desktop"
+version = "1.0.0"
+description = "OmniMesh - Native, high-performance offline document suite"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "PyQt6>=6.5.0",
+    "pypdf>=3.17.0",
+    "Pillow>=10.0.0",
+    "pdf2docx>=0.5.6",
+    "pymupdf>=1.23.0"
+]
+
+[project.scripts]
+omnimesh = "main:main"
+

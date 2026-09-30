@@ -1,0 +1,18 @@
+# Core GUI Framework
+PyQt6>=6.5.0
+
+# PDF Manipulation & Processing
+pypdf>=3.17.0
+
+# Image Processing (thumbnails, JPG conversion, page rendering)
+Pillow>=10.0.0
+
+# High-performance PDF page rendering and thumbnail generation
+pymupdf>=1.23.0
+
+# PDF to Word (.docx) conversion
+pdf2docx>=0.5.6
+python-docx>=0.8.11
+
+# Fix numpy binary incompatibility with scipy/pdf2docx during build
+numpy<2.0.0

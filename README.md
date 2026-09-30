@@ -46,6 +46,9 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 
 ---
 
+### 4. create a stand-alone installer
+run the build_app.bat with Inno Setup 6 installed
+
 ## 📁 Project Architecture
 
 ```

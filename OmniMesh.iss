@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=OmniMesh
-AppVersion=1.0
+AppVersion=1.5
 AppPublisher=OmniMesh
 AppPublisherURL=https://omnimesh.app
 DefaultDirName={localappdata}\Programs\OmniMesh
@@ -34,3 +34,6 @@ Name: "{autodesktop}\OmniMesh"; Filename: "{app}\OmniMesh.exe"; IconFilename: "{
 
 [Run]
 Filename: "{app}\OmniMesh.exe"; Description: "Launch OmniMesh"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"

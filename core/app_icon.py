@@ -12,7 +12,7 @@ from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
-APP_USER_MODEL_ID = "OmniMesh.Desktop.1.0"
+APP_USER_MODEL_ID = "OmniMesh.Desktop.1.5"
 
 
 def get_resource_path(relative_path: str) -> str:

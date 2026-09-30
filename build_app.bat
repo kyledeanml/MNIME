@@ -4,6 +4,14 @@ cd /d "%~dp0"
 
 echo ========================================================
 echo OmniMesh - Build and Install Script
+echo Building... All output is being logged to build_log.txt
+echo ========================================================
+call :main > build_log.txt 2>&1
+echo Build finished! Please provide the build_log.txt file.
+pause
+exit /b
+
+:main
 echo [1/3] Setting up Python environment...
 if not exist ".venv" (
     echo Creating virtual environment...
@@ -22,8 +30,15 @@ echo [2/3] Installing build dependencies and generating App Icon...
 "%PYTHON_EXE%" -c "from core.app_icon import ensure_ico_file; ensure_ico_file()"
 
 echo [3/4] Compiling Executable...
+if exist "build" rmdir /s /q "build"
+if exist "dist" rmdir /s /q "dist"
 :: Build as a single directory application using OmniMesh.spec
 "%PYINSTALLER_EXE%" --clean --noconfirm "OmniMesh.spec"
+if %errorlevel% neq 0 (
+    echo.
+    echo ERROR: PyInstaller failed to build the executable!
+    exit /b %errorlevel%
+)
 if exist "OMN.ico" copy /Y "OMN.ico" "dist\OmniMesh\" >nul
 if exist "OMN.jpg" copy /Y "OMN.jpg" "dist\OmniMesh\" >nul
 

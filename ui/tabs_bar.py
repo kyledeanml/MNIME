@@ -44,9 +44,9 @@ class TabsBar(QWidget):
             ToolMode.COMBINE_PDF,
             ToolMode.SPLIT_PDF,
             ToolMode.COMPRESS_PDF,
+            ToolMode.BOOKMARK,
             ToolMode.PDF_TO_JPG,
-            ToolMode.PDF_TO_DOCX,
-            ToolMode.BOOKMARK
+            ToolMode.PDF_TO_DOCX
         ]
 
         for idx, mode in enumerate(tabs):

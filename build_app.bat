@@ -23,7 +23,7 @@ echo [2/3] Installing build dependencies and generating App Icon...
 
 echo [3/4] Compiling Executable...
 :: Build as a single directory application using OmniMesh.spec
-"%PYINSTALLER_EXE%" --noconfirm "OmniMesh.spec"
+"%PYINSTALLER_EXE%" --clean --noconfirm "OmniMesh.spec"
 if exist "OMN.ico" copy /Y "OMN.ico" "dist\OmniMesh\" >nul
 if exist "OMN.jpg" copy /Y "OMN.jpg" "dist\OmniMesh\" >nul
 

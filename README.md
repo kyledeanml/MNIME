@@ -11,6 +11,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 3. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
 4. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
 5. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
+6. **Smart Bookmarks**: Intelligently analyze PDF typography, font sizes, and chapter headings to automatically generate a full Table of Contents.
 
 ### 🎨 Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
@@ -18,7 +19,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 - **Clean Minimalist Dropzone**: Modern, distraction-free file drop canvas with real-time drag-and-drop feedback.
 - **Interactive File Carousel**: Horizontal card slider with smooth scroll arrows and status badges.
 - **Advanced File Explorer Dialog**: A custom, fully integrated PyQt6 file manager that replaces the generic OS popup, featuring a directory tree and clean list view matching the app's dark metallic theme.
-- **Cinematic Splash Screen**: Features an interactive, physics-based particle simulation and bold `Segoe UI Black` typography with a polished titanium gradient finish.
+- **Cinematic Transitions & VFX**: Features an interactive, physics-based particle simulation with an infinitely looping high-speed file vortex during background processing, capped off with a screen-flash transition.
 - **Drag-and-Drop Reordering**: Rearrange file cards by dragging them left or right to change the processing order.
 - **Card Thumbnails & Previews**: Real-time page rendering, file names, status overlays (`Waiting...`, `Processing...`, `Ready`), and remove buttons (`X`).
 ### ⚡ High-Performance Engine & Optimizations

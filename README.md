@@ -4,7 +4,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 1. **Merge Files**: Select up to 5000 PDF and image files, drag and drop to reorder, and merge them sequentially into a single PDF document.
 2. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
@@ -13,7 +13,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 5. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
 6. **Smart Bookmarks**: Intelligently analyze PDF typography, font sizes, and chapter headings to automatically generate a full Table of Contents.
 
-### 🎨 Visual & Aesthetic Highlights
+### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
 - **Whispy Metallic Branding & Neon Blue Glow**: Custom high-resolution metallic logo with electric cyan and dark neon blue highlights.
 - **Clean Minimalist Dropzone**: Modern, distraction-free file drop canvas with real-time drag-and-drop feedback.
@@ -22,7 +22,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 - **Cinematic Transitions & VFX**: Features an interactive, physics-based particle simulation with an infinitely looping high-speed file vortex during background processing, capped off with a screen-flash transition.
 - **Drag-and-Drop Reordering**: Rearrange file cards by dragging them left or right to change the processing order.
 - **Card Thumbnails & Previews**: Real-time page rendering, file names, status overlays (`Waiting...`, `Processing...`, `Ready`), and remove buttons (`X`).
-### ⚡ High-Performance Engine & Optimizations
+### High-Performance Engine & Optimizations
 - **C-Accelerated PyMuPDF Core**: Multi-file merging, image extraction, and compression run through native C-level PyMuPDF routines (up to 50x faster than pure-Python libraries with negligible RAM footprint).
 - **O(1) Carousel Layout Operations**: Drag-and-drop card reordering and card removal execute via surgical layout index shifts rather than tearing down and rebuilding hundreds of widgets.
 - **In-Memory Pixmap & Icon Caching**: Thumbnails and vector SVG icons are rasterized and pre-scaled once, eliminating CPU resampling during continuous scroll and hover events.
@@ -31,7 +31,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ---
 
-## 🚀 Running the Application
+## Running the Application
 
 ### 1. Launch via 1-Click Runner:
 Double-click `run.bat` at any time.
@@ -50,7 +50,7 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 ### 4. Create a stand-alone installer
 Run the build_app.bat with Inno Setup 6 installed
 
-## 📁 Project Architecture
+## Project Architecture
 
 ```
 v:/New folder/

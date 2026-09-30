@@ -17,3 +17,8 @@ installer/
 # Logs and temp files
 *.log
 OmniMesh Builder and Installer.txt
+
+# Documents and Test files
+*.pdf
+*.docx
+.DS_Store

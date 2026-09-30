@@ -50,27 +50,30 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 ### 4. Create a stand-alone installer
 Run the build_app.bat with Inno Setup 6 installed
 
-## Project Architecture
+## 📁 Project Architecture
 
 ```
-v:/New folder/
+OmniMesh/
 ├── core/                  # Core processing engine & system integration
 │   ├── __init__.py
 │   ├── app_icon.py        # Windows AppUserModelID, ICO generator, & shortcuts
 │   ├── file_item.py       # Data model, metadata reader & thumbnail generator
 │   ├── pdf_engine.py      # PDF merge, convert, compress, & DOCX export logic
+│   ├── search_engine.py   # Advanced file and document search engine
 │   └── worker.py          # Asynchronous QThread background worker
 ├── ui/                    # Desktop GUI components (PyQt6)
 │   ├── __init__.py
-│   ├── main_window.py     # Free-floating dark metallic window coordinator
-│   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
-│   ├── header_view.py     # Top branding with whispy metallic logo and neon accents
-│   ├── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, DOCX)
-│   ├── controls_bar.py    # Primary action buttons ("UPLOAD FILES", "CLEAR")
+│   ├── action_bar.py      # Primary execution button and actions
 │   ├── carousel_view.py   # Reorderable horizontal file card carousel & clean dropzone
+│   ├── cursor_fx.py       # Custom cursor effects
 │   ├── file_card.py       # Individual file cards with status, progress, & drag-and-drop
-│   ├── action_bar.py      # Execution button ("MERGE FILES") with badge count and progress
-│   └── icons.py           # Resolution-independent vector SVG icons
+│   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
+│   ├── icons.py           # Resolution-independent vector SVG icons
+│   ├── main_window.py     # Free-floating dark metallic window coordinator
+│   ├── merge_particles.py # Physics-based particle simulation for transitions
+│   ├── minimize_animation.py # Custom minimize animations
+│   ├── output_view.py     # Log or output view component
+│   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
 ├── OmniMeshLogo.jpg       # High-resolution whispy metallic logo
 ├── OmniMeshLogo.ico       # Multi-resolution native Windows icon
 ├── main.py                # Main application entry point

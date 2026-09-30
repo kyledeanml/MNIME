@@ -16,7 +16,8 @@ class ToolMode(Enum):
     JPG_TO_PDF = "JPG → PDF"
     PDF_TO_JPG = "PDF → JPG"
     COMPRESS_PDF = "COMPRESS"
-    PDF_TO_WORD = "PDF → WORD"
+    PDF_TO_DOCX = "PDF → DOCX"
+    BOOKMARK = "BOOKMARK"
 
 
 class TabsBar(QWidget):
@@ -44,7 +45,8 @@ class TabsBar(QWidget):
             ToolMode.SPLIT_PDF,
             ToolMode.COMPRESS_PDF,
             ToolMode.PDF_TO_JPG,
-            ToolMode.PDF_TO_WORD
+            ToolMode.PDF_TO_DOCX,
+            ToolMode.BOOKMARK
         ]
 
         for idx, mode in enumerate(tabs):

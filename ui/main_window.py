@@ -633,10 +633,12 @@ class MainWindow(QMainWindow):
             self.action_bar.set_action_title("EXTRACT TO JPG")
         elif mode == ToolMode.COMPRESS_PDF:
             self.action_bar.set_action_title("COMPRESS")
-        elif mode == ToolMode.PDF_TO_WORD:
-            self.action_bar.set_action_title("CONVERT TO WORD")
+        elif mode == ToolMode.PDF_TO_DOCX:
+            self.action_bar.set_action_title("CONVERT TO DOCX")
         elif mode == ToolMode.SPLIT_PDF:
             self.action_bar.set_action_title("SPLIT")
+        elif mode == ToolMode.BOOKMARK:
+            self.action_bar.set_action_title("BOOKMARK")
 
         self.action_bar.update_count(len(self.file_items))
 
@@ -646,7 +648,7 @@ class MainWindow(QMainWindow):
             return "Documents & Images (*.pdf *.jpg *.jpeg *.png *.webp *.bmp *.txt);;PDF Files (*.pdf);;Text Files (*.txt);;Images (*.jpg *.png);;All Files (*.*)"
         elif self.current_mode == ToolMode.JPG_TO_PDF:
             return "Images (*.jpg *.jpeg *.png *.webp *.bmp);;All Files (*.*)"
-        elif self.current_mode in [ToolMode.PDF_TO_JPG, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_WORD, ToolMode.SPLIT_PDF]:
+        elif self.current_mode in [ToolMode.PDF_TO_JPG, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.SPLIT_PDF, ToolMode.BOOKMARK]:
             return "PDF Files (*.pdf);;All Files (*.*)"
         return "All Files (*.*)"
 
@@ -760,7 +762,7 @@ class MainWindow(QMainWindow):
         if not self.file_items:
             return
 
-        single_file_modes = [ToolMode.PDF_TO_JPG, ToolMode.SPLIT_PDF, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_WORD]
+        single_file_modes = [ToolMode.PDF_TO_JPG, ToolMode.SPLIT_PDF, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.BOOKMARK]
         if self.current_mode in single_file_modes and len(self.file_items) > 1:
             QMessageBox.information(
                 self,
@@ -799,10 +801,14 @@ class MainWindow(QMainWindow):
             base_name = os.path.splitext(self.file_items[0].file_name)[0]
             output_file = os.path.join(temp_dir, f"{base_name}_compressed.pdf")
             self._start_task(target=PDFEngine.compress_pdf, pdf_item=self.file_items[0], output_path=output_file)
-        elif self.current_mode == ToolMode.PDF_TO_WORD:
+        elif self.current_mode == ToolMode.PDF_TO_DOCX:
             base_name = os.path.splitext(self.file_items[0].file_name)[0]
             output_file = os.path.join(temp_dir, f"{base_name}.docx")
-            self._start_task(target=PDFEngine.convert_pdf_to_word, pdf_item=self.file_items[0], output_path=output_file)
+            self._start_task(target=PDFEngine.convert_pdf_to_docx, pdf_item=self.file_items[0], output_path=output_file)
+        elif self.current_mode == ToolMode.BOOKMARK:
+            base_name = os.path.splitext(self.file_items[0].file_name)[0]
+            output_file = os.path.join(temp_dir, f"{base_name}_bookmarked.pdf")
+            self._start_task(target=PDFEngine.bookmark, pdf_item=self.file_items[0], output_path=output_file)
 
     def _start_task(self, target, **kwargs):
         """Starts worker thread and connects UI feedback signals."""
@@ -815,7 +821,12 @@ class MainWindow(QMainWindow):
         self.worker.progress.connect(self._on_worker_progress)
         self.worker.finished.connect(self._on_worker_finished)
         self.worker.error.connect(self._on_worker_error)
-        self.worker.start()
+        
+        # Delay the actual start of the intensive worker thread to guarantee 
+        # that the cinematic particle collapse animation finishes rendering at 
+        # 60 FPS without being starved by Python's Global Interpreter Lock (GIL).
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(1000, self.worker.start)
 
     def _on_worker_progress(self, pct: int, msg: str):
         self.action_bar.show_progress(pct, msg)

@@ -403,7 +403,7 @@ class PDFEngine:
             return output_path
 
     @staticmethod
-    def convert_pdf_to_word(
+    def convert_pdf_to_docx(
         pdf_item: FileItem,
         output_path: str,
         progress_callback: Optional[Callable[[int, str], None]] = None,
@@ -415,7 +415,7 @@ class PDFEngine:
             from pdf2docx import Converter
 
             if progress_callback:
-                progress_callback(10, "Initializing PDF to Word converter...")
+                progress_callback(10, "Initializing PDF to DOCX converter...")
 
             cv = Converter(pdf_item.file_path)
             if progress_callback:
@@ -457,3 +457,134 @@ class PDFEngine:
                 raise RuntimeError(
                     f"Please install pdf2docx (`pip install pdf2docx`) for full formatting fidelity: {e}"
                 )
+
+    @staticmethod
+    def bookmark(
+        pdf_item: FileItem,
+        output_path: str,
+        progress_callback: Optional[Callable[[int, str], None]] = None,
+    ) -> str:
+        """
+        Automatically adds bookmarks to a PDF by extracting the most prominent text
+        (e.g., largest font size) from each page to use as a section header.
+        """
+        try:
+            import pymupdf
+            os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+
+            if progress_callback:
+                progress_callback(10, "Opening PDF for analysis...")
+
+            doc = pymupdf.open(pdf_item.file_path)
+            toc = []
+
+            total_pages = len(doc)
+            
+            # Step 1: Sample the first few pages to find the most common (base) font size
+            import re
+            from collections import Counter
+            font_sizes = Counter()
+            sample_pages = min(10, total_pages)
+            for i in range(sample_pages):
+                blocks = doc[i].get_text("dict").get("blocks", [])
+                for b in blocks:
+                    if b.get("type") == 0:
+                        for l in b.get("lines", []):
+                            for s in l.get("spans", []):
+                                text = s.get("text", "").strip()
+                                size = round(s.get("size", 0), 1)
+                                if text and size > 0:
+                                    font_sizes[size] += len(text)
+                                    
+            base_size = 10.0
+            if font_sizes:
+                # The font size with the most characters is likely the body text
+                base_size = font_sizes.most_common(1)[0][0]
+
+            # Regex for explicit chapter/section markers
+            chapter_pattern = re.compile(r"^(chapter|part|section|appendix|unit|module)\s+([a-z0-9\.\-]+)", re.IGNORECASE)
+
+            all_largest_texts = []
+
+            for i in range(total_pages):
+                if progress_callback:
+                    pct = 10 + int((i / total_pages) * 70)
+                    progress_callback(pct, f"Analyzing page {i+1}/{total_pages}...")
+
+                page = doc[i]
+                blocks = page.get_text("dict").get("blocks", [])
+
+                largest_size = -1
+                best_text = ""
+                has_explicit_chapter = False
+                page_largest_text = f"Page {i+1}"
+                page_absolute_largest_size = -1
+
+                for b in blocks:
+                    if b.get("type") == 0:  # Text block
+                        for l in b.get("lines", []):
+                            for s in l.get("spans", []):
+                                text = s.get("text", "").strip()
+                                size = s.get("size", 0)
+                                flags = s.get("flags", 0)
+                                is_bold = bool(flags & 16) # Bit 4 is bold in PyMuPDF
+                                
+                                if not text or len(text) > 100:
+                                    continue
+                                    
+                                # Track absolute largest text for fallback
+                                if size > page_absolute_largest_size:
+                                    page_absolute_largest_size = size
+                                    page_largest_text = text
+                                    
+                                # Rule 1: Explicit match
+                                if chapter_pattern.match(text):
+                                    best_text = text
+                                    has_explicit_chapter = True
+                                    break
+                                    
+                                # Rule 2: Largest text on page, and significantly larger than body text
+                                # Or slightly larger and Bold
+                                if size > largest_size and (size >= (base_size * 1.15) or (is_bold and size >= base_size * 1.05)):
+                                    largest_size = size
+                                    best_text = text
+                            
+                            if has_explicit_chapter:
+                                break
+                    if has_explicit_chapter:
+                        break
+
+                all_largest_texts.append(page_largest_text)
+
+                # Only add a bookmark if we confidently found a heading
+                if best_text:
+                    toc.append([1, best_text, i + 1])
+                    
+            if not toc:
+                # Fallback: if heuristics failed completely (e.g. plain text or images only),
+                # just bookmark every page using the largest text found
+                for i, text in enumerate(all_largest_texts):
+                    toc.append([1, text, i + 1])
+                
+                # Explicitly yield GIL to prevent main thread cursor animations from lagging
+                import time
+                time.sleep(0.005)
+
+            if progress_callback:
+                progress_callback(85, "Generating Table of Contents...")
+
+            doc.set_toc(toc)
+
+            if progress_callback:
+                progress_callback(90, "Saving bookmarked PDF...")
+
+            doc.save(output_path, garbage=3, deflate=True)
+            doc.close()
+
+            if progress_callback:
+                progress_callback(100, "Done! Bookmarks added.")
+
+            return output_path
+
+        except Exception as e:
+            raise RuntimeError(f"Error bookmarking PDF: {e}")

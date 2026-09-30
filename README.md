@@ -10,7 +10,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 2. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
 3. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
 4. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
-5. **PDF → Word**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
+5. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
 
 ### 🎨 Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
@@ -57,14 +57,14 @@ v:/New folder/
 │   ├── __init__.py
 │   ├── app_icon.py        # Windows AppUserModelID, ICO generator, & shortcuts
 │   ├── file_item.py       # Data model, metadata reader & thumbnail generator
-│   ├── pdf_engine.py      # PDF merge, convert, compress, & Word export logic
+│   ├── pdf_engine.py      # PDF merge, convert, compress, & DOCX export logic
 │   └── worker.py          # Asynchronous QThread background worker
 ├── ui/                    # Desktop GUI components (PyQt6)
 │   ├── __init__.py
 │   ├── main_window.py     # Free-floating dark metallic window coordinator
 │   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
 │   ├── header_view.py     # Top branding with whispy metallic logo and neon accents
-│   ├── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Word)
+│   ├── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, DOCX)
 │   ├── controls_bar.py    # Primary action buttons ("UPLOAD FILES", "CLEAR")
 │   ├── carousel_view.py   # Reorderable horizontal file card carousel & clean dropzone
 │   ├── file_card.py       # Individual file cards with status, progress, & drag-and-drop

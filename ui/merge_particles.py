@@ -125,7 +125,7 @@ class StreamParticle:
         self.trail.clear()
         self.alive = True
 
-    def update(self, dt: float, hyper: bool, stopping: bool) -> bool:
+    def update(self, dt: float, hyper: bool, stopping: bool, processing: bool = False) -> bool:
         """
         Updates particle position along gravitational vortex curve.
         Returns False if dead and shouldn't respawn.
@@ -159,7 +159,7 @@ class StreamParticle:
 
         # Singularity threshold: reached center
         if self.dist <= 12.0:
-            if stopping or hyper:
+            if (stopping or hyper) and not processing:
                 self.alive = False
                 return False
             else:
@@ -254,16 +254,20 @@ class MergeParticleOverlay(QWidget):
 
     def stop_hover_pull(self):
         """Mouse left Merge button: let existing particles drain in gracefully."""
+        if getattr(self, 'processing', False):
+            return  # Do not drain if we are currently running the background task!
         self.hover_active = False
         self.stopping = True
 
     def trigger_hyper_collapse(self):
-        """User clicked Merge: suck all particles into center at 3x speed."""
+        """User clicked Merge: keep particles sucking into center indefinitely at 3x speed!"""
         self.hyper = True
-        self.stopping = True
+        self.stopping = False
+        self.processing = True
 
     def clear_all(self):
         """Immediately stops all animations, clears all particles, and hides overlay."""
+        self.processing = False
         self.hover_active = False
         self.stopping = True
         self.hyper = False
@@ -285,6 +289,7 @@ class MergeParticleOverlay(QWidget):
             self.target = QPointF(float(target_pos.x()), float(target_pos.y()))
 
         # End all streaming particles immediately for the flash
+        self.processing = False
         self.hover_active = False
         self.stopping = True
         self.particles.clear()
@@ -312,8 +317,9 @@ class MergeParticleOverlay(QWidget):
 
         # Update streaming particles
         alive_count = 0
+        is_processing = getattr(self, 'processing', False)
         for p in self.particles:
-            if p.update(dt, self.hyper, self.stopping):
+            if p.update(dt, self.hyper, self.stopping, is_processing):
                 alive_count += 1
 
         # Check flash transition progress

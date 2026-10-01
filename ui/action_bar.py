@@ -1,7 +1,7 @@
 """
 Bottom action bar containing the primary execution button (e.g. MERGE FILES) with badge count
 and task progress indicator.
-Styled with OmniMesh dark metal and dark neon blue highlights.
+Styled with OMNIME dark metal and dark neon blue highlights.
 """
 
 from ui.cursor_fx import get_custom_cursor

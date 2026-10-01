@@ -77,7 +77,7 @@ def get_windows_quick_access_links() -> List[dict]:
 
 def get_mru_directories() -> List[str]:
     """Retrieve list of most recently used directories, persisting across sessions."""
-    settings = QSettings("OmniMesh", "OmniMesh")
+    settings = QSettings("OMNIME", "OMNIME")
     stored = settings.value("recent_directories", [])
     if isinstance(stored, str):
         stored = [stored] if stored else []
@@ -126,7 +126,7 @@ def record_mru_directory(path: str):
     if not path or not os.path.isdir(path):
         return
     norm = os.path.normpath(path)
-    settings = QSettings("OmniMesh", "OmniMesh")
+    settings = QSettings("OMNIME", "OMNIME")
     stored = settings.value("recent_directories", [])
     if isinstance(stored, str):
         stored = [stored] if stored else []
@@ -214,12 +214,12 @@ class DraggableFrame(QFrame):
 
 class CustomFileDialog(QDialog):
     """
-    A custom file explorer dialog matching the OmniMesh theme, transparency, movement,
+    A custom file explorer dialog matching the OMNIME theme, transparency, movement,
     with Windows Quick Access links and Most Recently Used directory entries below the main file system window.
     """
     def __init__(self, parent=None, start_dir=None):
         super().__init__(parent)
-        self.setWindowTitle("OmniMesh - File Explorer")
+        self.setWindowTitle("OMNIME - File Explorer")
         self.setMinimumSize(940, 620)
         self.resize(1020, 680)
         self._drag_pos: Optional[QPoint] = None

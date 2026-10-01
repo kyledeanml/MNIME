@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('OMNIMESH_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
+datas = [('OMNIME_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
 binaries = []
 hiddenimports = [
     'fitz',
@@ -74,7 +74,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='OmniMesh',
+    name='OMNIME',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -94,5 +94,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='OmniMesh',
+    name='OMNIME',
 )

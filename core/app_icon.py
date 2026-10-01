@@ -12,7 +12,7 @@ from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 
-APP_USER_MODEL_ID = "OmniMesh.Desktop.1.5"
+APP_USER_MODEL_ID = "OMNIME.Desktop.1.5"
 
 
 def get_resource_path(relative_path: str) -> str:
@@ -51,7 +51,7 @@ def setup_app_user_model_id() -> bool:
     """
     Sets the explicit Application User Model ID on Windows.
     This prevents Windows from grouping the app under python.exe and
-    ensures the taskbar / quickbar displays the custom OmniMesh logo.
+    ensures the taskbar / quickbar displays the custom OMNIME logo.
     """
     if sys.platform == "win32":
         try:
@@ -145,7 +145,7 @@ def get_logo_pixmap(size: int = 48) -> QPixmap:
 
 def get_tray_icon() -> QIcon:
     """
-    Generates a borderless, pure vector rendition of the OmniMesh logo structure
+    Generates a borderless, pure vector rendition of the OMNIME logo structure
     (a glowing cyan geodesic mesh/hexagon) for the system tray. No words, no background.
     """
     from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QPolygonF
@@ -213,8 +213,8 @@ def create_windows_shortcuts() -> bool:
         target_path = os.path.join(project_root, "run.bat")
         icon_path = get_ico_path()
         desktop_dir = os.path.normpath(os.path.expanduser("~/Desktop"))
-        desktop_lnk = os.path.join(desktop_dir, "OmniMesh.lnk")
-        project_lnk = os.path.join(project_root, "OmniMesh.lnk")
+        desktop_lnk = os.path.join(desktop_dir, "OMNIME.lnk")
+        project_lnk = os.path.join(project_root, "OMNIME.lnk")
 
         ps_script = f"""
 $WshShell = New-Object -ComObject WScript.Shell

@@ -318,7 +318,7 @@ class CarouselView(QWidget):
 
         cloud_icon = QLabel()
         cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        logo_path = get_resource_path("OMNIMESH_reimagined_alpha.png")
+        logo_path = get_resource_path("OMNIME_reimagined_alpha.png")
         original_pixmap = QPixmap(logo_path)
         if not original_pixmap.isNull():
             logo_pixmap = original_pixmap.scaled(

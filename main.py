@@ -1,5 +1,5 @@
 """
-OmniMesh Desktop - Application Entry Point
+OMNIME Desktop - Application Entry Point
 Next-generation private, high-performance offline document suite.
 """
 
@@ -27,7 +27,7 @@ from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QPointF
 
 class Particle:
     def __init__(self, cx, cy):
-        # Spawn around the OmniMesh text area
+        # Spawn around the OMNIME text area
         self.x = cx + random.uniform(-50, 50)
         self.y = cy + random.uniform(-50, 50)
         
@@ -81,7 +81,7 @@ class Particle:
 from ui.main_window import MainWindow
 
 class MetalSplashScreen(QWidget):
-    """A completely borderless, transparent widget that displays the OmniMesh title in dark metal with particle effects."""
+    """A completely borderless, transparent widget that displays the OMNIME title in dark metal with particle effects."""
     def __init__(self):
         super().__init__()
         self.setWindowFlags(
@@ -220,7 +220,7 @@ class MetalSplashScreen(QWidget):
         painter.setFont(font)
         
         fm = QFontMetrics(font)
-        text_rect = fm.boundingRect("OMNIMESH")
+        text_rect = fm.boundingRect("OMNIME")
         
         x = (self.width() - text_rect.width()) // 2
         y = (self.height() + text_rect.height()) // 2 - fm.descent()
@@ -229,14 +229,14 @@ class MetalSplashScreen(QWidget):
         glow_color = QColor(0, 210, 255, 25)
         painter.setPen(glow_color)
         for offset in [3, 6]:
-            painter.drawText(x - offset, y - offset, "OMNIMESH")
-            painter.drawText(x + offset, y - offset, "OMNIMESH")
-            painter.drawText(x - offset, y + offset, "OMNIMESH")
-            painter.drawText(x + offset, y + offset, "OMNIMESH")
+            painter.drawText(x - offset, y - offset, "OMNIME")
+            painter.drawText(x + offset, y - offset, "OMNIME")
+            painter.drawText(x - offset, y + offset, "OMNIME")
+            painter.drawText(x + offset, y + offset, "OMNIME")
         
         # 2. Deep drop shadow for desktop separation
         painter.setPen(QColor(0, 0, 0, 200))
-        painter.drawText(x + 5, y + 5, "OMNIMESH")
+        painter.drawText(x + 5, y + 5, "OMNIME")
         
         # 3. Dark Metallic Gradient Core
         gradient = QLinearGradient(x, y - text_rect.height(), x, y)
@@ -249,7 +249,7 @@ class MetalSplashScreen(QWidget):
         pen = QPen()
         pen.setBrush(QBrush(gradient))
         painter.setPen(pen)
-        painter.drawText(x, y, "OMNIMESH")
+        painter.drawText(x, y, "OMNIME")
 
 def main():
     # Enable high-DPI scaling
@@ -258,8 +258,8 @@ def main():
     )
 
     app = QApplication(sys.argv)
-    app.setApplicationName("OmniMesh")
-    app.setOrganizationName("OmniMesh")
+    app.setApplicationName("OMNIME")
+    app.setOrganizationName("OMNIME")
 
     # Set application icon for taskbar, quickbar, window titlebar, and system dialogs
     app_icon = get_app_icon()

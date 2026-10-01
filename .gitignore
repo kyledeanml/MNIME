@@ -9,7 +9,7 @@ dist/
 installer/
 *.exe
 *.spec
-!OmniMesh.spec
+!OMNIME.spec
 
 # IDEs
 .idea/
@@ -21,7 +21,7 @@ installer/
 *.tmp
 *.tmp.pdf
 build_log.txt
-OmniMesh Builder and Installer.txt
+OMNIME Builder and Installer.txt
 
 # Documents and Test files
 *.pdf
@@ -29,7 +29,7 @@ OmniMesh Builder and Installer.txt
 *.jpg
 *.jpeg
 *.png
-!OMNIMESH_reimagined_alpha.png
+!OMNIME_reimagined_alpha.png
 *_bookmarked.pdf
 *_compressed.pdf
 *_merged.pdf

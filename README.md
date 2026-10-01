@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="OMNIMESH_reimagined_alpha.png" alt="OmniMesh Banner" width="100%">
+  <img src="OMNIME_reimagined_alpha.png" alt="OMNIME Banner" width="100%">
 </p>
 
 
-# OmniMesh Version 2.51.1
+# OMNIME Version 99
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -52,7 +52,7 @@ Run `setup.bat` to automatically create a Python virtual environment and install
 Double-click `run.bat` at any time.
 
 ### 2. Pin to Windows Quickbar / Taskbar:
-Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and in the project folder, then right-click and choose **Pin to taskbar**.
+Run `create_shortcut.bat` to create an `OMNIME` shortcut on your Desktop and in the project folder, then right-click and choose **Pin to taskbar**.
 
 ### 3. Launch via Command Line:
 ```bash
@@ -68,23 +68,23 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 Run `build_app.bat` with Inno Setup 6 installed to compile the application and generate a Windows installer.
 
 ### 2. Local Installation:
-After building, you can run `install_omnimesh.bat` to install the application locally to your system and create Start Menu shortcuts.
+After building, you can run `install_omnime.bat` to install the application locally to your system and create Start Menu shortcuts.
 
 ---
 
 ## Changelog
 
-### Version 2.51.1 — UI & UX Complete Overhaul
+### Version 99 — UI & UX Complete Overhaul
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
-- **Improved**: The Image and PDF Edit UIs have been fully upgraded to the OmniMesh translucent dark metallic theme, matching the rest of the application's premium aesthetic.
+- **Improved**: The Image and PDF Edit UIs have been fully upgraded to the OMNIME translucent dark metallic theme, matching the rest of the application's premium aesthetic.
 
 ### Version 2.1 — Compatibility & Stability
 - **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py` (`OverflowError: cannot convert longdouble infinity to integer` / `arange: cannot compute length`).
 - **Updated**: NumPy dependency bumped from `<2.0.0` → `>=2.0.0` (now ships with NumPy 2.5.x). NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
 - **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
-- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.51.1.exe` for clarity.
+- **Updated**: Installer output renamed to `OMNIME_Setup_v99.exe` for clarity.
 
 ### Version 2.0 — Initial Public Release
 - Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
@@ -96,7 +96,7 @@ After building, you can run `install_omnimesh.bat` to install the application lo
 ## 📁 Project Architecture
 
 ```
-OmniMesh/
+OMNIME/
 ├── core/                  # Core processing engine & system integration
 │   ├── __init__.py
 │   ├── app_icon.py        # Windows AppUserModelID, ICO generator, & shortcuts
@@ -124,15 +124,15 @@ OmniMesh/
 │   ├── reader_dialog.py   # Independent frameless document reader UI
 │   ├── settings_dialog.py # Model configuration UI
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
-├── OMNIMESH_reimagined_alpha.png# High-resolution perfectly transparent neon logo
+├── OMNIME_reimagined_alpha.png# High-resolution perfectly transparent neon logo
 ├── OMN.ico                # Multi-resolution native Windows icon
 ├── main.py                # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator
 ├── run.bat                # 1-click Windows runner
 ├── setup.bat              # 1-click Python setup / VENV
 ├── build_app.bat          # App packaging script
-├── install_omnimesh.bat   # 1-click Windows installer
-├── OmniMesh.iss           # Inno Setup compiler script
+├── install_omnime.bat   # 1-click Windows installer
+├── OMNIME.iss           # Inno Setup compiler script
 ├── pyproject.toml         # Build & package configuration
 ├── requirements.txt       # Python dependencies list
 ├── LICENSE                # Open source license
@@ -143,11 +143,11 @@ OmniMesh/
 
 ## Help & User Guide
 
-Welcome to **OmniMesh Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OmniMesh provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
+Welcome to **OMNIME Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OMNIME provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
 
 ### Core Capabilities
 
-OmniMesh provides a wide array of document processing tools, all accessible from the top **Tabs Bar**. As you hover over the tabs, stylized neon text will guide you.
+OMNIME provides a wide array of document processing tools, all accessible from the top **Tabs Bar**. As you hover over the tabs, stylized neon text will guide you.
 
 - **Combine PDF**: Merge multiple PDF documents into a single file.
 - **JPG to PDF**: Convert image files into a high-quality PDF.
@@ -160,7 +160,7 @@ OmniMesh provides a wide array of document processing tools, all accessible from
 
 ### NLP & Reference Engine
 
-OmniMesh is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
+OMNIME is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
 
 - **NLP (Chat)**: Engage with your documents using a conversational interface. **Optimized specifically for the `Qwen3.5-4B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
 - **Reference**: Generate synthesized briefs and cross-reference information across multiple uploaded documents.
@@ -169,11 +169,11 @@ OmniMesh is deeply integrated with local Natural Language Processing (NLP) to he
 
 ### Interface Guide
 
-The OmniMesh interface is designed to be sleek, intuitive, and highly responsive.
+The OMNIME interface is designed to be sleek, intuitive, and highly responsive.
 
 #### 1. The Drop Zone (Right Side)
-Permanently docked on the right side of the screen is the **OmniMesh Drop Zone**.
-- **Drag and Drop**: Simply drag your files over the OmniMesh logo to queue them for processing.
+Permanently docked on the right side of the screen is the **OMNIME Drop Zone**.
+- **Drag and Drop**: Simply drag your files over the OMNIME logo to queue them for processing.
 - **Add Files Button**: Click the neon-outlined `ADD FILES` button directly underneath the logo to open a file browser.
 
 #### 2. Gallery Carousel (Left Side)
@@ -193,13 +193,13 @@ Click the **Gear Icon** (located next to the NLP tab) to open the Hardware & Mod
 - Adjust thread counts and GPU offloading parameters (optimized for NVIDIA hardware) to maximize processing speed.
 
 #### 5. Document Reader & Editor
-OmniMesh includes a built-in high-resolution **Document Reader** and **Edit UI**.
+OMNIME includes a built-in high-resolution **Document Reader** and **Edit UI**.
 - **High-Res Rendering**: Documents and images are rendered internally at 4.0x Retina pixel density for ultra-sharp, anti-aliased visual clarity.
 - **Fluid Zooming**: Use `Ctrl + Mouse Scroll` to smoothly zoom in and out of documents in both the Reader and the Edit viewports.
-- **Independent Windows**: The Reader and Editor run as fully independent, resizable, frameless dark metallic windows that seamlessly synchronize with your main OmniMesh file queue.
+- **Independent Windows**: The Reader and Editor run as fully independent, resizable, frameless dark metallic windows that seamlessly synchronize with your main OMNIME file queue.
 
 ### Error Handling & Validation
-OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
+OMNIME is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
 
-_omnimesh_ - '26kb
+_omnime_ - '26kb

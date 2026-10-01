@@ -1,5 +1,5 @@
 """
-Semantic Search Engine for OmniMesh.
+Semantic Search Engine for OMNIME.
 Adapts the "CodeEyes" codebase semantic search concept for offline document/codebase querying.
 """
 

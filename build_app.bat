@@ -1,9 +1,9 @@
 @echo off
-title OmniMesh Version 2.51.1 Builder and Installer
+title OMNIME Version 99 Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================
-echo OmniMesh - Build and Install Script
+echo OMNIME - Build and Install Script
 echo Building... All output is being logged to build_log.txt
 echo ========================================================
 call :main > build_log.txt 2>&1
@@ -32,15 +32,15 @@ echo [2/3] Installing build dependencies and generating App Icon...
 echo [3/4] Compiling Executable...
 if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
-:: Build as a single directory application using OmniMesh.spec
-"%PYINSTALLER_EXE%" --clean --noconfirm "OmniMesh.spec"
+:: Build as a single directory application using OMNIME.spec
+"%PYINSTALLER_EXE%" --clean --noconfirm "OMNIME.spec"
 if %errorlevel% neq 0 (
     echo.
     echo ERROR: PyInstaller failed to build the executable!
     exit /b %errorlevel%
 )
-if exist "OMN.ico" copy /Y "OMN.ico" "dist\OmniMesh\" >nul
-if exist "OMNIMESH_reimagined_alpha.png" copy /Y "OMNIMESH_reimagined_alpha.png" "dist\OmniMesh\" >nul
+if exist "OMN.ico" copy /Y "OMN.ico" "dist\OMNIME\" >nul
+if exist "OMNIME_reimagined_alpha.png" copy /Y "OMNIME_reimagined_alpha.png" "dist\OMNIME\" >nul
 
 echo [4/4] Building Standalone Installer...
 set ISCC_PATH=
@@ -55,30 +55,30 @@ if defined ISCC_PATH (
         if exist "%%i\x64\signtool.exe" set "SIGNTOOL_PATH=%%i\x64\signtool.exe"
     )
     
-    if exist "OmniMeshCert.pfx" (
+    if exist "OMNIMECert.pfx" (
         if defined SIGNTOOL_PATH (
-            echo Found OmniMeshCert.pfx and signtool.exe, configuring digital signature...
-            "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0OmniMeshCert.pfx$q /p $qomnimesh123$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "OmniMesh.iss"
+            echo Found OMNIMECert.pfx and signtool.exe, configuring digital signature...
+            "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0OMNIMECert.pfx$q /p $qomnime123$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "OMNIME.iss"
         ) else (
             echo Warning: signtool.exe not found in Windows Kits. Building without signature.
-            "%ISCC_PATH%" "OmniMesh.iss"
+            "%ISCC_PATH%" "OMNIME.iss"
         )
     ) else (
-        echo Note: OmniMeshCert.pfx not found. Building installer without digital signature.
-        "%ISCC_PATH%" "OmniMesh.iss"
+        echo Note: OMNIMECert.pfx not found. Building installer without digital signature.
+        "%ISCC_PATH%" "OMNIME.iss"
     )
     echo.
     echo ========================================================
     echo Build complete! Your standalone installer is ready in:
-    echo %~dp0installer\OmniMesh_Setup_v2.51.1.exe
+    echo %~dp0installer\OMNIME_Setup_v99.exe
     echo ========================================================
 ) else (
     echo.
     echo ========================================================
     echo Build complete! You can find the standalone app in:
-    echo %~dp0dist\OmniMesh\
+    echo %~dp0dist\OMNIME\
     echo.
-    echo NOTE: To generate the standard Windows installer (OmniMesh_Setup.exe),
+    echo NOTE: To generate the standard Windows installer (OMNIME_Setup.exe),
     echo please install 'Inno Setup 6' and run this script again.
     echo ========================================================
 )

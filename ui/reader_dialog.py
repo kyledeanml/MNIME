@@ -46,7 +46,7 @@ class ReaderDialog(QDialog):
         super().__init__(parent)
         self.update_callback = update_callback
         self.file_items = file_items
-        self.setWindowTitle("OmniMesh - READER")
+        self.setWindowTitle("OMNIME - READER")
         self.setMinimumSize(800, 600)
         
         # Frameless dark metallic UI
@@ -57,7 +57,7 @@ class ReaderDialog(QDialog):
         self.page_idx = 0
         self._drag_pos = None
         
-        # Match OmniMesh styling
+        # Match OMNIME styling
         self.setStyleSheet("""
             ReaderDialog { background: transparent; }
             QWidget { color: #f0f6fc; }
@@ -101,7 +101,7 @@ class ReaderDialog(QDialog):
                 font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 15.0)
                 painter.setFont(font)
                 painter.setPen(QPen(QColor(255, 255, 255, 4)))
-                text = "OMNIMESH        " * 20
+                text = "OMNIME        " * 20
                 y_offset = 80
                 while y_offset < self.height() + 100:
                     painter.drawText(-100, y_offset, text)
@@ -155,7 +155,7 @@ class ReaderDialog(QDialog):
         title_label = QLabel("READER")
         title_label.setStyleSheet("color: #00d2ff; font-family: 'Segoe UI Black'; font-weight: 900; font-size: 14px; letter-spacing: 1px;")
         
-        # Floating Close Button matching OmniMesh Theme
+        # Floating Close Button matching OMNIME Theme
         self.close_btn = QPushButton("✕", self.container_frame)
         self.close_btn.setFixedSize(32, 32)
         self.close_btn.setStyleSheet("""

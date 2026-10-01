@@ -1,5 +1,5 @@
 """
-UI package for OmniMesh Desktop Application.
+UI package for OMNIME Desktop Application.
 """
 
 from .main_window import MainWindow

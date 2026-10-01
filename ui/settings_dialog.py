@@ -11,7 +11,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("NLP Model & Hardware Settings")
         self.setMinimumWidth(750)
-        self.settings = QSettings("OmniMesh", "OmniMeshApp")
+        self.settings = QSettings("OMNIME", "OMNIMEApp")
         
         self.setStyleSheet("""
             QDialog {
@@ -65,7 +65,7 @@ class SettingsDialog(QDialog):
         model_layout = QVBoxLayout(model_group)
         
         info_label = QLabel(
-            "OmniMesh NLP features require a local GGUF model.\n"
+            "OMNIME NLP features require a local GGUF model.\n"
             "Download a model (e.g., Qwen3.5-4B-Q4_K_M.gguf) and select it below."
         )
         info_label.setWordWrap(True)
@@ -73,7 +73,7 @@ class SettingsDialog(QDialog):
         
         path_layout = QHBoxLayout()
         self.path_input = QLineEdit()
-        self.path_input.setPlaceholderText("Select model path... (OmniMesh is highly optimized for Qwen3.5-4B-Q4_K_M)")
+        self.path_input.setPlaceholderText("Select model path... (OMNIME is highly optimized for Qwen3.5-4B-Q4_K_M)")
         
         browse_btn = QPushButton("Browse")
         browse_btn.clicked.connect(self._browse)

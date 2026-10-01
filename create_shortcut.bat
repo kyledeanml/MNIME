@@ -1,9 +1,9 @@
 @echo off
-title OmniMesh - Create Desktop ^& Quickbar Shortcut
+title OMNIME - Create Desktop ^& Quickbar Shortcut
 cd /d "%~dp0"
 
 echo ========================================================
-echo Generating OmniMesh Quickbar and Desktop Shortcuts
+echo Generating OMNIME Quickbar and Desktop Shortcuts
 echo ========================================================
 echo.
 
@@ -17,7 +17,7 @@ if exist ".venv\Scripts\python.exe" (
 
 echo.
 echo ========================================================
-echo A shortcut 'OmniMesh' has been created on
+echo A shortcut 'OMNIME' has been created on
 echo your Desktop and inside this folder!
 echo.
 echo To pin to your Quickbar / Taskbar:

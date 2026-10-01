@@ -139,7 +139,7 @@ class TabsBar(QWidget):
             QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #00d2ff; border-radius: 3px; background-color: #162438; }
             QCheckBox::indicator:checked { background-color: #00e5ff; }
         """)
-        settings = QSettings("OmniMesh", "OmniMeshApp")
+        settings = QSettings("OMNIME", "OMNIMEApp")
         self.nlp_checkbox.setChecked(str(settings.value("nlp_enabled", "true")).lower() == "true")
         self.nlp_checkbox.toggled.connect(self._on_nlp_toggled)
         layout.addWidget(self.nlp_checkbox)
@@ -152,7 +152,7 @@ class TabsBar(QWidget):
 
     def _on_nlp_toggled(self, checked):
         from PyQt6.QtCore import QSettings
-        settings = QSettings("OmniMesh", "OmniMeshApp")
+        settings = QSettings("OMNIME", "OMNIMEApp")
         settings.setValue("nlp_enabled", checked)
 
     def _on_tab_clicked(self, mode: ToolMode):

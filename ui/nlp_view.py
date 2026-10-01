@@ -20,7 +20,7 @@ class IndexWorker(QThread):
     def run(self):
         try:
             from PyQt6.QtCore import QSettings
-            settings = QSettings("OmniMesh", "OmniMeshApp")
+            settings = QSettings("OMNIME", "OMNIMEApp")
             smart_sampling = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
             
             vectorstore = SearchEngine.build_index(

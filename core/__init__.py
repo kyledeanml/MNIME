@@ -1,5 +1,5 @@
 """
-Core business logic and processing engines for OmniMesh Desktop.
+Core business logic and processing engines for OMNIME Desktop.
 """
 
 from .file_item import FileItem, FileStatus

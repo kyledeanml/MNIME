@@ -1,9 +1,9 @@
 @echo off
-title OmniMesh Desktop - Setup
+title OMNIME Desktop - Setup
 cd /d "%~dp0"
 
 echo ========================================================
-echo Installing OmniMesh Desktop Dependencies
+echo Installing OMNIME Desktop Dependencies
 echo ========================================================
 echo.
 

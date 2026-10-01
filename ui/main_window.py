@@ -144,11 +144,11 @@ class ReaderBezelWidget(QWidget):
         painter.drawPath(stroke_path)
 
 class MainWindow(QMainWindow):
-    """OmniMesh main application window featuring a free-floating dark metallic interface."""
+    """OMNIME main application window featuring a free-floating dark metallic interface."""
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("OmniMesh - Advanced File Manipulator")
+        self.setWindowTitle("OMNIME - Advanced File Manipulator")
         self.setMinimumWidth(940)
         self.setFixedHeight(420) # Lock vertical resize, make it very slim
         self.resize(1350, 420)
@@ -488,7 +488,7 @@ class MainWindow(QMainWindow):
                 painter.setFont(font)
                 painter.setPen(QPen(QColor(255, 255, 255, 4))) # Extremely light translucent watermark
                 
-                text = "OMNIMESH        " * 20
+                text = "OMNIME        " * 20
                 y_offset = 80
                 while y_offset < self.height() + 100:
                     painter.drawText(-100, y_offset, text)
@@ -633,7 +633,7 @@ class MainWindow(QMainWindow):
         tray_icon = get_tray_icon()
         if not tray_icon.isNull():
             self.tray_icon.setIcon(tray_icon)
-        self.tray_icon.setToolTip("OmniMesh")
+        self.tray_icon.setToolTip("OMNIME")
         
         tray_menu = QMenu(self)
         tray_menu.setStyleSheet("""
@@ -646,7 +646,7 @@ class MainWindow(QMainWindow):
                 background-color: #0077b6;
             }
         """)
-        show_action = tray_menu.addAction("Show OmniMesh")
+        show_action = tray_menu.addAction("Show OMNIME")
         show_action.triggered.connect(self._show_from_tray)
         
         self.startup_action = tray_menu.addAction("Run on Startup")
@@ -676,7 +676,7 @@ class MainWindow(QMainWindow):
         import winreg
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
-            value, _ = winreg.QueryValueEx(key, "OmniMesh")
+            value, _ = winreg.QueryValueEx(key, "OMNIME")
             winreg.CloseKey(key)
             return True
         except WindowsError:
@@ -688,9 +688,9 @@ class MainWindow(QMainWindow):
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_ALL_ACCESS)
             if checked:
                 exe_path = sys.executable if getattr(sys, 'frozen', False) else os.path.abspath(sys.argv[0])
-                winreg.SetValueEx(key, "OmniMesh", 0, winreg.REG_SZ, f'"{exe_path}"')
+                winreg.SetValueEx(key, "OMNIME", 0, winreg.REG_SZ, f'"{exe_path}"')
             else:
-                winreg.DeleteValue(key, "OmniMesh")
+                winreg.DeleteValue(key, "OMNIME")
             winreg.CloseKey(key)
         except Exception as e:
             print(f"Failed to set startup: {e}")
@@ -1026,25 +1026,25 @@ class MainWindow(QMainWindow):
         from core.pdf_engine import PDFEngine
 
         if self.current_mode == ToolMode.COMBINE_PDF:
-            output_file = os.path.join(temp_dir, "omnimesh_merged.pdf")
+            output_file = os.path.join(temp_dir, "omnime_merged.pdf")
             self._start_task(target=PDFEngine.combine_files, file_items=self.file_items, output_path=output_file)
         elif self.current_mode == ToolMode.JPG_TO_PDF:
-            output_file = os.path.join(temp_dir, "omnimesh_converted.pdf")
+            output_file = os.path.join(temp_dir, "omnime_converted.pdf")
             self._start_task(target=PDFEngine.convert_jpg_to_pdf, image_items=self.file_items, output_path=output_file)
         elif self.current_mode == ToolMode.TXT_TO_PDF:
-            output_file = os.path.join(temp_dir, "omnimesh_txt_converted.pdf")
+            output_file = os.path.join(temp_dir, "omnime_txt_converted.pdf")
             # Reuse the high-speed combine_files which already handles .txt merging & conversion
             self._start_task(target=PDFEngine.combine_files, file_items=self.file_items, output_path=output_file)
         elif self.current_mode == ToolMode.PDF_TO_JPG:
             import shutil
-            output_dir = os.path.join(temp_dir, "omnimesh_jpg_export")
+            output_dir = os.path.join(temp_dir, "omnime_jpg_export")
             if os.path.exists(output_dir): shutil.rmtree(output_dir)
             os.makedirs(output_dir)
             self._start_task(target=PDFEngine.convert_pdf_to_jpg, pdf_item=self.file_items[0], output_dir=output_dir, dpi=200)
             self.temp_dir_to_zip = output_dir
         elif self.current_mode == ToolMode.SPLIT_PDF:
             import shutil
-            output_dir = os.path.join(temp_dir, "omnimesh_split_export")
+            output_dir = os.path.join(temp_dir, "omnime_split_export")
             if os.path.exists(output_dir): shutil.rmtree(output_dir)
             os.makedirs(output_dir)
             self._start_task(target=PDFEngine.split_pdf, pdf_item=self.file_items[0], output_dir=output_dir)
@@ -1098,7 +1098,7 @@ class MainWindow(QMainWindow):
                 from core.search_engine import SearchEngine
                 from PyQt6.QtCore import QSettings
                 
-                settings = QSettings("OmniMesh", "OmniMeshApp")
+                settings = QSettings("OMNIME", "OMNIMEApp")
                 smart_sampling = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
                 vectorstore = SearchEngine.build_index(other_files, use_smart_sampling=smart_sampling, progress_callback=progress_callback)
                 context_docs = SearchEngine.search(vectorstore, text, k=5)
@@ -1164,6 +1164,6 @@ class MainWindow(QMainWindow):
 
         QMessageBox.critical(
             self,
-            "Error - OmniMesh",
+            "Error - OMNIME",
             f"An error occurred while processing:\n\n{err_msg}"
         )

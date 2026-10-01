@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="OMN.ico" alt="OmniMesh Banner" width="100%">
+  <img src="OMNIMESH_reimagined_alpha.png" alt="OmniMesh Banner" width="100%">
 </p>
 
 

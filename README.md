@@ -170,3 +170,4 @@ Click the **Gear Icon** (located next to the NLP tab) to open the Hardware & Mod
 OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
 #### _Built with AntiGravity '26kb_
+#### _omnimesh_

@@ -119,7 +119,7 @@ OmniMesh/
 
 Welcome to **OmniMesh Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OmniMesh provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
 
-### 🛠️ Core Capabilities
+### Core Capabilities
 
 OmniMesh provides a wide array of document processing tools, all accessible from the top **Tabs Bar**. As you hover over the tabs, stylized neon text will guide you.
 

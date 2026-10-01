@@ -3,13 +3,13 @@
 
 [Setup]
 AppName=OmniMesh
-AppVersion=2.1
+AppVersion=2.5
 AppPublisher=OmniMesh
 AppPublisherURL=https://omnimesh.app
 DefaultDirName={localappdata}\Programs\OmniMesh
 DefaultGroupName=OmniMesh
 OutputDir=installer
-OutputBaseFilename=OmniMesh_Setup_v2.1
+OutputBaseFilename=OmniMesh_Setup_v2.5
 SetupIconFile=OMN.ico
 LicenseFile=LICENSE
 #ifdef SignInstaller

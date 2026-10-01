@@ -1,5 +1,5 @@
 @echo off
-title OmniMesh v2.1 Builder and Installer
+title OmniMesh v2.5 Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================
@@ -70,7 +70,7 @@ if defined ISCC_PATH (
     echo.
     echo ========================================================
     echo Build complete! Your standalone installer is ready in:
-    echo %~dp0installer\OmniMesh_Setup_v2.1.exe
+    echo %~dp0installer\OmniMesh_Setup_v2.5.exe
     echo ========================================================
 ) else (
     echo.

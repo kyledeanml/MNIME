@@ -77,6 +77,72 @@ if sys.platform == "win32":
         pass
 
 
+class ReaderBezelWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(160, 24)
+        
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 2)
+        layout.setSpacing(0)
+        
+        self.reader_btn = QPushButton("READER")
+        self.reader_btn.setFixedHeight(20)
+        self.reader_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #00d2ff;
+                font-family: 'Segoe UI Black', sans-serif;
+                font-weight: 900;
+                font-size: 11px;
+                letter-spacing: 1px;
+                border: 1px solid rgba(0, 210, 255, 50);
+                border-radius: 4px;
+                padding: 0 10px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 210, 255, 20);
+                border: 1px solid rgba(0, 210, 255, 150);
+            }
+        """)
+        
+        layout.addStretch()
+        layout.addWidget(self.reader_btn)
+        layout.addStretch()
+
+    def paintEvent(self, event):
+        from PyQt6.QtGui import QPainter, QPainterPath, QColor, QLinearGradient, QPen
+        from PyQt6.QtCore import Qt
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        width = self.width()
+        height = self.height()
+        
+        path = QPainterPath()
+        path.moveTo(0, height)
+        path.cubicTo(15, height, 20, 0, 35, 0)
+        path.lineTo(width - 35, 0)
+        path.cubicTo(width - 20, 0, width - 15, height, width, height)
+        path.lineTo(0, height)
+        
+        grad = QLinearGradient(0, 0, 0, height)
+        grad.setColorAt(0, QColor(28, 33, 43, 230))
+        grad.setColorAt(1, QColor(28, 33, 43, 230))
+        
+        painter.fillPath(path, grad)
+        
+        pen = QPen(QColor(255, 255, 255, 40))
+        pen.setWidthF(1.5)
+        painter.setPen(pen)
+        
+        stroke_path = QPainterPath()
+        stroke_path.moveTo(0, height)
+        stroke_path.cubicTo(15, height, 20, 0, 35, 0)
+        stroke_path.lineTo(width - 35, 0)
+        stroke_path.cubicTo(width - 20, 0, width - 15, height, width, height)
+        painter.drawPath(stroke_path)
+
 class MainWindow(QMainWindow):
     """OmniMesh main application window featuring a free-floating dark metallic interface."""
 
@@ -115,6 +181,12 @@ class MainWindow(QMainWindow):
         # NOTE: _bypass_uipi_for_drag_drop is intentionally NOT called here.
         # It must run AFTER show() so it can override Qt's OLE DnD registration.
         # See showEvent().
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'bezel'):
+            # Center horizontally, position at the top (extending above the container padding)
+            self.bezel.move((self.width() - self.bezel.width()) // 2, 0)
 
     def showEvent(self, event):
         """Register WM_DROPFILES AFTER Qt has finished its internal OLE DnD setup."""
@@ -402,7 +474,7 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setMouseTracking(True)
         base_layout = QVBoxLayout(central_widget)
-        base_layout.setContentsMargins(10, 10, 10, 10) # Padding for the shadow/cut effect
+        base_layout.setContentsMargins(10, 24, 10, 10) # 24px padding for the extended bezel effect
 
         class WatermarkFrame(QFrame):
             def paintEvent(self, event):
@@ -463,6 +535,15 @@ class MainWindow(QMainWindow):
         top_bar = QHBoxLayout()
         top_bar.setContentsMargins(0, 0, 0, 10)
         top_bar.setSpacing(8)
+        
+        # Centered bezel extension for the READER button
+        self.bezel = ReaderBezelWidget(central_widget)
+        self.bezel.reader_btn.clicked.connect(self._open_reader)
+        # Position initialization will be handled by resizeEvent, but let's set it safely here
+        self.bezel.move((self.width() - self.bezel.width()) // 2, 0)
+        self.bezel.show()
+        self.bezel.raise_()
+        
         top_bar.addStretch()
         
         min_btn = QPushButton("─")
@@ -580,6 +661,15 @@ class MainWindow(QMainWindow):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self._on_tray_activated)
         self.tray_icon.show()
+
+    def _on_reader_files_updated(self, paths):
+        self._clear_files()
+        self._add_files(paths)
+
+    def _open_reader(self):
+        from ui.reader_dialog import ReaderDialog
+        dialog = ReaderDialog(self.file_items, None, update_callback=self._on_reader_files_updated)
+        dialog.exec()
 
     def _check_startup_enabled(self) -> bool:
         import winreg

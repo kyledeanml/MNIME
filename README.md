@@ -1,8 +1,7 @@
 <p align="center">
   <img src="OMN.jpg" alt="OmniMesh Banner" width="100%">
 </p>
-
-# OmniMesh v2.1
+# OmniMesh v2.5
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -61,11 +60,17 @@ Run the build_app.bat with Inno Setup 6 installed
 
 ## Changelog
 
+### v2.5 — UI & UX Complete Overhaul
+- **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
+- **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
+- **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
+- **Improved**: The Image and PDF Edit UIs have been fully upgraded to the OmniMesh translucent dark metallic theme, matching the rest of the application's premium aesthetic.
+
 ### v2.1 — Compatibility & Stability
 - **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py` (`OverflowError: cannot convert longdouble infinity to integer` / `arange: cannot compute length`).
 - **Updated**: NumPy dependency bumped from `<2.0.0` → `>=2.0.0` (now ships with NumPy 2.5.x). NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
 - **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
-- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.1.exe` for clarity.
+- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.5.exe` for clarity.
 
 ### v2.0 — Initial Public Release
 - Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
@@ -127,10 +132,10 @@ OmniMesh provides a wide array of document processing tools, all accessible from
 - **JPG to PDF**: Convert image files into a high-quality PDF.
 - **TXT to PDF**: Rapidly convert raw text files into searchable, native vector PDFs using a high-speed rendering engine.
 - **PDF to JPG**: Export pages of a PDF into high-resolution JPG images.
-- **Split PDF**: Separate a multi-page PDF into individual files. Features AI-powered Smart Naming that reads page content to automatically generate unique, highly relevant filenames.
+- **Split PDF**: Separate a multi-page PDF into individual files. Features NLP powered Smart Naming that reads page content to automatically generate unique, highly relevant filenames.
 - **Compress PDF**: Reduce the file size of heavy PDF documents.
 - **PDF to DOCX**: Convert PDFs into editable Word documents.
-- **Bookmark**: Add structured bookmarks to your PDF using either fast native heuristics or NLP-powered semantic chapter summaries.
+- **Bookmark**: Add structured bookmarks to your PDF using either fast native heuristics or NLP powered semantic chapter summaries.
 
 ### NLP & Reference Engine
 
@@ -159,15 +164,22 @@ Once files are added, they appear as interactive cards in the **Gallery Carousel
 The bottom of the screen houses the **Action Bar**, which is laser-focused on execution.
 - **Primary Action Button**: Depending on your selected mode (e.g., `MERGE FILES`), this button will initiate the high-speed processing engine.
 - **Progress Indicator**: A sleek progress bar will appear to keep you updated on the task's status.
-- **Global NLP Toggle**: Located in the top Tabs Bar, the **"NLP Active"** checkbox acts as a master killswitch. Turn it off to instantly disable all AI features and run the app in ultra-lightweight mode.
+- **Global NLP Toggle**: Located in the top Tabs Bar, the **"NLP Active"** checkbox acts as a master killswitch. Turn it off to instantly disable all NLP features and run the app in ultra-lightweight mode.
 
 #### 4. Settings
 Click the **Gear Icon** (located next to the NLP tab) to open the Hardware & Model Settings.
 - Configure your local model paths.
 - Adjust thread counts and GPU offloading parameters (optimized for NVIDIA hardware) to maximize processing speed.
 
+#### 5. Document Reader & Editor
+OmniMesh includes a built-in high-resolution **Document Reader** and **Edit UI**.
+- **High-Res Rendering**: Documents and images are rendered internally at 4.0x Retina pixel density for ultra-sharp, anti-aliased visual clarity.
+- **Fluid Zooming**: Use `Ctrl + Mouse Scroll` to smoothly zoom in and out of documents in both the Reader and the Edit viewports.
+- **Independent Windows**: The Reader and Editor run as fully independent, resizable, frameless dark metallic windows that seamlessly synchronize with your main OmniMesh file queue.
+
 ### Error Handling & Validation
 OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
-#### _Built with AntiGravity '26kb_
-#### _omnimesh_
+
+### _omnimesh_
+## '26kb

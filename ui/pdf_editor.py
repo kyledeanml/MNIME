@@ -15,6 +15,8 @@ class PDFEditorDialog(QDialog):
         self.file_item = file_item
         self.setWindowTitle(f"Edit PDF - {file_item.file_name}")
         self.setMinimumSize(800, 600)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         try:
             self.doc = fitz.open(file_item.file_path)
@@ -25,10 +27,19 @@ class PDFEditorDialog(QDialog):
             self.reject()
             return
             
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #11151f;
-                color: #f0f6fc;
+        from PyQt6.QtWidgets import QFrame, QGraphicsDropShadowEffect
+        self.container_frame = QFrame(self)
+        self.container_frame.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(28, 33, 43, 230), stop:0.5 rgba(16, 20, 28, 220), stop:1 rgba(8, 10, 15, 230));
+                border-top: 1.5px solid rgba(255, 255, 255, 40);
+                border-left: 1.5px solid rgba(255, 255, 255, 30);
+                border-right: 1.5px solid rgba(0, 210, 255, 150);
+                border-bottom: 1.5px solid rgba(0, 210, 255, 150);
+                border-top-left-radius: 40px;
+                border-top-right-radius: 8px;
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 40px;
             }
             QPushButton {
                 background-color: #162438;
@@ -43,14 +54,40 @@ class PDFEditorDialog(QDialog):
                 background-color: #0077b6;
                 color: #ffffff;
             }
-            QLabel { color: #8b949e; }
+            QLabel { color: #8b949e; font-weight: bold; border: none; background: transparent; }
         """)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setOffset(0, 4)
+        self.container_frame.setGraphicsEffect(shadow)
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.container_frame)
         
         self.setup_ui()
         self.update_pdf_display()
 
     def setup_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self.container_frame)
+        layout.setContentsMargins(16, 16, 16, 16)
+        
+        top_bar = QHBoxLayout()
+        title = QLabel(f"EDIT PDF - {self.file_item.file_name}")
+        title.setStyleSheet("color: #00d2ff; font-family: 'Segoe UI Black'; font-size: 14px; letter-spacing: 1px;")
+        
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(32, 32)
+        close_btn.setStyleSheet("""
+            QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 16px; font-size: 16px; font-weight: 900; }
+            QPushButton:hover { background-color: #00d2ff; color: #000000; }
+        """)
+        close_btn.clicked.connect(self.reject)
+        
+        top_bar.addWidget(title)
+        top_bar.addStretch()
+        top_bar.addWidget(close_btn)
+        layout.addLayout(top_bar)
         
         # We'll preview Page 0 for crop/rotate operations
         self.info_label = QLabel("Previewing Page 1. Rotation and cropping will apply to ALL pages.")
@@ -94,8 +131,8 @@ class PDFEditorDialog(QDialog):
         
         # Render the first page
         page = self.doc[0]
-        # Use a decent zoom for the preview
-        zoom = 2.0
+        # Use a high zoom for Retina-like sharp preview
+        zoom = 4.0
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)
         
@@ -109,6 +146,7 @@ class PDFEditorDialog(QDialog):
         self.page_rect = page.rect
         
         self.pixmap_item = QGraphicsPixmapItem(qpixmap)
+        self.pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.scene.addItem(self.pixmap_item)
         self.scene.setSceneRect(QRectF(qpixmap.rect()))
         

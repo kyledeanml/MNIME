@@ -11,7 +11,8 @@ from PIL import Image
 class ImageCropView(QGraphicsView):
     def __init__(self, scene, parent=None):
         super().__init__(scene, parent)
-        self.setDragMode(QGraphicsView.DragMode.NoDrag)
+        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.rubber_band = QRect()
         self.start_pos = QPoint()
         self.is_drawing = False
@@ -22,7 +23,21 @@ class ImageCropView(QGraphicsView):
             self.rubber_band = QRect(self.start_pos, self.start_pos)
             self.is_drawing = True
             self.viewport().update()
+        elif event.button() == Qt.MouseButton.MiddleButton:
+            self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+            super().mousePressEvent(event)
+            return
         super().mousePressEvent(event)
+        
+    def wheelEvent(self, event):
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            if event.angleDelta().y() > 0:
+                factor = 1.15
+            else:
+                factor = 1 / 1.15
+            self.scale(factor, factor)
+        else:
+            super().wheelEvent(event)
 
     def mouseMoveEvent(self, event):
         if self.is_drawing:
@@ -58,6 +73,8 @@ class ImageEditorDialog(QDialog):
         self.file_item = file_item
         self.setWindowTitle("Edit Image")
         self.setMinimumSize(800, 600)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         # Load image via PIL to manage rotation and cropping
         try:
@@ -69,10 +86,19 @@ class ImageEditorDialog(QDialog):
             
         self.current_rotation = 0
         
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #11151f;
-                color: #f0f6fc;
+        from PyQt6.QtWidgets import QFrame, QGraphicsDropShadowEffect
+        self.container_frame = QFrame(self)
+        self.container_frame.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(28, 33, 43, 230), stop:0.5 rgba(16, 20, 28, 220), stop:1 rgba(8, 10, 15, 230));
+                border-top: 1.5px solid rgba(255, 255, 255, 40);
+                border-left: 1.5px solid rgba(255, 255, 255, 30);
+                border-right: 1.5px solid rgba(0, 210, 255, 150);
+                border-bottom: 1.5px solid rgba(0, 210, 255, 150);
+                border-top-left-radius: 40px;
+                border-top-right-radius: 8px;
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 40px;
             }
             QPushButton {
                 background-color: #162438;
@@ -87,13 +113,40 @@ class ImageEditorDialog(QDialog):
                 background-color: #0077b6;
                 color: #ffffff;
             }
+            QLabel { color: #8b949e; font-weight: bold; border: none; background: transparent; }
         """)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setOffset(0, 4)
+        self.container_frame.setGraphicsEffect(shadow)
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.container_frame)
         
         self.setup_ui()
         self.update_image_display()
 
     def setup_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self.container_frame)
+        layout.setContentsMargins(16, 16, 16, 16)
+        
+        top_bar = QHBoxLayout()
+        title = QLabel(f"EDIT IMAGE - {self.file_item.file_name}")
+        title.setStyleSheet("color: #00d2ff; font-family: 'Segoe UI Black'; font-size: 14px; letter-spacing: 1px;")
+        
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(32, 32)
+        close_btn.setStyleSheet("""
+            QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 16px; font-size: 16px; font-weight: 900; }
+            QPushButton:hover { background-color: #00d2ff; color: #000000; }
+        """)
+        close_btn.clicked.connect(self.reject)
+        
+        top_bar.addWidget(title)
+        top_bar.addStretch()
+        top_bar.addWidget(close_btn)
+        layout.addLayout(top_bar)
         
         self.scene = QGraphicsScene(self)
         self.view = ImageCropView(self.scene, self)
@@ -135,6 +188,7 @@ class ImageEditorDialog(QDialog):
         os.remove(temp_path)
         
         self.pixmap_item = QGraphicsPixmapItem(pixmap)
+        self.pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.scene.addItem(self.pixmap_item)
         self.scene.setSceneRect(QRectF(pixmap.rect()))
         

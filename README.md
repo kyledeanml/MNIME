@@ -2,7 +2,7 @@
   <img src="OMN.jpg" alt="OmniMesh Banner" width="100%">
 </p>
 
-# OmniMesh v2.0
+# OmniMesh v2.1
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -56,6 +56,23 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 
 ### 4. Create a stand-alone installer
 Run the build_app.bat with Inno Setup 6 installed
+
+---
+
+## Changelog
+
+### v2.1 — Compatibility & Stability
+- **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py` (`OverflowError: cannot convert longdouble infinity to integer` / `arange: cannot compute length`).
+- **Updated**: NumPy dependency bumped from `<2.0.0` → `>=2.0.0` (now ships with NumPy 2.5.x). NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
+- **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
+- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.1.exe` for clarity.
+
+### v2.0 — Initial Public Release
+- Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
+- Free-floating dark metallic PyQt6 UI with physics particle transitions.
+- Local offline GGUF model integration via `llama-cpp-python`.
+
+---
 
 ## 📁 Project Architecture
 

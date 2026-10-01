@@ -1,6 +1,8 @@
 <p align="center">
   <img src="OMN.jpg" alt="OmniMesh Banner" width="100%">
 </p>
+
+
 # OmniMesh v2.5
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
@@ -181,5 +183,4 @@ OmniMesh includes a built-in high-resolution **Document Reader** and **Edit UI**
 OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
 
-### _omnimesh_
-## '26kb
+_omnimesh_ - '26kb

@@ -10,7 +10,6 @@ from PyQt6.QtWidgets import (
     QProgressBar, QFrame
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint, QEvent
-from PyQt6.QtGui import QCursor
 from .icons import get_icon
 
 
@@ -19,8 +18,7 @@ class ActionBar(QWidget):
 
     action_triggered = pyqtSignal()
     action_hovered = pyqtSignal(bool, object)  # (is_hovered, global_pos: QPoint)
-    upload_clicked = pyqtSignal()
-    clear_clicked = pyqtSignal()
+
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -40,60 +38,6 @@ class ActionBar(QWidget):
         btn_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         btn_row.setSpacing(14)
 
-        # ADD FILES Button
-        self.upload_btn = QPushButton("  ADD FILES")
-        self.upload_btn.setIcon(get_icon("upload", "#00e5ff"))
-        self.upload_btn.setCursor(get_custom_cursor())
-        self.upload_btn.setFixedHeight(36)
-        self.upload_btn.setFixedWidth(140)
-        self.upload_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f2438, stop:1 #091724);
-                color: #00e5ff;
-                border: 1.5px solid #00d2ff;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 700;
-                letter-spacing: 0.8px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #153754, stop:1 #0d253b);
-                border: 1.5px solid #38bdf8;
-                color: #ffffff;
-            }
-            QPushButton:pressed {
-                background: #091724;
-                border: 1.5px solid #00a8cc;
-            }
-        """)
-        self.upload_btn.clicked.connect(self.upload_clicked.emit)
-
-        # CLEAR Button
-        self.clear_btn = QPushButton("  CLEAR")
-        self.clear_btn.setIcon(get_icon("clear", "#8b949e"))
-        self.clear_btn.setCursor(get_custom_cursor())
-        self.clear_btn.setFixedHeight(36)
-        self.clear_btn.setFixedWidth(100)
-        self.clear_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #11151f;
-                color: #8b949e;
-                border: 1px solid #252d3d;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-            }
-            QPushButton:hover {
-                background-color: #241418;
-                border: 1px solid #c53030;
-                color: #ff6b6b;
-            }
-            QPushButton:pressed {
-                background-color: #1a0f12;
-            }
-        """)
-        self.clear_btn.clicked.connect(self.clear_clicked.emit)
 
         self.action_btn = QPushButton("  MERGE FILES")
         self.action_btn.setIcon(get_icon("download", "#ffffff"))
@@ -151,9 +95,7 @@ class ActionBar(QWidget):
             }
         """)
 
-        btn_row.addWidget(self.upload_btn)
-        btn_row.addWidget(self.clear_btn)
-        btn_row.addSpacing(20)
+
         
         btn_row.addWidget(self.action_btn)
         btn_row.addWidget(self.badge_label)

@@ -1,4 +1,4 @@
-# OmniMesh
+# OmniMesh v2.0
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -7,11 +7,14 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 ## Key Features
 
 1. **Merge Files**: Select up to 5000 PDF and image files, drag and drop to reorder, and merge them sequentially into a single PDF document.
-2. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
-3. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
-4. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
-5. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
-6. **Smart Bookmarks**: Intelligently analyze PDF typography, font sizes, and chapter headings to automatically generate a full Table of Contents.
+2. **Edit Suite (Images & PDFs)**: Visually crop and rotate images and all pages within PDF documents seamlessly within the app.
+3. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
+4. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
+5. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
+6. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
+7. **Semantic Bookmarks**: Intelligently analyze PDF typography and use the local NLP engine to automatically generate verbose, context-aware chapter summaries.
+7. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally with your own offline GGUF language model.
+8. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.
 
 ### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
@@ -58,6 +61,7 @@ OmniMesh/
 │   ├── __init__.py
 │   ├── app_icon.py        # Windows AppUserModelID, ICO generator, & shortcuts
 │   ├── file_item.py       # Data model, metadata reader & thumbnail generator
+│   ├── nlp_engine.py      # Local LLM integration for GGUF models
 │   ├── pdf_engine.py      # PDF merge, convert, compress, & DOCX export logic
 │   ├── search_engine.py   # Advanced file and document search engine
 │   └── worker.py          # Asynchronous QThread background worker
@@ -66,16 +70,19 @@ OmniMesh/
 │   ├── action_bar.py      # Primary execution button and actions
 │   ├── carousel_view.py   # Reorderable horizontal file card carousel & clean dropzone
 │   ├── cursor_fx.py       # Custom cursor effects
+│   ├── document_viewer.py # Document visualizer for REFERENCE tasks
 │   ├── file_card.py       # Individual file cards with status, progress, & drag-and-drop
 │   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
 │   ├── icons.py           # Resolution-independent vector SVG icons
 │   ├── main_window.py     # Free-floating dark metallic window coordinator
 │   ├── merge_particles.py # Physics-based particle simulation for transitions
 │   ├── minimize_animation.py # Custom minimize animations
+│   ├── nlp_view.py        # NLP/RAG interface
 │   ├── output_view.py     # Log or output view component
+│   ├── settings_dialog.py # Model configuration UI
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
-├── OmniMeshLogo.jpg       # High-resolution whispy metallic logo
-├── OmniMeshLogo.ico       # Multi-resolution native Windows icon
+├── OMN.jpg                # High-resolution whispy metallic logo
+├── OMN.ico                # Multi-resolution native Windows icon
 ├── main.py                # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator
 ├── run.bat                # 1-click Windows runner
@@ -84,3 +91,59 @@ OmniMesh/
 ├── requirements.txt       # Python dependencies list
 └── README.md              # Project documentation
 ```
+
+---
+
+## ❓ Help & User Guide
+
+Welcome to **OmniMesh Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OmniMesh provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
+
+### 🛠️ Core Capabilities
+
+OmniMesh provides a wide array of document processing tools, all accessible from the top **Tabs Bar**. As you hover over the tabs, stylized neon text will guide you.
+
+- **Combine PDF**: Merge multiple PDF documents into a single file.
+- **JPG to PDF**: Convert image files into a high-quality PDF.
+- **TXT to PDF**: Rapidly convert raw text files into searchable, native vector PDFs using a high-speed rendering engine.
+- **PDF to JPG**: Export pages of a PDF into high-resolution JPG images.
+- **Split PDF**: Separate a multi-page PDF into individual files. Features AI-powered Smart Naming that reads page content to automatically generate unique, highly relevant filenames.
+- **Compress PDF**: Reduce the file size of heavy PDF documents.
+- **PDF to DOCX**: Convert PDFs into editable Word documents.
+- **Bookmark**: Add structured bookmarks to your PDF using either fast native heuristics or NLP-powered semantic chapter summaries.
+
+### 🧠 NLP & Reference Engine
+
+OmniMesh is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
+
+- **NLP (Chat)**: Engage with your documents using a conversational interface. **Optimized specifically for the `Qwen3.5-4B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
+- **Reference**: Generate synthesized briefs and cross-reference information across multiple uploaded documents.
+
+> **Note**: To use the NLP and Reference features, you must first configure the correct model path in the **Settings** menu.
+
+### 🖥️ Interface Guide
+
+The OmniMesh interface is designed to be sleek, intuitive, and highly responsive.
+
+#### 1. The Drop Zone (Right Side)
+Permanently docked on the right side of the screen is the **OmniMesh Drop Zone**.
+- **Drag and Drop**: Simply drag your files over the OmniMesh logo to queue them for processing.
+- **Add Files Button**: Click the neon-outlined `ADD FILES` button directly underneath the logo to open a file browser.
+
+#### 2. Gallery Carousel (Left Side)
+Once files are added, they appear as interactive cards in the **Gallery Carousel** on the left.
+- **Scroll & Reorder**: Scroll horizontally to view all queued files. You can click and drag cards to reorder them before merging.
+- **Clear All**: In the bottom corner of the gallery, you will find a custom neon-red **"X"** icon. Click this to instantly clear your entire file queue.
+
+#### 3. Action Bar & Global Toggles
+The bottom of the screen houses the **Action Bar**, which is laser-focused on execution.
+- **Primary Action Button**: Depending on your selected mode (e.g., `MERGE FILES`), this button will initiate the high-speed processing engine.
+- **Progress Indicator**: A sleek progress bar will appear to keep you updated on the task's status.
+- **Global NLP Toggle**: Located in the top Tabs Bar, the **"NLP Active"** checkbox acts as a master killswitch. Turn it off to instantly disable all AI features and run the app in ultra-lightweight mode.
+
+#### 4. Settings
+Click the **Gear Icon** (located next to the NLP tab) to open the Hardware & Model Settings.
+- Configure your local model paths.
+- Adjust thread counts and GPU offloading parameters (optimized for NVIDIA hardware) to maximize processing speed.
+
+### ⚠️ Error Handling & Validation
+OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.

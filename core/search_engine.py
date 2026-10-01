@@ -73,12 +73,12 @@ class SearchEngine:
 
     @staticmethod
     def build_index(
-        file_item: FileItem,
+        file_items: List[FileItem],
         use_smart_sampling: bool = True,
         progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> Any:
         """
-        Extracts the given file (if zip), loads texts, and builds a FAISS vector index.
+        Loads texts from given files, including PDFs, and builds a FAISS vector index.
         Returns the FAISS vectorstore.
         """
         import pandas as pd
@@ -87,25 +87,27 @@ class SearchEngine:
         from langchain_huggingface import HuggingFaceEmbeddings
         from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-        extract_dir = os.path.join(os.path.dirname(file_item.file_path), f"extracted_{int(time.time())}")
-        
         if progress_callback:
             progress_callback(10, "Preparing files...")
 
         data_list = []
-        if file_item.extension == ".zip":
-            os.makedirs(extract_dir, exist_ok=True)
-            try:
-                with zipfile.ZipFile(file_item.file_path, 'r') as z_ref:
-                    z_ref.extractall(extract_dir)
-                data_list = SearchEngine.load_files(extract_dir)
-            except Exception as e:
-                SearchEngine._safe_remove_directory(extract_dir)
-                raise RuntimeError(f"Failed to extract or read ZIP: {e}")
-            finally:
-                SearchEngine._safe_remove_directory(extract_dir)
-        else:
-            if file_item.extension in (".py", ".txt", ".md", ".json", ".csv", ".js", ".ts", ".html", ".css", ".cpp", ".c", ".h", ".java"):
+        for file_item in file_items:
+            if file_item.extension == ".pdf":
+                try:
+                    import pymupdf
+                    doc = pymupdf.open(file_item.file_path)
+                    content_str = ""
+                    for page in doc:
+                        content_str += page.get_text() + "\n"
+                    doc.close()
+                    data_list.append({
+                        "path": file_item.file_path,
+                        "content": content_str,
+                        "lines": len(content_str.splitlines())
+                    })
+                except Exception as e:
+                    pass
+            elif file_item.extension in (".py", ".txt", ".md", ".json", ".csv", ".js", ".ts", ".html", ".css", ".cpp", ".c", ".h", ".java"):
                 try:
                     with open(file_item.file_path, 'r', encoding='utf-8') as f_reader:
                         content_str = f_reader.read()

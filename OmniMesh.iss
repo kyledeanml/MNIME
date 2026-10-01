@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=OmniMesh
-AppVersion=1.5
+AppVersion=2.0
 AppPublisher=OmniMesh
 AppPublisherURL=https://omnimesh.app
 DefaultDirName={localappdata}\Programs\OmniMesh

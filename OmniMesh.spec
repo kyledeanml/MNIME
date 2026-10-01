@@ -21,6 +21,7 @@ hiddenimports = [
     'core',
     'core.app_icon',
     'core.file_item',
+    'core.nlp_engine',
     'core.pdf_engine',
     'core.search_engine',
     'core.worker',
@@ -28,17 +29,22 @@ hiddenimports = [
     'ui.action_bar',
     'ui.carousel_view',
     'ui.cursor_fx',
+    'ui.document_viewer',
     'ui.file_card',
     'ui.file_dialog',
     'ui.icons',
+    'ui.image_editor',
     'ui.main_window',
     'ui.merge_particles',
     'ui.minimize_animation',
+    'ui.nlp_view',
     'ui.output_view',
+    'ui.pdf_editor',
+    'ui.settings_dialog',
     'ui.tabs_bar',
 ]
 
-for pkg in ['pymupdf', 'pdf2docx', 'pypdf']:
+for pkg in ['pymupdf', 'pdf2docx', 'pypdf', 'langchain', 'langchain_community', 'sentence_transformers', 'faiss', 'llama_cpp']:
     try:
         pkg_datas, pkg_binaries, pkg_hiddenimports = collect_all(pkg)
         datas += pkg_datas
@@ -56,7 +62,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['scipy', 'pandas', 'torch', 'matplotlib', 'tensorflow', 'sklearn', 'scikit-learn', 'nltk', 'IPython', 'transformers', 'datasets', 'spacy'],
+    excludes=['scipy', 'matplotlib', 'tensorflow', 'sklearn', 'scikit-learn', 'nltk', 'IPython', 'spacy'],
     noarchive=False,
     optimize=0,
 )

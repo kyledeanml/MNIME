@@ -31,7 +31,7 @@ class ClippedCardsArea(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAcceptDrops(True)
+        self.setAcceptDrops(False)
         self._scroll_offset = 0
         self._cards: List[FileCard] = []
         self._spacing = 14
@@ -95,45 +95,6 @@ class ClippedCardsArea(QWidget):
     # Drag events — accept OS file drops (fallback if OLE DnD is active)
     # Internal card reorder is handled by mouse events, not DnD.
     # ------------------------------------------------------------------
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            from ui.cursor_fx import get_file_drag_cursor
-            from PyQt6.QtWidgets import QApplication
-            if QApplication.overrideCursor() is None:
-                QApplication.setOverrideCursor(get_file_drag_cursor())
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-    def dragLeaveEvent(self, event):
-        from PyQt6.QtWidgets import QApplication
-        while QApplication.overrideCursor() is not None:
-            QApplication.restoreOverrideCursor()
-        super().dragLeaveEvent(event)
-
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        from PyQt6.QtWidgets import QApplication
-        while QApplication.overrideCursor() is not None:
-            QApplication.restoreOverrideCursor()
-        mime = event.mimeData()
-        if mime.hasUrls():
-            paths = [u.toLocalFile() for u in mime.urls() if u.isLocalFile()]
-            if paths:
-                p = self.parent()
-                while p and not hasattr(p, "files_dropped"):
-                    p = p.parent()
-                if p:
-                    p.files_dropped.emit(paths)
-                event.acceptProposedAction()
-        else:
-            event.ignore()
-
     def wheelEvent(self, event):
         delta = event.angleDelta().y() or event.angleDelta().x()
         if delta:
@@ -201,14 +162,16 @@ class CarouselView(QWidget):
     files_reordered = pyqtSignal()
     file_removed = pyqtSignal(object)   # FileItem
     files_dropped = pyqtSignal(list)    # List[str]
+    upload_clicked = pyqtSignal()
+    clear_clicked = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.file_items: List[FileItem] = []
         self.cards: List[FileCard] = []
 
-        # CarouselView itself accepts OS drops
-        self.setAcceptDrops(True)
+        # CarouselView itself no longer accepts OS drops to restrict it to DropZone
+        self.setAcceptDrops(False)
         self._setup_ui()
 
     # ------------------------------------------------------------------
@@ -217,7 +180,13 @@ class CarouselView(QWidget):
     def _setup_ui(self):
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 8, 0, 8)
-        main_layout.setSpacing(8)
+        main_layout.setSpacing(12)
+
+        # ------------------- Gallery Section (Left) -------------------
+        self.gallery_widget = QWidget()
+        gallery_layout = QHBoxLayout(self.gallery_widget)
+        gallery_layout.setContentsMargins(0, 0, 0, 0)
+        gallery_layout.setSpacing(8)
 
         # Left scroll button
         self.left_btn = QPushButton()
@@ -240,13 +209,20 @@ class CarouselView(QWidget):
             }
         """)
         self.left_btn.clicked.connect(self._scroll_left)
-        main_layout.addWidget(self.left_btn)
+        gallery_layout.addWidget(self.left_btn)
 
-        # Center container
+        # Center container for Cards
         self.center_container = QWidget()
         self.center_container.setObjectName("center_container")
+        self.center_container.setStyleSheet("""
+            QWidget#center_container {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(16, 20, 30, 0.6), stop:1 rgba(10, 13, 20, 0.6));
+                border: 1px solid #00d2ff;
+                border-radius: 12px;
+            }
+        """)
         self.center_layout = QVBoxLayout(self.center_container)
-        self.center_layout.setContentsMargins(0, 0, 0, 0)
+        self.center_layout.setContentsMargins(4, 4, 4, 4)
 
         # Ambient glow
         self.carousel_glow = QGraphicsDropShadowEffect(self)
@@ -255,40 +231,30 @@ class CarouselView(QWidget):
         self.carousel_glow.setOffset(0, 0)
         self.center_container.setGraphicsEffect(self.carousel_glow)
 
-        # Empty / drop zone (shown when no files loaded)
-        self.empty_zone = DropZoneFrame(self)
-        self.empty_zone.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10141e, stop:1 #0a0d14);
-                border: 1.5px solid #212a3d;
-                border-radius: 14px;
-            }
-        """)
-        empty_layout = QVBoxLayout(self.empty_zone)
-        empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.setSpacing(10)
-
-        cloud_icon = QLabel()
-        cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        logo_path = get_resource_path("OMN.jpg")
-        original_pixmap = QPixmap(logo_path)
-        if not original_pixmap.isNull():
-            logo_pixmap = original_pixmap.scaled(
-                180, 180,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            cloud_icon.setPixmap(logo_pixmap)
-        cloud_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(cloud_icon)
-
         # Cards area (replaces QScrollArea)
         self.cards_area = ClippedCardsArea()
         self.cards_area.setStyleSheet("background: transparent;")
+        
+        self.center_layout.addWidget(self.cards_area, 1)
 
-        self.center_layout.addWidget(self.empty_zone)
-        self.center_layout.addWidget(self.cards_area)
-        main_layout.addWidget(self.center_container, 1)
+        self.clear_layout = QHBoxLayout()
+        self.clear_layout.addStretch()
+        self.clear_btn = QPushButton()
+        self.clear_btn.setIcon(get_icon("close", "#00e5ff"))
+        self.clear_btn.setFixedSize(28, 28)
+        self.clear_btn.setCursor(get_custom_cursor())
+        self.clear_btn.setToolTip("Clear All Files")
+        self.clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+            }
+        """)
+        self.clear_btn.clicked.connect(self.clear_clicked.emit)
+        self.clear_layout.addWidget(self.clear_btn)
+        self.center_layout.addLayout(self.clear_layout)
+
+        gallery_layout.addWidget(self.center_container, 1)
 
         # Right scroll button
         self.right_btn = QPushButton()
@@ -311,7 +277,73 @@ class CarouselView(QWidget):
             }
         """)
         self.right_btn.clicked.connect(self._scroll_right)
-        main_layout.addWidget(self.right_btn)
+        gallery_layout.addWidget(self.right_btn)
+
+        main_layout.addWidget(self.gallery_widget, 1)
+
+        # ------------------- Drop Zone Section (Right) -------------------
+        self.drop_zone_widget = QWidget()
+        self.drop_zone_widget.setFixedWidth(220)
+        drop_layout = QVBoxLayout(self.drop_zone_widget)
+        drop_layout.setContentsMargins(0, 0, 0, 0)
+        drop_layout.setSpacing(10)
+
+        self.empty_zone = DropZoneFrame(self)
+        self.empty_zone.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10141e, stop:1 #0a0d14);
+                border: 1.5px solid #212a3d;
+                border-radius: 14px;
+            }
+        """)
+        empty_layout = QVBoxLayout(self.empty_zone)
+        empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_layout.setSpacing(10)
+
+        cloud_icon = QLabel()
+        cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        logo_path = get_resource_path("OMN.jpg")
+        original_pixmap = QPixmap(logo_path)
+        if not original_pixmap.isNull():
+            logo_pixmap = original_pixmap.scaled(
+                160, 160,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            cloud_icon.setPixmap(logo_pixmap)
+        cloud_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_layout.addWidget(cloud_icon)
+        
+        self.add_files_btn = QPushButton("  ADD FILES")
+        self.add_files_btn.setIcon(get_icon("upload", "#00e5ff"))
+        self.add_files_btn.setCursor(get_custom_cursor())
+        self.add_files_btn.setFixedHeight(36)
+        self.add_files_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f2438, stop:1 #091724);
+                color: #00e5ff;
+                border: 1.5px solid #00d2ff;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #153754, stop:1 #0d253b);
+                border: 1.5px solid #38bdf8;
+                color: #ffffff;
+            }
+            QPushButton:pressed {
+                background: #091724;
+                border: 1.5px solid #00a8cc;
+            }
+        """)
+        self.add_files_btn.clicked.connect(self.upload_clicked.emit)
+
+        drop_layout.addWidget(self.empty_zone, 1)
+        drop_layout.addWidget(self.add_files_btn)
+
+        main_layout.addWidget(self.drop_zone_widget)
 
         self.refresh_view()
 
@@ -331,15 +363,11 @@ class CarouselView(QWidget):
         self.cards.clear()
 
         if not self.file_items:
-            self.empty_zone.setVisible(True)
-            self.cards_area.setVisible(False)
             self.left_btn.setEnabled(False)
             self.right_btn.setEnabled(False)
             self.cards_area.set_cards([])
             return
 
-        self.empty_zone.setVisible(False)
-        self.cards_area.setVisible(True)
         self.left_btn.setEnabled(True)
         self.right_btn.setEnabled(True)
 
@@ -368,8 +396,6 @@ class CarouselView(QWidget):
                     c.index = i
 
                 if not self.file_items:
-                    self.empty_zone.setVisible(True)
-                    self.cards_area.setVisible(False)
                     self.left_btn.setEnabled(False)
                     self.right_btn.setEnabled(False)
 

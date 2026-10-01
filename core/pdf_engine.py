@@ -239,6 +239,15 @@ class PDFEngine:
         try:
             import pymupdf
             import concurrent.futures
+            from PyQt6.QtCore import QSettings
+            from core.nlp_engine import NLPEngine
+
+            settings = QSettings("OmniMesh", "OmniMeshApp")
+            use_nlp = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
+            nlp_engine = NLPEngine.get_instance()
+            if use_nlp:
+                nlp_engine.check_model()
+            is_nlp_active = use_nlp and nlp_engine.is_loaded
 
             doc = pymupdf.open(pdf_item.file_path)
             total_pages = len(doc)
@@ -247,9 +256,20 @@ class PDFEngine:
             def process_page(page_num):
                 try:
                     local_doc = pymupdf.open(pdf_item.file_path)
+                    page = local_doc[page_num]
+                    fallback_name = f"{base_name}_page_{page_num + 1:03d}"
+                    final_name = fallback_name
+
+                    if is_nlp_active:
+                        page_text = page.get_text("text").strip()
+                        smart_name = nlp_engine.generate_smart_filename(page_text, fallback_name)
+                        # Append page number to guarantee uniqueness
+                        if smart_name != fallback_name:
+                            final_name = f"{smart_name}_p{page_num + 1:03d}"
+                            
                     new_doc = pymupdf.open()
                     new_doc.insert_pdf(local_doc, from_page=page_num, to_page=page_num)
-                    out_path = os.path.join(output_dir, f"{base_name}_page_{page_num + 1:03d}.pdf")
+                    out_path = os.path.join(output_dir, f"{final_name}.pdf")
                     new_doc.save(out_path, garbage=3, deflate=True)
                     new_doc.close()
                     local_doc.close()
@@ -470,10 +490,20 @@ class PDFEngine:
         """
         try:
             import pymupdf
+            from PyQt6.QtCore import QSettings
+            from core.nlp_engine import NLPEngine
+            
             os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
+            settings = QSettings("OmniMesh", "OmniMeshApp")
+            use_nlp = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
+            nlp_engine = NLPEngine.get_instance()
+            if use_nlp:
+                nlp_engine.check_model()
+            is_nlp_active = use_nlp and nlp_engine.is_loaded
+
             if progress_callback:
-                progress_callback(10, "Opening PDF for analysis...")
+                progress_callback(5, "Opening PDF for analysis...")
 
             doc = pymupdf.open(pdf_item.file_path)
             toc = []
@@ -558,6 +588,12 @@ class PDFEngine:
 
                 # Only add a bookmark if we confidently found a heading
                 if best_text:
+                    if is_nlp_active:
+                        if progress_callback:
+                            progress_callback(pct, f"AI summarizing page {i+1}/{total_pages}...")
+                        page_text = page.get_text("text").strip()
+                        best_text = nlp_engine.generate_verbose_bookmark(best_text, page_text)
+                        
                     toc.append([1, best_text, i + 1])
                     
             if not toc:

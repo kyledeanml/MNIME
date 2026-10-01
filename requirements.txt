@@ -16,3 +16,12 @@ python-docx>=0.8.11
 
 # Fix numpy binary incompatibility with scipy/pdf2docx during build
 numpy<2.0.0
+
+# Local NLP & RAG Support
+llama-cpp-python>=0.2.75
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-huggingface>=0.1.0
+faiss-cpu>=1.8.0
+sentence-transformers>=2.7.0
+pandas>=2.2.0

@@ -23,6 +23,9 @@ from .tabs_bar import TabsBar, ToolMode
 from .carousel_view import CarouselView
 from .action_bar import ActionBar
 from .output_view import OutputView
+from .nlp_view import NLPView
+from .settings_dialog import SettingsDialog
+from .document_viewer import DocumentViewer
 
 import sys
 if sys.platform == "win32":
@@ -401,7 +404,25 @@ class MainWindow(QMainWindow):
         base_layout = QVBoxLayout(central_widget)
         base_layout.setContentsMargins(10, 10, 10, 10) # Padding for the shadow/cut effect
 
-        self.container_frame = QFrame()
+        class WatermarkFrame(QFrame):
+            def paintEvent(self, event):
+                super().paintEvent(event)
+                from PyQt6.QtGui import QPainter, QFont, QPen, QColor
+                from PyQt6.QtCore import Qt
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                font = QFont("Segoe UI Black", 80, QFont.Weight.Black)
+                font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 15.0)
+                painter.setFont(font)
+                painter.setPen(QPen(QColor(255, 255, 255, 4))) # Extremely light translucent watermark
+                
+                text = "OMNIMESH        " * 20
+                y_offset = 80
+                while y_offset < self.height() + 100:
+                    painter.drawText(-100, y_offset, text)
+                    y_offset += 180
+
+        self.container_frame = WatermarkFrame()
         self.container_frame.setMouseTracking(True)
         self.container_frame.setObjectName("container_frame")
         self.container_frame.setStyleSheet("""
@@ -489,6 +510,7 @@ class MainWindow(QMainWindow):
         # 2. Free-floating Tabs Bar
         self.tabs_bar = TabsBar(self)
         self.tabs_bar.mode_changed.connect(self._on_mode_changed)
+        self.tabs_bar.settings_clicked.connect(self._open_settings)
         main_layout.addWidget(self.tabs_bar)
 
         # 3. Free-floating File Cards Carousel & Clean Dropzone
@@ -496,6 +518,8 @@ class MainWindow(QMainWindow):
         self.carousel.files_dropped.connect(self._add_files)
         self.carousel.file_removed.connect(self._on_file_removed)
         self.carousel.files_reordered.connect(self._on_files_reordered)
+        self.carousel.upload_clicked.connect(self._open_file_dialog)
+        self.carousel.clear_clicked.connect(self._clear_files)
         main_layout.addWidget(self.carousel, 1)
 
         # Output View (Hidden by default)
@@ -504,10 +528,13 @@ class MainWindow(QMainWindow):
         self.output_view.hide()
         main_layout.addWidget(self.output_view, 1)
 
+        # NLP View (Hidden by default)
+        self.nlp_view = NLPView(self)
+        self.nlp_view.hide()
+        main_layout.addWidget(self.nlp_view, 1)
+
         self.action_bar = ActionBar(self)
         self.action_bar.action_triggered.connect(self._execute_action)
-        self.action_bar.upload_clicked.connect(self._open_file_dialog)
-        self.action_bar.clear_clicked.connect(self._clear_files)
         self.action_bar.action_hovered.connect(self._on_action_hovered)
         main_layout.addWidget(self.action_bar)
 
@@ -629,6 +656,8 @@ class MainWindow(QMainWindow):
             self.action_bar.set_action_title("MERGE")
         elif mode == ToolMode.JPG_TO_PDF:
             self.action_bar.set_action_title("CONVERT TO PDF")
+        elif mode == ToolMode.TXT_TO_PDF:
+            self.action_bar.set_action_title("CONVERT TO PDF")
         elif mode == ToolMode.PDF_TO_JPG:
             self.action_bar.set_action_title("EXTRACT TO JPG")
         elif mode == ToolMode.COMPRESS_PDF:
@@ -637,18 +666,87 @@ class MainWindow(QMainWindow):
             self.action_bar.set_action_title("CONVERT TO DOCX")
         elif mode == ToolMode.SPLIT_PDF:
             self.action_bar.set_action_title("SPLIT")
+        elif mode == ToolMode.EDIT_IMAGE:
+            self.action_bar.set_action_title("EDIT")
+        elif mode == ToolMode.NLP:
+            self.action_bar.set_action_title("START NLP")
+        elif mode == ToolMode.REFERENCE:
+            self.action_bar.set_action_title("OPEN VIEWER")
         elif mode == ToolMode.BOOKMARK:
             self.action_bar.set_action_title("BOOKMARK")
 
         self.action_bar.update_count(len(self.file_items))
 
+        # Handle view switching
+        if mode == ToolMode.NLP:
+            from core.nlp_engine import NLPEngine
+            engine = NLPEngine.get_instance()
+            engine.check_model()
+            if not engine.is_loaded:
+                from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel
+                from PyQt6.QtCore import Qt
+                
+                dialog = QDialog(self)
+                dialog.setWindowTitle("Model Required")
+                dialog.setFixedSize(450, 220)
+                dialog.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
+                dialog.setStyleSheet("""
+                    QDialog { background-color: #0b0f19; border: 2px solid #00d2ff; border-radius: 12px; }
+                    QLabel { color: #f0f6fc; font-size: 14px; }
+                    QLabel#title { color: #00e5ff; font-size: 18px; font-weight: bold; }
+                    QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 6px; padding: 8px 24px; font-weight: bold; font-size: 14px; }
+                    QPushButton:hover { background-color: #0077b6; color: #ffffff; }
+                """)
+                
+                layout = QVBoxLayout(dialog)
+                layout.setContentsMargins(30, 30, 30, 30)
+                layout.setSpacing(15)
+                
+                title = QLabel("AI Model Required")
+                title.setObjectName("title")
+                title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(title)
+                
+                msg = QLabel(f"Please configure a valid GGUF model in Settings first.\n\n{engine.error}")
+                msg.setWordWrap(True)
+                msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(msg)
+                
+                layout.addStretch()
+                
+                btn_layout = QHBoxLayout()
+                btn_layout.addStretch()
+                ok_btn = QPushButton("OK")
+                from ui.cursor_fx import get_custom_cursor
+                ok_btn.setCursor(get_custom_cursor())
+                ok_btn.clicked.connect(dialog.accept)
+                btn_layout.addWidget(ok_btn)
+                btn_layout.addStretch()
+                layout.addLayout(btn_layout)
+                
+                dialog.exec()
+                
+                self.tabs_bar._buttons[ToolMode.COMBINE_PDF].setChecked(True)
+                self._on_mode_changed(ToolMode.COMBINE_PDF)
+                return
+                
+            self.carousel.hide()
+            self.output_view.hide()
+            self.nlp_view.show()
+        else:
+            self.nlp_view.hide()
+            if not self.output_view.isVisible():
+                self.carousel.show()
+
     def _get_file_filters(self) -> str:
         """Return file dialog filter based on active tool mode."""
         if self.current_mode == ToolMode.COMBINE_PDF:
             return "Documents & Images (*.pdf *.jpg *.jpeg *.png *.webp *.bmp *.txt);;PDF Files (*.pdf);;Text Files (*.txt);;Images (*.jpg *.png);;All Files (*.*)"
-        elif self.current_mode == ToolMode.JPG_TO_PDF:
+        elif self.current_mode in [ToolMode.JPG_TO_PDF, ToolMode.EDIT_IMAGE]:
             return "Images (*.jpg *.jpeg *.png *.webp *.bmp);;All Files (*.*)"
-        elif self.current_mode in [ToolMode.PDF_TO_JPG, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.SPLIT_PDF, ToolMode.BOOKMARK]:
+        elif self.current_mode == ToolMode.TXT_TO_PDF:
+            return "Text Files (*.txt);;All Files (*.*)"
+        elif self.current_mode in [ToolMode.PDF_TO_JPG, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.SPLIT_PDF, ToolMode.BOOKMARK, ToolMode.NLP, ToolMode.REFERENCE]:
             return "PDF Files (*.pdf);;All Files (*.*)"
         return "All Files (*.*)"
 
@@ -760,6 +858,7 @@ class MainWindow(QMainWindow):
     def _execute_action(self):
         """Execute the primary operation depending on active tab."""
         if not self.file_items:
+            QMessageBox.warning(self, "No Files", "Please add at least one document before running this tool.")
             return
 
         single_file_modes = [ToolMode.PDF_TO_JPG, ToolMode.SPLIT_PDF, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.BOOKMARK]
@@ -770,12 +869,70 @@ class MainWindow(QMainWindow):
                 f"{self.current_mode.value} only processes one file at a time. Only the first file ({self.file_items[0].file_name}) will be processed."
             )
 
+        if self.current_mode == ToolMode.COMBINE_PDF and len(self.file_items) < 2:
+            QMessageBox.warning(self, "Not Enough Files", "Please add at least two files to merge.")
+            return
+
+        pdf_modes = [ToolMode.SPLIT_PDF, ToolMode.COMPRESS_PDF, ToolMode.PDF_TO_DOCX, ToolMode.BOOKMARK, ToolMode.PDF_TO_JPG]
+        if self.current_mode in pdf_modes:
+            if not self.file_items[0].file_path.lower().endswith('.pdf'):
+                QMessageBox.warning(self, "Invalid File Type", f"{self.current_mode.value} requires a PDF file.")
+                return
+                
+        image_modes = [ToolMode.JPG_TO_PDF]
+        if self.current_mode in image_modes:
+            valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.bmp')
+            if not all(item.file_path.lower().endswith(valid_exts) for item in self.file_items):
+                QMessageBox.warning(self, "Invalid File Type", f"{self.current_mode.value} only supports image files (JPG, PNG, WEBP, BMP).")
+                return
+                
+        if self.current_mode == ToolMode.EDIT_IMAGE:
+            valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.bmp', '.pdf')
+            if not all(item.file_path.lower().endswith(valid_exts) for item in self.file_items):
+                QMessageBox.warning(self, "Invalid File Type", f"EDIT only supports images and PDFs.")
+                return
+                
+        txt_modes = [ToolMode.TXT_TO_PDF]
+        if self.current_mode in txt_modes:
+            valid_exts = ('.txt',)
+            if not all(item.file_path.lower().endswith(valid_exts) for item in self.file_items):
+                QMessageBox.warning(self, "Invalid File Type", f"{self.current_mode.value} only supports text files (TXT).")
+                return
+
         # Trigger hyper-speed collapse of file particles into the merge button center!
-        if hasattr(self, 'particle_overlay'):
+        if hasattr(self, 'particle_overlay') and self.current_mode != ToolMode.EDIT_IMAGE:
             self.particle_overlay.trigger_hyper_collapse()
+
+        if self.current_mode == ToolMode.EDIT_IMAGE:
+            for item in self.file_items:
+                if item.file_path.lower().endswith('.pdf'):
+                    from ui.pdf_editor import PDFEditorDialog
+                    dialog = PDFEditorDialog(item, self)
+                    dialog.exec()
+                else:
+                    from ui.image_editor import ImageEditorDialog
+                    dialog = ImageEditorDialog(item, self)
+                    dialog.exec()
+                # Clear cached thumbnail so it redraws
+                item.thumbnail_bytes = None
+                item._cached_pixmap = None
+            
+            self.carousel.refresh_view()
+            return
+            
+        if self.current_mode == ToolMode.NLP:
+            self.nlp_view.start_indexing(self.file_items)
+            return
+            
+        if self.current_mode == ToolMode.REFERENCE:
+            viewer = DocumentViewer(self.file_items[0], self)
+            viewer.exec()
+            return
 
         import tempfile
         temp_dir = tempfile.gettempdir()
+
+        from core.pdf_engine import PDFEngine
 
         if self.current_mode == ToolMode.COMBINE_PDF:
             output_file = os.path.join(temp_dir, "omnimesh_merged.pdf")
@@ -783,6 +940,10 @@ class MainWindow(QMainWindow):
         elif self.current_mode == ToolMode.JPG_TO_PDF:
             output_file = os.path.join(temp_dir, "omnimesh_converted.pdf")
             self._start_task(target=PDFEngine.convert_jpg_to_pdf, image_items=self.file_items, output_path=output_file)
+        elif self.current_mode == ToolMode.TXT_TO_PDF:
+            output_file = os.path.join(temp_dir, "omnimesh_txt_converted.pdf")
+            # Reuse the high-speed combine_files which already handles .txt merging & conversion
+            self._start_task(target=PDFEngine.combine_files, file_items=self.file_items, output_path=output_file)
         elif self.current_mode == ToolMode.PDF_TO_JPG:
             import shutil
             output_dir = os.path.join(temp_dir, "omnimesh_jpg_export")
@@ -812,8 +973,6 @@ class MainWindow(QMainWindow):
 
     def _start_task(self, target, **kwargs):
         """Starts worker thread and connects UI feedback signals."""
-        self.action_bar.upload_btn.setEnabled(False)
-        self.action_bar.clear_btn.setEnabled(False)
         self.action_bar.action_btn.setEnabled(False)
         self.action_bar.show_progress(0, "Processing task...")
 
@@ -828,12 +987,46 @@ class MainWindow(QMainWindow):
         from PyQt6.QtCore import QTimer
         QTimer.singleShot(1000, self.worker.start)
 
+    def _open_settings(self):
+        dialog = SettingsDialog(self)
+        dialog.exec()
+
+    def _run_reference(self, text: str, viewer: DocumentViewer):
+        self.action_bar.show_progress(0, "Synthesizing brief...")
+        other_files = [f for f in self.file_items if f != viewer.file_item]
+        
+        def _reference_task(progress_callback=None):
+            if other_files:
+                from core.nlp_engine import NLPEngine
+                nlp = NLPEngine.get_instance()
+                nlp.check_model()
+                
+                if not nlp.is_loaded:
+                    return f"⚠️ NLP Engine Unavailable.\n\n{nlp.error}\n\nPlease check the 'NLP Active' toggle in the Tabs Bar or select a valid GGUF model in Settings."
+                    
+                from core.search_engine import SearchEngine
+                from PyQt6.QtCore import QSettings
+                
+                settings = QSettings("OmniMesh", "OmniMeshApp")
+                smart_sampling = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
+                vectorstore = SearchEngine.build_index(other_files, use_smart_sampling=smart_sampling, progress_callback=progress_callback)
+                context_docs = SearchEngine.search(vectorstore, text, k=5)
+                return NLPEngine.get_instance().synthesize_reference(text, context_docs)
+            return "No other documents available to reference against."
+
+        self.worker = TaskWorker(_reference_task)
+        self.worker.finished.connect(lambda res: self._on_reference_finished(res, viewer))
+        self.worker.error.connect(lambda err: self._on_reference_finished(f"Error: {err}", viewer))
+        self.worker.start()
+
+    def _on_reference_finished(self, result: str, viewer: DocumentViewer):
+        self.action_bar.hide_progress()
+        viewer.set_result(result)
+
     def _on_worker_progress(self, pct: int, msg: str):
         self.action_bar.show_progress(pct, msg)
 
     def _on_worker_finished(self, result):
-        self.action_bar.upload_btn.setEnabled(True)
-        self.action_bar.clear_btn.setEnabled(True)
         self.action_bar.action_btn.setEnabled(True)
         self.action_bar.show_progress(100, "Completed successfully!")
         
@@ -855,6 +1048,13 @@ class MainWindow(QMainWindow):
             self.particle_overlay.trigger_dramatic_flash(btn_center, on_peak_callback=perform_screen_swap)
         else:
             perform_screen_swap()
+
+    def _on_worker_error(self, err_msg: str):
+        self.action_bar.action_btn.setEnabled(True)
+        self.action_bar.hide_progress()
+        QMessageBox.critical(self, "Processing Error", f"An error occurred during processing:\n{err_msg}")
+        if hasattr(self, 'particle_overlay'):
+            self.particle_overlay.clear_all()
 
     def _start_over(self):
         self._clear_files()

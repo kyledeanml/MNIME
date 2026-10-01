@@ -115,7 +115,7 @@ OmniMesh/
 
 ---
 
-## ❓ Help & User Guide
+## Help & User Guide
 
 Welcome to **OmniMesh Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OmniMesh provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
 
@@ -132,7 +132,7 @@ OmniMesh provides a wide array of document processing tools, all accessible from
 - **PDF to DOCX**: Convert PDFs into editable Word documents.
 - **Bookmark**: Add structured bookmarks to your PDF using either fast native heuristics or NLP-powered semantic chapter summaries.
 
-### 🧠 NLP & Reference Engine
+### NLP & Reference Engine
 
 OmniMesh is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
 
@@ -141,7 +141,7 @@ OmniMesh is deeply integrated with local Natural Language Processing (NLP) to he
 
 > **Note**: To use the NLP and Reference features, you must first configure the correct model path in the **Settings** menu.
 
-### 🖥️ Interface Guide
+### Interface Guide
 
 The OmniMesh interface is designed to be sleek, intuitive, and highly responsive.
 
@@ -166,5 +166,5 @@ Click the **Gear Icon** (located next to the NLP tab) to open the Hardware & Mod
 - Configure your local model paths.
 - Adjust thread counts and GPU offloading parameters (optimized for NVIDIA hardware) to maximize processing speed.
 
-### ⚠️ Error Handling & Validation
+### Error Handling & Validation
 OmniMesh is built with robust safety nets. If you attempt to run a tool with the wrong file type (e.g., trying to run `TXT to PDF` on an image), or try to execute a task with an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.

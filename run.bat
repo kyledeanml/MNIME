@@ -4,16 +4,16 @@ cd /d "%~dp0"
 
 if exist ".venv\Scripts\python.exe" (
     echo Starting OMNIME with .venv...
-    ".venv\Scripts\python.exe" main.py
+    ".venv\Scripts\python.exe" OMNIME.py
 ) else if exist "build_env\Scripts\python.exe" (
     echo Starting OMNIME with build_env...
-    "build_env\Scripts\python.exe" main.py
+    "build_env\Scripts\python.exe" OMNIME.py
 ) else if exist "venv\Scripts\python.exe" (
     echo Starting OMNIME with venv...
-    "venv\Scripts\python.exe" main.py
+    "venv\Scripts\python.exe" OMNIME.py
 ) else (
     echo Starting OMNIME with system Python...
-    python main.py
+    python OMNIME.py
 )
 
 if %ERRORLEVEL% NEQ 0 (

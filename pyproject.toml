@@ -19,5 +19,5 @@ dependencies = [
 ]
 
 [project.scripts]
-omnime = "main:main"
+omnime = "OMNIME:main"
 

@@ -3,7 +3,7 @@
 </p>
 
 
-# OMNIME Version 99
+# OMNIME v.99
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -57,7 +57,7 @@ Run `create_shortcut.bat` to create an `OMNIME` shortcut on your Desktop and in 
 ### 3. Launch via Command Line:
 ```bash
 # Run with virtual environment
-.\.venv\Scripts\python.exe main.py
+.\.venv\Scripts\python.exe OMNIME.py
 ```
 
 ---
@@ -74,7 +74,7 @@ After building, you can run `install_omnime.bat` to install the application loca
 
 ## Changelog
 
-### Version 99 — UI & UX Complete Overhaul
+### OMNIME v.99 — UI & UX Complete Overhaul
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
@@ -126,7 +126,7 @@ OMNIME/
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
 ├── OMNIME_reimagined_alpha.png# High-resolution perfectly transparent neon logo
 ├── OMN.ico                # Multi-resolution native Windows icon
-├── main.py                # Main application entry point
+├── OMNIME.py              # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator
 ├── run.bat                # 1-click Windows runner
 ├── setup.bat              # 1-click Python setup / VENV

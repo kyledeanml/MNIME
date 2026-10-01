@@ -55,7 +55,7 @@ for pkg in ['pymupdf', 'pdf2docx', 'pypdf', 'langchain', 'langchain_community', 
         pass
 
 a = Analysis(
-    ['main.py'],
+    ['OMNIME.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,

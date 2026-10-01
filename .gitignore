@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 .venv/
+venv/
+build_env/
 
 # Build, Dist, and Installer outputs
 build/
@@ -15,11 +17,14 @@ installer/
 .idea/
 .vscode/
 *.code-workspace
+!OMNIME.code-workspace
 
 # Logs and temp files
 *.log
 *.tmp
 *.tmp.pdf
+*.pfx
+OMNIMECert.pfx
 build_log.txt
 OMNIME Builder and Installer.txt
 

@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=OMNIME
-AppVersion=99
+AppVersion=v.99
 AppPublisher=OMNIME
 AppPublisherURL=https://omnime.app
 DefaultDirName={localappdata}\Programs\OMNIME

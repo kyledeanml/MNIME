@@ -33,6 +33,6 @@ if exist ".venv\Scripts\pip.exe" (
 echo.
 echo ========================================================
 echo Setup complete! You can now run 'run.bat' or open
-echo this directory in PyCharm and run main.py.
+echo this directory in PyCharm and run OMNIME.py.
 echo ========================================================
 pause

@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "OMNIME",
+			"path": "."
+		}
+	],
+	"settings": {
+		"editor.wordWrap": "on"
+	}
+}

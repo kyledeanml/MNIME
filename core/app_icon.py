@@ -43,8 +43,8 @@ def get_ico_path() -> str:
     return get_resource_path("OMN.ico")
 
 
-def get_jpg_path() -> str:
-    return get_resource_path("OMN.jpg")
+def get_png_path() -> str:
+    return get_resource_path("OMNIME_reimagined_alpha.png")
 
 
 def setup_app_user_model_id() -> bool:
@@ -66,20 +66,20 @@ def setup_app_user_model_id() -> bool:
 def ensure_ico_file() -> Optional[str]:
     """
     Ensures that a multi-resolution Windows ICO file exists.
-    If OMN.ico does not exist, it converts OMN.jpg using Pillow.
+    If OMN.ico does not exist, it converts OMNIME_reimagined_alpha.png using Pillow.
     """
     ico_path = get_ico_path()
     if os.path.exists(ico_path):
         return ico_path
 
-    jpg_path = get_jpg_path()
-    if not os.path.exists(jpg_path):
+    png_path = get_png_path()
+    if not os.path.exists(png_path):
         return None
 
     try:
         from PIL import Image
 
-        img = Image.open(jpg_path)
+        img = Image.open(png_path)
         w, h = img.size
 
         # Center-crop to 1:1 square to maintain the circular emblem's aspect ratio
@@ -118,9 +118,9 @@ def get_app_icon() -> QIcon:
             _CACHED_APP_ICON = icon
             return _CACHED_APP_ICON
 
-    jpg = get_jpg_path()
-    if os.path.exists(jpg):
-        icon = QIcon(jpg)
+    png = get_png_path()
+    if os.path.exists(png):
+        icon = QIcon(png)
         if not icon.isNull():
             _CACHED_APP_ICON = icon
             return _CACHED_APP_ICON

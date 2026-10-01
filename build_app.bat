@@ -1,5 +1,5 @@
 @echo off
-title OMNIME Version 99 Builder and Installer
+title OMNIME v.99 Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================

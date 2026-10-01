@@ -53,6 +53,8 @@ class NLPQueryWorker(QThread):
 
 
 class NLPView(QWidget):
+    start_over_clicked = pyqtSignal()
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.vectorstore = None
@@ -72,17 +74,18 @@ class NLPView(QWidget):
             QProgressBar::chunk { background-color: #00e5ff; }
         """)
         
-        self.index_btn = QPushButton("INDEX FILES")
-        self.index_btn.setStyleSheet("""
+        self.start_over_btn = QPushButton("START OVER")
+        self.start_over_btn.setStyleSheet("""
             QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 6px; padding: 6px 18px; font-weight: bold; }
             QPushButton:hover { background-color: #0077b6; color: #ffffff; }
         """)
+        self.start_over_btn.clicked.connect(self.start_over_clicked.emit)
         
         top_layout = QHBoxLayout()
         top_layout.addWidget(self.status_label)
         top_layout.addWidget(self.progress_bar)
         top_layout.addStretch()
-        top_layout.addWidget(self.index_btn)
+        top_layout.addWidget(self.start_over_btn)
         
         self.history_view = QTextBrowser()
         self.history_view.setStyleSheet("""
@@ -106,7 +109,7 @@ class NLPView(QWidget):
             self.status_label.setText("No files to index.")
             return
 
-        self.index_btn.setEnabled(False)
+        self.start_over_btn.setEnabled(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.status_label.setText("Indexing...")
@@ -125,7 +128,7 @@ class NLPView(QWidget):
         self.vectorstore = vectorstore
         self.progress_bar.setVisible(False)
         self.status_label.setText("Indexing complete! Ask a question below.")
-        self.index_btn.setEnabled(True)
+        self.start_over_btn.setEnabled(True)
         self.query_input.setEnabled(True)
         self.query_input.setFocus()
         self.history_view.append("<div style='color:#00e5ff'><b>System:</b> Indexing complete. Ready for queries.</div><br>")
@@ -133,7 +136,7 @@ class NLPView(QWidget):
     def _on_index_error(self, err: str):
         self.progress_bar.setVisible(False)
         self.status_label.setText("Error during indexing.")
-        self.index_btn.setEnabled(True)
+        self.start_over_btn.setEnabled(True)
         self.history_view.append(f"<div style='color:#ff5555'><b>Error:</b> {err}</div><br>")
 
     def _submit_query(self):

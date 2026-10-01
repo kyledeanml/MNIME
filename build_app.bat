@@ -1,5 +1,5 @@
 @echo off
-title OMNIME v.99 Builder and Installer
+title OMNIME Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================
@@ -70,7 +70,7 @@ if defined ISCC_PATH (
     echo.
     echo ========================================================
     echo Build complete! Your standalone installer is ready in:
-    echo %~dp0installer\OMNIME_Setup_v99.exe
+    echo %~dp0installer\OMNIME_Setup.exe
     echo ========================================================
 ) else (
     echo.

@@ -3,7 +3,7 @@
 </p>
 
 
-# OMNIME v.99
+# OMNIME
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -74,7 +74,7 @@ After building, you can run `install_omnime.bat` to install the application loca
 
 ## Changelog
 
-### OMNIME v.99 — UI & UX Complete Overhaul
+### OMNIME Final Release — UI & UX Complete Overhaul
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
@@ -84,7 +84,7 @@ After building, you can run `install_omnime.bat` to install the application loca
 - **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py` (`OverflowError: cannot convert longdouble infinity to integer` / `arange: cannot compute length`).
 - **Updated**: NumPy dependency bumped from `<2.0.0` → `>=2.0.0` (now ships with NumPy 2.5.x). NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
 - **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
-- **Updated**: Installer output renamed to `OMNIME_Setup_v99.exe` for clarity.
+- **Updated**: Installer output renamed to `OMNIME_Setup.exe` for clarity.
 
 ### Version 2.0 — Initial Public Release
 - Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
@@ -143,7 +143,7 @@ OMNIME/
 
 ## Help & User Guide
 
-Welcome to **OMNIME Desktop**, your next-generation private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OMNIME provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
+Welcome to **OMNIME**, your next-generation, private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, OMNIME provides blazing-fast document processing entirely offline, utilizing hardware acceleration and optimized local models.
 
 ### Core Capabilities
 

@@ -3,13 +3,13 @@
 
 [Setup]
 AppName=OMNIME
-AppVersion=v.99
+AppVersion=Final
 AppPublisher=OMNIME
 AppPublisherURL=https://omnime.app
 DefaultDirName={localappdata}\Programs\OMNIME
 DefaultGroupName=OMNIME
 OutputDir=installer
-OutputBaseFilename=OMNIME_Setup_v99
+OutputBaseFilename=OMNIME_Setup
 SetupIconFile=OMN.ico
 LicenseFile=LICENSE
 #ifdef SignInstaller

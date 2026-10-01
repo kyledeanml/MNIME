@@ -612,6 +612,7 @@ class MainWindow(QMainWindow):
 
         # NLP View (Hidden by default)
         self.nlp_view = NLPView(self)
+        self.nlp_view.start_over_clicked.connect(self._start_over)
         self.nlp_view.hide()
         main_layout.addWidget(self.nlp_view, 1)
 
@@ -821,9 +822,9 @@ class MainWindow(QMainWindow):
                 self._on_mode_changed(ToolMode.COMBINE_PDF)
                 return
                 
-            self.carousel.hide()
-            self.output_view.hide()
-            self.nlp_view.show()
+            self.nlp_view.hide()
+            if not self.output_view.isVisible():
+                self.carousel.show()
         else:
             self.nlp_view.hide()
             if not self.output_view.isVisible():
@@ -1012,6 +1013,9 @@ class MainWindow(QMainWindow):
             return
             
         if self.current_mode == ToolMode.NLP:
+            self.carousel.hide()
+            self.action_bar.hide()
+            self.nlp_view.show()
             self.nlp_view.start_indexing(self.file_items)
             return
             
@@ -1150,6 +1154,7 @@ class MainWindow(QMainWindow):
     def _start_over(self):
         self._clear_files()
         self.output_view.hide()
+        self.nlp_view.hide()
         self.carousel.show()
         self.action_bar.show()
         self.action_bar.hide_progress()

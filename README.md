@@ -3,8 +3,6 @@
 </p>
 
 
-# OMNIME
-
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
 ---

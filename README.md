@@ -74,7 +74,7 @@ After building, you can run `install_omnime.bat` to install the application loca
 
 ## Changelog
 
-### OMNIME Final Release — UI & UX Complete Overhaul
+### OMNIME — UI & UX Complete Overhaul
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.

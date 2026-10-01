@@ -18,8 +18,8 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 5. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
 6. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
 7. **Semantic Bookmarks**: Intelligently analyze PDF typography and use the local NLP engine to automatically generate verbose, context-aware chapter summaries.
-7. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally with your own offline GGUF language model.
-8. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.
+8. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally with your own offline GGUF language model.
+9. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.
 
 ### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
@@ -39,6 +39,13 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ---
 
+## Setup & Installation
+
+### 1. Initial Setup (Required)
+Run `setup.bat` to automatically create a Python virtual environment and install all required dependencies from `requirements.txt`.
+
+---
+
 ## Running the Application
 
 ### 1. Launch via 1-Click Runner:
@@ -55,8 +62,13 @@ Run `create_shortcut.bat` to create an `OmniMesh` shortcut on your Desktop and i
 
 ---
 
-### 4. Create a stand-alone installer
-Run the build_app.bat with Inno Setup 6 installed
+## Building the Application
+
+### 1. Create a Stand-Alone Installer:
+Run `build_app.bat` with Inno Setup 6 installed to compile the application and generate a Windows installer.
+
+### 2. Local Installation:
+After building, you can run `install_omnimesh.bat` to install the application locally to your system and create Start Menu shortcuts.
 
 ---
 
@@ -102,11 +114,14 @@ OmniMesh/
 │   ├── file_card.py       # Individual file cards with status, progress, & drag-and-drop
 │   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
 │   ├── icons.py           # Resolution-independent vector SVG icons
+│   ├── image_editor.py    # Image editor UI
 │   ├── main_window.py     # Free-floating dark metallic window coordinator
 │   ├── merge_particles.py # Physics-based particle simulation for transitions
 │   ├── minimize_animation.py # Custom minimize animations
 │   ├── nlp_view.py        # NLP/RAG interface
 │   ├── output_view.py     # Log or output view component
+│   ├── pdf_editor.py      # PDF editor UI
+│   ├── reader_dialog.py   # Independent frameless document reader UI
 │   ├── settings_dialog.py # Model configuration UI
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
 ├── OMNIMESH_reimagined_alpha.png# High-resolution perfectly transparent neon logo
@@ -114,9 +129,13 @@ OmniMesh/
 ├── main.py                # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator
 ├── run.bat                # 1-click Windows runner
-├── setup.bat              # 1-click Windows installer
+├── setup.bat              # 1-click Python setup / VENV
+├── build_app.bat          # App packaging script
+├── install_omnimesh.bat   # 1-click Windows installer
+├── OmniMesh.iss           # Inno Setup compiler script
 ├── pyproject.toml         # Build & package configuration
 ├── requirements.txt       # Python dependencies list
+├── LICENSE                # Open source license
 └── README.md              # Project documentation
 ```
 

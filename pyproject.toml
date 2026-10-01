@@ -15,7 +15,8 @@ dependencies = [
     "pdf2docx>=0.5.6",
     "pymupdf>=1.23.0",
     "numpy>=2.0.0",
-    "llama-cpp-python>=0.2.75"
+    "llama-cpp-python>=0.2.75",
+    "sentence-transformers"
 ]
 
 [project.scripts]

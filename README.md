@@ -3,7 +3,8 @@
 </p>
 
 # OmniMesh v2.1
-_"It's like SkyNet for your research documents"_ 
+_"It's like SkyNet for your research documents"_
+                        - what people are saying
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
 ---

@@ -29,6 +29,7 @@ OmniMesh Builder and Installer.txt
 *.jpg
 *.jpeg
 *.png
+!OMNIMESH_reimagined_alpha.png
 *_bookmarked.pdf
 *_compressed.pdf
 *_merged.pdf

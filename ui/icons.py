@@ -28,14 +28,20 @@ SVG_ICONS = {
             <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
     """,
-    "arrow_left": """
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
+    "mouse_left": """
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="2" width="12" height="20" rx="6" ry="6"></rect>
+            <line x1="14" y1="6" x2="14" y2="11" stroke-width="3"></line>
+            <polyline points="5 15 2 12 5 9"></polyline>
+            <line x1="2" y1="12" x2="6" y2="12"></line>
         </svg>
     """,
-    "arrow_right": """
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
+    "mouse_right": """
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="12" height="20" rx="6" ry="6"></rect>
+            <line x1="10" y1="6" x2="10" y2="11" stroke-width="3"></line>
+            <polyline points="19 9 22 12 19 15"></polyline>
+            <line x1="18" y1="12" x2="22" y2="12"></line>
         </svg>
     """,
     "hourglass": """

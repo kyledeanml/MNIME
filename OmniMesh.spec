@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('OMN.jpg', '.'), ('OMN.ico', '.')]
+datas = [('OMNIMESH_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
 binaries = []
 hiddenimports = [
     'fitz',

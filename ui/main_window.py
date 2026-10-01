@@ -533,7 +533,7 @@ class MainWindow(QMainWindow):
 
         # Custom window controls (Minimize and Close buttons)
         top_bar = QHBoxLayout()
-        top_bar.setContentsMargins(0, 0, 0, 10)
+        top_bar.setContentsMargins(0, 0, 0, 0)
         top_bar.setSpacing(8)
         
         # Centered bezel extension for the READER button
@@ -544,40 +544,46 @@ class MainWindow(QMainWindow):
         self.bezel.show()
         self.bezel.raise_()
         
-        top_bar.addStretch()
+        # 2. Free-floating Tabs Bar inline with window controls
+        self.tabs_bar = TabsBar(self)
+        self.tabs_bar.mode_changed.connect(self._on_mode_changed)
+        self.tabs_bar.settings_clicked.connect(self._open_settings)
+        top_bar.addWidget(self.tabs_bar, 1)
         
         min_btn = QPushButton("─")
-        min_btn.setFixedSize(26, 26)
+        min_btn.setFixedSize(28, 28)
         min_btn.setStyleSheet("""
             QPushButton {
-                background-color: transparent;
-                color: #8b949e;
-                border: none;
+                background-color: #11151f;
+                color: #00e5ff;
+                border: 1px solid #1f2737;
                 font-size: 14px;
                 font-weight: bold;
-                border-radius: 16px;
+                border-radius: 14px;
             }
             QPushButton:hover {
-                background-color: #21262d;
+                background-color: #162438;
+                border: 1px solid #00d2ff;
                 color: #ffffff;
             }
         """)
         min_btn.clicked.connect(self._animate_minimize_to_tray)
         
         close_btn = QPushButton("✕")
-        close_btn.setFixedSize(26, 26)
+        close_btn.setFixedSize(28, 28)
         close_btn.setStyleSheet("""
             QPushButton {
-                background-color: transparent;
-                color: #8b949e;
-                border: none;
-                font-size: 16px;
+                background-color: #11151f;
+                color: #00e5ff;
+                border: 1px solid #1f2737;
+                font-size: 14px;
                 font-weight: bold;
-                border-radius: 16px;
+                border-radius: 14px;
             }
             QPushButton:hover {
                 background-color: #c53030;
-                color: white;
+                border: 1px solid #ff4d4d;
+                color: #ffffff;
             }
         """)
         close_btn.clicked.connect(self.close)
@@ -588,11 +594,6 @@ class MainWindow(QMainWindow):
 
 
 
-        # 2. Free-floating Tabs Bar
-        self.tabs_bar = TabsBar(self)
-        self.tabs_bar.mode_changed.connect(self._on_mode_changed)
-        self.tabs_bar.settings_clicked.connect(self._open_settings)
-        main_layout.addWidget(self.tabs_bar)
 
         # 3. Free-floating File Cards Carousel & Clean Dropzone
         self.carousel = CarouselView(self)
@@ -617,7 +618,7 @@ class MainWindow(QMainWindow):
         self.action_bar = ActionBar(self)
         self.action_bar.action_triggered.connect(self._execute_action)
         self.action_bar.action_hovered.connect(self._on_action_hovered)
-        main_layout.addWidget(self.action_bar)
+        self.carousel.drop_layout.insertWidget(1, self.action_bar)
 
         # Merge particle overlay for hover pull, collapse, and dramatic transition flash
         from ui.merge_particles import MergeParticleOverlay

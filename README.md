@@ -1,9 +1,7 @@
 <p align="center">
-  <img src="OMN.jpg" alt="OmniMesh Banner" width="100%">
+  <img src="OMNIMESH_reimagined_alpha.png" alt="OmniMesh Banner" width="100%">
 </p>
-
-
-# OmniMesh v2.5
+# OmniMesh Version 2.51.1
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
@@ -62,19 +60,19 @@ Run the build_app.bat with Inno Setup 6 installed
 
 ## Changelog
 
-### v2.5 — UI & UX Complete Overhaul
+### Version 2.51.1 — UI & UX Complete Overhaul
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
 - **Improved**: The Image and PDF Edit UIs have been fully upgraded to the OmniMesh translucent dark metallic theme, matching the rest of the application's premium aesthetic.
 
-### v2.1 — Compatibility & Stability
+### Version 2.1 — Compatibility & Stability
 - **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py` (`OverflowError: cannot convert longdouble infinity to integer` / `arange: cannot compute length`).
 - **Updated**: NumPy dependency bumped from `<2.0.0` → `>=2.0.0` (now ships with NumPy 2.5.x). NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
 - **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
-- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.5.exe` for clarity.
+- **Updated**: Installer output renamed to `OmniMesh_Setup_v2.51.1.exe` for clarity.
 
-### v2.0 — Initial Public Release
+### Version 2.0 — Initial Public Release
 - Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
 - Free-floating dark metallic PyQt6 UI with physics particle transitions.
 - Local offline GGUF model integration via `llama-cpp-python`.
@@ -109,7 +107,7 @@ OmniMesh/
 │   ├── output_view.py     # Log or output view component
 │   ├── settings_dialog.py # Model configuration UI
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
-├── OMN.jpg                # High-resolution whispy metallic logo
+├── OMNIMESH_reimagined_alpha.png# High-resolution perfectly transparent neon logo
 ├── OMN.ico                # Multi-resolution native Windows icon
 ├── main.py                # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator

@@ -190,17 +190,17 @@ class CarouselView(QWidget):
 
         # Left scroll button
         self.left_btn = QPushButton()
-        self.left_btn.setFixedSize(36, 64)
-        self.left_btn.setIcon(get_icon("arrow_left", "#00e5ff"))
+        self.left_btn.setFixedSize(36, 36)
+        self.left_btn.setIcon(get_icon("mouse_left", "#00e5ff"))
         self.left_btn.setCursor(get_custom_cursor())
         self.left_btn.setStyleSheet("""
             QPushButton {
                 background-color: #11151f;
                 border: 1px solid #1f2737;
-                border-radius: 8px;
+                border-radius: 18px;
             }
             QPushButton:hover {
-                background-color: #1a2233;
+                background-color: #162438;
                 border: 1px solid #00d2ff;
             }
             QPushButton:disabled {
@@ -239,6 +239,23 @@ class CarouselView(QWidget):
 
         self.clear_layout = QHBoxLayout()
         self.clear_layout.addStretch()
+        
+        self.badge_label = QLabel("0 FILES")
+        self.badge_label.setFixedHeight(20)
+        self.badge_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.badge_label.setStyleSheet("""
+            QLabel {
+                background-color: #11151f;
+                color: #485263;
+                border: 1px solid #1f2737;
+                border-radius: 10px;
+                padding: 1px 10px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+        """)
+        self.clear_layout.addWidget(self.badge_label)
+        
         self.clear_btn = QPushButton()
         self.clear_btn.setIcon(get_icon("close", "#00e5ff"))
         self.clear_btn.setFixedSize(28, 28)
@@ -258,17 +275,17 @@ class CarouselView(QWidget):
 
         # Right scroll button
         self.right_btn = QPushButton()
-        self.right_btn.setFixedSize(36, 64)
-        self.right_btn.setIcon(get_icon("arrow_right", "#00e5ff"))
+        self.right_btn.setFixedSize(36, 36)
+        self.right_btn.setIcon(get_icon("mouse_right", "#00e5ff"))
         self.right_btn.setCursor(get_custom_cursor())
         self.right_btn.setStyleSheet("""
             QPushButton {
                 background-color: #11151f;
                 border: 1px solid #1f2737;
-                border-radius: 8px;
+                border-radius: 18px;
             }
             QPushButton:hover {
-                background-color: #1a2233;
+                background-color: #162438;
                 border: 1px solid #00d2ff;
             }
             QPushButton:disabled {
@@ -283,17 +300,16 @@ class CarouselView(QWidget):
 
         # ------------------- Drop Zone Section (Right) -------------------
         self.drop_zone_widget = QWidget()
-        self.drop_zone_widget.setFixedWidth(220)
-        drop_layout = QVBoxLayout(self.drop_zone_widget)
-        drop_layout.setContentsMargins(0, 0, 0, 0)
-        drop_layout.setSpacing(10)
+        self.drop_zone_widget.setFixedWidth(300)
+        self.drop_layout = QVBoxLayout(self.drop_zone_widget)
+        self.drop_layout.setContentsMargins(0, 0, 0, 0)
+        self.drop_layout.setSpacing(10)
 
         self.empty_zone = DropZoneFrame(self)
         self.empty_zone.setStyleSheet("""
             QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10141e, stop:1 #0a0d14);
-                border: 1.5px solid #212a3d;
-                border-radius: 14px;
+                background: transparent;
+                border: none;
             }
         """)
         empty_layout = QVBoxLayout(self.empty_zone)
@@ -302,7 +318,7 @@ class CarouselView(QWidget):
 
         cloud_icon = QLabel()
         cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        logo_path = get_resource_path("OMN.jpg")
+        logo_path = get_resource_path("OMNIMESH_reimagined_alpha.png")
         original_pixmap = QPixmap(logo_path)
         if not original_pixmap.isNull():
             logo_pixmap = original_pixmap.scaled(
@@ -317,7 +333,7 @@ class CarouselView(QWidget):
         self.add_files_btn = QPushButton("  ADD FILES")
         self.add_files_btn.setIcon(get_icon("upload", "#00e5ff"))
         self.add_files_btn.setCursor(get_custom_cursor())
-        self.add_files_btn.setFixedHeight(36)
+        self.add_files_btn.setFixedHeight(24)
         self.add_files_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f2438, stop:1 #091724);
@@ -340,8 +356,12 @@ class CarouselView(QWidget):
         """)
         self.add_files_btn.clicked.connect(self.upload_clicked.emit)
 
-        drop_layout.addWidget(self.empty_zone, 1)
-        drop_layout.addWidget(self.add_files_btn)
+        self.btn_layout = QHBoxLayout()
+        self.btn_layout.setContentsMargins(40, 0, 40, 0)
+        self.btn_layout.addWidget(self.add_files_btn)
+        
+        self.drop_layout.addWidget(self.empty_zone, 1)
+        self.drop_layout.addLayout(self.btn_layout)
 
         main_layout.addWidget(self.drop_zone_widget)
 
@@ -361,6 +381,33 @@ class CarouselView(QWidget):
         for card in self.cards:
             card.deleteLater()
         self.cards.clear()
+
+        count = len(self.file_items)
+        self.badge_label.setText(f"{count} FILES" if count != 1 else "1 FILE")
+        if count > 0:
+            self.badge_label.setStyleSheet("""
+                QLabel {
+                    background-color: #081726;
+                    color: #00e5ff;
+                    border: 1.5px solid #00d2ff;
+                    border-radius: 10px;
+                    padding: 1px 10px;
+                    font-size: 11px;
+                    font-weight: 700;
+                }
+            """)
+        else:
+            self.badge_label.setStyleSheet("""
+                QLabel {
+                    background-color: #11151f;
+                    color: #485263;
+                    border: 1px solid #1f2737;
+                    border-radius: 10px;
+                    padding: 1px 10px;
+                    font-size: 11px;
+                    font-weight: 700;
+                }
+            """)
 
         if not self.file_items:
             self.left_btn.setEnabled(False)

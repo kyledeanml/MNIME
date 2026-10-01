@@ -34,7 +34,7 @@ class ActionBar(QWidget):
 
         # Center row with primary action button
         btn_row = QHBoxLayout()
-        btn_row.setContentsMargins(0, 0, 0, 0)
+        btn_row.setContentsMargins(40, 0, 40, 0)
         btn_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         btn_row.setSpacing(14)
 
@@ -42,8 +42,7 @@ class ActionBar(QWidget):
         self.action_btn = QPushButton("  MERGE FILES")
         self.action_btn.setIcon(get_icon("download", "#ffffff"))
         self.action_btn.setCursor(get_custom_cursor())
-        self.action_btn.setFixedHeight(38)
-        self.action_btn.setMinimumWidth(170)
+        self.action_btn.setFixedHeight(24)
         self.action_btn.setStyleSheet("""
             QPushButton {
                 background-color: #11151f;
@@ -78,27 +77,7 @@ class ActionBar(QWidget):
         self.action_btn.setEnabled(False)
         self.action_btn.installEventFilter(self)
 
-        # Badge label displaying file count (supports up to 500)
-        self.badge_label = QLabel("0")
-        self.badge_label.setMinimumWidth(26)
-        self.badge_label.setFixedHeight(20)
-        self.badge_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.badge_label.setStyleSheet("""
-            QLabel {
-                background-color: #11151f;
-                color: #485263;
-                border: 1px solid #1f2737;
-                border-radius: 12px;
-                padding: 1px 7px;
-                font-size: 10px;
-                font-weight: 700;
-            }
-        """)
-
-
-        
         btn_row.addWidget(self.action_btn)
-        btn_row.addWidget(self.badge_label)
         main_layout.addLayout(btn_row)
 
         # Progress bar & status message
@@ -137,35 +116,12 @@ class ActionBar(QWidget):
 
     def update_count(self, count: int):
         self.item_count = count
-        self.badge_label.setText(str(count))
 
         if count > 0:
             self.action_btn.setEnabled(True)
-            self.badge_label.setStyleSheet("""
-                QLabel {
-                    background-color: #081726;
-                    color: #00e5ff;
-                    border: 1.5px solid #00d2ff;
-                    border-radius: 12px;
-                    padding: 1px 7px;
-                    font-size: 11px;
-                    font-weight: 700;
-                }
-            """)
         else:
             self.action_btn.setEnabled(False)
             self.action_hovered.emit(False, QPoint())
-            self.badge_label.setStyleSheet("""
-                QLabel {
-                    background-color: #0e121a;
-                    color: #3b4452;
-                    border: 1px solid #1a202c;
-                    border-radius: 12px;
-                    padding: 1px 7px;
-                    font-size: 11px;
-                    font-weight: 700;
-                }
-            """)
 
     def eventFilter(self, obj, event):
         if obj is self.action_btn:

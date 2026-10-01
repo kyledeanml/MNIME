@@ -1,5 +1,5 @@
 @echo off
-title OmniMesh v2.5 Builder and Installer
+title OmniMesh Version 2.51.1 Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================
@@ -40,7 +40,7 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 if exist "OMN.ico" copy /Y "OMN.ico" "dist\OmniMesh\" >nul
-if exist "OMN.jpg" copy /Y "OMN.jpg" "dist\OmniMesh\" >nul
+if exist "OMNIMESH_reimagined_alpha.png" copy /Y "OMNIMESH_reimagined_alpha.png" "dist\OmniMesh\" >nul
 
 echo [4/4] Building Standalone Installer...
 set ISCC_PATH=
@@ -70,7 +70,7 @@ if defined ISCC_PATH (
     echo.
     echo ========================================================
     echo Build complete! Your standalone installer is ready in:
-    echo %~dp0installer\OmniMesh_Setup_v2.5.exe
+    echo %~dp0installer\OmniMesh_Setup_v2.51.1.exe
     echo ========================================================
 ) else (
     echo.

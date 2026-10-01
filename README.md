@@ -8,9 +8,6 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ---
 
->_"It's like SkyNet for your research documents"_
-
-
 ## Key Features
 
 1. **Merge Files**: Select up to 5000 PDF and image files, drag and drop to reorder, and merge them sequentially into a single PDF document.

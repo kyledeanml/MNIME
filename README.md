@@ -1,6 +1,8 @@
 <p align="center">
   <img src="OMN.ico" alt="OmniMesh Banner" width="100%">
 </p>
+
+
 # OmniMesh Version 2.51.1
 
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.

@@ -16,7 +16,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 3. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
 4. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
 5. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
-6. **PDF → DOCX**: Convert PDF pages and text layout into editable Microsoft Word (`.docx`) documents.
+6. **PDF → DOCX**: Convert PDF pages and text layout into editable .docx documents.
 7. **Semantic Bookmarks**: Intelligently analyze PDF typography and use the local NLP engine to automatically generate verbose, context-aware chapter summaries.
 8. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally with your own offline GGUF language model.
 9. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.

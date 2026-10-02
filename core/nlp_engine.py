@@ -24,6 +24,7 @@ class NLPEngine:
             self.model_path = saved_path
         self.llm = None
         self.is_loaded = False
+        self.is_loading = False
         self.error = None
         self._lock = threading.Lock()
         
@@ -60,6 +61,7 @@ class NLPEngine:
                 del self.llm
                 self.llm = None
             self.is_loaded = False
+            self.is_loading = False
 
     @classmethod
     def get_instance(cls):
@@ -73,10 +75,13 @@ class NLPEngine:
         self.reload_model()
 
     def reload_model(self):
+        """Reload the model synchronously. Call _reload_model_async() to run on a background thread."""
         self.unload_model()
         self.error = None
+        self.is_loading = True
         if not self.model_path or not os.path.exists(self.model_path):
             self.error = "Model path not set or file does not exist."
+            self.is_loading = False
             return False
 
         try:
@@ -102,10 +107,17 @@ class NLPEngine:
                 self.llm = Llama(**kwargs)
                 
             self.is_loaded = True
+            self.is_loading = False
             return True
         except Exception as e:
             self.error = str(e)
+            self.is_loading = False
             return False
+
+    def reload_model_async(self):
+        """Reload the model on a background thread so the UI stays responsive."""
+        t = threading.Thread(target=self.reload_model, daemon=True)
+        t.start()
 
     def check_model(self):
         enabled = str(self.settings.value("nlp_enabled", "true")).lower() == "true"

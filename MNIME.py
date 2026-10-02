@@ -1,5 +1,5 @@
 """
-MNIME Desktop - Application Entry Point
+MNIME Desktop - MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION
 Next-generation private, high-performance offline document suite.
 """
 

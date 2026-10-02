@@ -161,10 +161,36 @@ class TabsBar(QWidget):
 
     def _update_reload_button_status(self):
         from core.nlp_engine import NLPEngine
-        is_loaded = NLPEngine.get_instance().is_loaded
+        nlp = NLPEngine.get_instance()
+        is_loaded = nlp.is_loaded
+        is_loading = nlp.is_loading
         btn = self._buttons.get(ToolMode.RELOAD_NLP)
         if not btn: return
-        
+
+        # --- NLP checkbox: active light ---
+        if is_loading:
+            # Amber pulse while loading
+            self.nlp_checkbox.setStyleSheet("""
+                QCheckBox { color: #ffb300; font-weight: bold; font-size: 11px; margin-right: 10px; }
+                QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #ffb300; border-radius: 3px; background-color: #162438; }
+                QCheckBox::indicator:checked { background-color: #ffb300; }
+            """)
+        elif is_loaded:
+            # Green when active
+            self.nlp_checkbox.setStyleSheet("""
+                QCheckBox { color: #00e676; font-weight: bold; font-size: 11px; margin-right: 10px; }
+                QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #00e676; border-radius: 3px; background-color: #162438; }
+                QCheckBox::indicator:checked { background-color: #00e676; }
+            """)
+        else:
+            # Default cyan when off/unloaded
+            self.nlp_checkbox.setStyleSheet("""
+                QCheckBox { color: #00e5ff; font-weight: bold; font-size: 11px; margin-right: 10px; }
+                QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #00d2ff; border-radius: 3px; background-color: #162438; }
+                QCheckBox::indicator:checked { background-color: #00e5ff; }
+            """)
+
+        # --- RELOAD button border: glow cyan when not loaded, dim when loaded ---
         if not is_loaded:
             btn.setStyleSheet("""
                 QToolTip {
@@ -229,7 +255,7 @@ class TabsBar(QWidget):
     def _on_tab_clicked(self, mode: ToolMode):
         if mode == ToolMode.RELOAD_NLP:
             from core.nlp_engine import NLPEngine
-            NLPEngine.get_instance().reload_model()
+            NLPEngine.get_instance().reload_model_async()
             if self.current_mode in self._buttons:
                 self._buttons[self.current_mode].setChecked(True)
             return

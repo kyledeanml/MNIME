@@ -42,5 +42,6 @@ OMNIME Builder and Installer.txt
 .DS_Store
 *.gguf
 AGENTS.md
-training/outputs/
-training/.venv/
+# Training — excluded entirely now that the GGUF is bundled in models/
+training/
+unsloth_compiled_cache/

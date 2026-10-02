@@ -1,9 +1,6 @@
-import os
-from unsloth import FastLanguageModel
-from datasets import load_dataset
-from trl import SFTTrainer
-from transformers import TrainingArguments
-from unsloth import is_bfloat16_supported
+from unsloth import FastLanguageModel, is_bfloat16_supported
+from datasets import load_dataset, Dataset
+from trl import SFTTrainer, SFTConfig
 
 # 1. Configuration
 max_seq_length = 2048 
@@ -60,18 +57,19 @@ def main():
 
     # 4. Data Preparation
     dataset = load_dataset("json", data_files="mnime_dataset.jsonl", split="train")
-    dataset = dataset.map(formatting_prompts_func, batched = True, num_proc=1)
+    assert isinstance(dataset, Dataset)
+    dataset = dataset.map(formatting_prompts_func, batched = True)
 
     # 5. Training
     trainer = SFTTrainer(
         model = model,
         processing_class = tokenizer,
         train_dataset = dataset,
-        dataset_text_field = "text",
-        max_seq_length = max_seq_length,
-        dataset_num_proc = 1,
-        packing = False, # Can make training 5x faster for short sequences.
-        args = TrainingArguments(
+        args = SFTConfig(
+            dataset_text_field = "text",
+            max_length = max_seq_length,
+            dataset_num_proc = 1,
+            packing = False, # Can make training 5x faster for short sequences.
             per_device_train_batch_size = 2,
             gradient_accumulation_steps = 4,
             warmup_steps = 5,
@@ -89,7 +87,7 @@ def main():
         ),
     )
 
-    trainer_stats = trainer.train()
+    trainer.train()
 
     # 6. Export to GGUF
     print("Exporting model to MNIME-Core-1.5B-Q4_K_M.gguf...")

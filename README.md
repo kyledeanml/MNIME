@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="OMNIME_banner.png" alt="OMNIME Banner" width="350">
+  <img src="OMNIME_banner.gif" alt="OMNIME Banner" width="350">
 </p>
 
 ## OMNIME v1.0

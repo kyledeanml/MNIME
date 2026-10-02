@@ -150,11 +150,15 @@ def get_tray_icon() -> QIcon:
 
     # Points for a hexagon (geodesic structure)
     points = []
+    import random
+    random.seed(42) # Consistent scatter
     for i in range(6):
         angle = math.radians(60 * i - 30)
+        scatter_x = random.uniform(-radius * 0.15, radius * 0.15)
+        scatter_y = random.uniform(-radius * 0.15, radius * 0.15)
         points.append(QPointF(
-            center.x() + radius * math.cos(angle),
-            center.y() + radius * math.sin(angle)
+            center.x() + radius * math.cos(angle) + scatter_x,
+            center.y() + radius * math.sin(angle) + scatter_y
         ))
 
     # Draw the glowing mesh

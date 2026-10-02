@@ -23,7 +23,7 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
-- **Whispy Metallic Branding & Neon Blue Glow**: Custom high-resolution metallic logo with electric cyan and dark neon blue highlights.
+- **Whispy Metallic Branding & Neon Blue Glow**: Custom high-resolution metallic logo with electric cyan and dark neon blue highlights, featuring a non-uniform scattered geodesic structure.
 - **Clean Minimalist Dropzone**: Modern, distraction-free file drop canvas with real-time drag-and-drop feedback.
 - **Interactive File Carousel**: Horizontal card slider with smooth scroll arrows and status badges.
 - **Advanced File Explorer Dialog**: A custom, fully integrated PyQt6 file manager that replaces the generic OS popup, featuring a directory tree and clean list view matching the app's dark metallic theme.

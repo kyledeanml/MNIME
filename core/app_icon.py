@@ -253,6 +253,8 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
             py = center.y() + y2 * scale
             points_2d.append(QPointF(px, py))
 
+    from ui.icons import get_svg_pixmap
+    
     # The happy little neon green file swirling in its own independent arching orbit!
     # Calculate an XZ circular orbit (Z-depth)
     happy_z = math.cos(rotation * 2.7)
@@ -289,7 +291,6 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
     painter.drawEllipse(center, radius * 0.15, radius * 0.15)
     
     # Node dots
-    from ui.icons import get_svg_pixmap
     icon_w = int(radius * (0.35 if is_tray else 0.20))
     icon_h = int(radius * (0.35 if is_tray else 0.20))
     file_pixmap = get_svg_pixmap("file", size=icon_w, color="#00e5ff")

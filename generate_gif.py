@@ -13,7 +13,7 @@ banner_width = 500
 banner_height = 550
 
 frames = []
-num_frames = 120
+num_frames = 360
 max_rotation = 4 * math.pi
 
 for i in range(num_frames):
@@ -66,7 +66,7 @@ frames[0].save(
     save_all=True,
     append_images=frames[1:],
     optimize=False,
-    duration=50, # 50ms per frame = 20 fps
+    duration=33, # 33ms per frame = 30 fps
     loop=0
 )
 print("Saved OMNIME_banner.gif")

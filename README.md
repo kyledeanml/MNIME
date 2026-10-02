@@ -2,9 +2,7 @@
   <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
-## MNIME v1.0
-
-A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
+A modern, private, and ultra-fast desktop document suite seamlessly integrated with a powerful local NLP engine. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational AI over your files with total privacy.
 
 ---
 

@@ -23,11 +23,11 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 
 ### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
-- **Whispy Metallic Branding**: Custom high-resolution metallic silver and chrome logo, featuring a precise geometric geodesic structure.
+- **Whispy Metallic Branding**: Custom procedurally generated metallic silver and chrome logo, featuring a mathematically precise 5D Penteract projection with true depth-sorting.
 - **Clean Minimalist Dropzone**: Modern, distraction-free file drop canvas with real-time drag-and-drop feedback.
 - **Interactive File Carousel**: Horizontal card slider with smooth scroll arrows and status badges.
 - **Advanced File Explorer Dialog**: A custom, fully integrated PyQt6 file manager that replaces the generic OS popup, featuring a directory tree and clean list view matching the app's dark metallic theme.
-- **Cinematic Transitions & VFX**: Features an interactive, physics-based particle simulation with an infinitely looping high-speed file vortex during background processing, capped off with a screen-flash transition.
+- **Cinematic Transitions & VFX**: Features an interactive, physics-based particle simulation with an infinitely looping high-speed file vortex during background processing, capped off with a screen-flash transition. Plus, a playful neon green file orbiting independently in 3D around the 5D core.
 - **Drag-and-Drop Reordering**: Rearrange file cards by dragging them left or right to change the processing order.
 - **Card Thumbnails & Previews**: Real-time page rendering, file names, status overlays (`Waiting...`, `Processing...`, `Ready`), and remove buttons (`X`).
 ### High-Performance Engine & Optimizations
@@ -87,9 +87,10 @@ After building, you can run `install_omnime.bat` to install the application loca
 ## Changelog
 
 ### OMNIME — UI & UX Complete Overhaul
+- **Added**: Procedurally generated 5D Penteract branding logo with true mathematical 3D depth-sorting and an independent orbiting neon file.
 - **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
 - **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
-- **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, native smooth diagonal resizing, and integrated file-explorer connectivity.
+- **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, automatic document fitting with margin padding, native smooth diagonal resizing, and integrated file-explorer connectivity.
 - **Improved**: The Image and PDF Edit UIs have been fully upgraded to the OMNIME translucent dark metallic theme, matching the rest of the application's premium aesthetic.
 
 ### Version 2.1 — Compatibility & Stability

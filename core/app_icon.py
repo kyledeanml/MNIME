@@ -253,6 +253,23 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
             py = center.y() + y2 * scale
             points_2d.append(QPointF(px, py))
 
+    # The happy little neon green file swirling in its own independent arching orbit!
+    # Calculate an XZ circular orbit (Z-depth)
+    happy_z = math.cos(rotation * 2.7)
+    happy_x = center.x() + radius * 0.70 * math.sin(rotation * 2.7)
+    happy_y = center.y() + radius * 0.70 * math.sin(rotation * 1.4) * math.cos(rotation * 0.9)
+    
+    base_size = radius * (0.35 if is_tray else 0.22)
+    depth_scale = 1.0 + (happy_z * 0.35) # Scale based on depth for 3D perspective
+    green_icon_w = int(base_size * depth_scale)
+    green_icon_h = green_icon_w
+    
+    green_file_pixmap = get_svg_pixmap("file_text", size=green_icon_w, color="#39ff14")
+    
+    # Draw BEHIND the Penteract if Z < 0
+    if happy_z < 0 and not green_file_pixmap.isNull():
+        painter.drawPixmap(int(happy_x - green_icon_w / 2), int(happy_y - green_icon_h / 2), green_file_pixmap)
+
     # Draw the glowing mesh
     # 1. Outer glow (Metallic) - Halved thickness, lower opacity
     outer_glow_width = max(0.5, 2.0 * (size / 64.0))
@@ -285,15 +302,8 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
         for p in points_2d:
             painter.drawEllipse(p, radius * 0.10, radius * 0.10)
 
-    # The happy little neon green file swirling in its own independent arching orbit!
-    green_icon_w = int(radius * (0.35 if is_tray else 0.22))
-    green_icon_h = int(radius * (0.35 if is_tray else 0.22))
-    green_file_pixmap = get_svg_pixmap("file_text", size=green_icon_w, color="#39ff14")
-    
-    if not green_file_pixmap.isNull():
-        # Creates a sweeping, spirograph-style arching orbit, safely contained within bounds (0.70)
-        happy_x = center.x() + radius * 0.70 * math.sin(rotation * 2.7)
-        happy_y = center.y() + radius * 0.70 * math.sin(rotation * 1.4) * math.cos(rotation * 0.9)
+    # Draw IN FRONT of the Penteract if Z >= 0
+    if happy_z >= 0 and not green_file_pixmap.isNull():
         painter.drawPixmap(int(happy_x - green_icon_w / 2), int(happy_y - green_icon_h / 2), green_file_pixmap)
 
     painter.end()

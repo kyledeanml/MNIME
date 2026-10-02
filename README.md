@@ -47,6 +47,7 @@ OMNIME puts you in complete control of your AI hardware acceleration via the Set
 - **GPU Device Selection**: OMNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local AI engine.
 - **Flash Attention**: Toggle this on to massively accelerate the processing of long documents. It optimizes memory reads and scales much better when you crank up the Context Window.
 - **VRAM Memory Saver (KV Quantization)**: If you are running out of VRAM, toggle this on to compress the model's short-term memory (KV cache) to 8-bit. This allows you to run much larger context windows on GPUs with limited memory without sacrificing noticeable accuracy.
+- **Lock Model in RAM (mlock)**: For machines with fast, abundant system RAM. This prevents the operating system from paging the AI model to your hard drive, explicitly reserving space in RAM for zero-latency memory reads.
 
 ---
 

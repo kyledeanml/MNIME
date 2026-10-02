@@ -78,6 +78,7 @@ class NLPEngine:
             gpu_id = int(self.settings.value("nlp_gpu_id", 0))
             flash_attn = str(self.settings.value("nlp_flash_attn", "true")).lower() == "true"
             kv_quant = str(self.settings.value("nlp_kv_quant", "false")).lower() == "true"
+            use_mlock = str(self.settings.value("nlp_use_mlock", "false")).lower() == "true"
             
             kwargs = {
                 "model_path": self.model_path,
@@ -85,6 +86,7 @@ class NLPEngine:
                 "n_threads": 8,
                 "n_gpu_layers": gpu_layers,
                 "main_gpu": gpu_id,
+                "use_mlock": use_mlock,
             }
             
             # Conditionally inject new features that might fail on older builds

@@ -129,6 +129,10 @@ class SettingsDialog(QDialog):
         self.kv_quant_check = QCheckBox("Enable VRAM Memory Saver (Quantized KV Cache)")
         hw_layout.addRow("", self.kv_quant_check)
 
+        # Lock Model in RAM
+        self.mlock_check = QCheckBox("Lock Model in RAM (Prevents OS paging on fast machines)")
+        hw_layout.addRow("", self.mlock_check)
+
         # Smart Semantic Indexing (From CodeEyes)
         self.smart_index_check = QCheckBox("Enable Smart Semantic Indexing (FAISS Optimization)")
         hw_layout.addRow("", self.smart_index_check)
@@ -206,6 +210,9 @@ class SettingsDialog(QDialog):
         kv_val = str(self.settings.value("nlp_kv_quant", "false")).lower() == "true"
         self.kv_quant_check.setChecked(kv_val)
         
+        mlock_val = str(self.settings.value("nlp_use_mlock", "false")).lower() == "true"
+        self.mlock_check.setChecked(mlock_val)
+        
         smart_val = str(self.settings.value("nlp_smart_indexing", "true")).lower() == "true"
         self.smart_index_check.setChecked(smart_val)
 
@@ -235,6 +242,7 @@ class SettingsDialog(QDialog):
         
         self.settings.setValue("nlp_flash_attn", self.flash_attn_check.isChecked())
         self.settings.setValue("nlp_kv_quant", self.kv_quant_check.isChecked())
+        self.settings.setValue("nlp_use_mlock", self.mlock_check.isChecked())
         self.settings.setValue("nlp_smart_indexing", self.smart_index_check.isChecked())
         
         # Apply to engine

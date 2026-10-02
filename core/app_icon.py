@@ -130,57 +130,103 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0) -> QPixmap:
     # Using 0.35 to give plenty of room without hitting edges
     radius = size * 0.35
 
-    # Points for a dynamic swirling mesh (electrons around nucleus)
-    points = []
-    for i in range(6):
-        base_angle = math.radians(60 * i - 30)
-        # Slow down the speed multipliers for a more elegant swirl (and multiple of 0.5 for seamless looping)
-        speed_mult = 0.5 + (i % 3) * 0.5 
-        dir_mult = 1 if i % 2 == 0 else -1
+    # 4D Hypercube (Tesseract) Projection
+    points_4d = []
+    for i in range(16):
+        x = -0.5 if (i & 1) == 0 else 0.5
+        y = -0.5 if (i & 2) == 0 else 0.5
+        z = -0.5 if (i & 4) == 0 else 0.5
+        w = -0.5 if (i & 8) == 0 else 0.5
+        points_4d.append([x, y, z, w])
         
-        dyn_radius = radius + math.sin(rotation * 2 + i) * (radius * 0.15)
-        angle = base_angle + rotation * speed_mult * dir_mult
+    edges = []
+    for i in range(16):
+        for j in range(i + 1, 16):
+            if (i ^ j) in (1, 2, 4, 8):
+                edges.append((i, j))
+                
+    # We use the rotation parameter to spin across multiple 4D planes
+    # Base speeds for different planes to make it look "crazy" but fluid
+    rot_xy = rotation * 1.2
+    rot_zw = rotation * 0.7
+    rot_xw = rotation * 0.9
+    
+    c_xy, s_xy = math.cos(rot_xy), math.sin(rot_xy)
+    c_zw, s_zw = math.cos(rot_zw), math.sin(rot_zw)
+    c_xw, s_xw = math.cos(rot_xw), math.sin(rot_xw)
+    
+    points_2d = []
+    for p in points_4d:
+        x, y, z, w = p[0], p[1], p[2], p[3]
         
-        points.append(QPointF(
-            center.x() + dyn_radius * math.cos(angle),
-            center.y() + dyn_radius * math.sin(angle)
-        ))
+        # XY Rotation
+        x1 = x * c_xy - y * s_xy
+        y1 = x * s_xy + y * c_xy
+        x, y = x1, y1
+        
+        # ZW Rotation
+        z1 = z * c_zw - w * s_zw
+        w1 = z * s_zw + w * c_zw
+        z, w = z1, w1
+        
+        # XW Rotation
+        x1 = x * c_xw - w * s_xw
+        w1 = x * s_xw + w * c_xw
+        x, w = x1, w1
+        
+        # 4D to 3D Stereographic projection
+        w_dist = 2.0
+        w_factor = 1.0 / (w_dist - w)
+        x3 = x * w_factor
+        y3 = y * w_factor
+        z3 = z * w_factor
+        
+        # Add a gentle 3D pulse based on rotation
+        z3 += math.sin(rotation * 2.0) * 0.1
+        
+        # 3D to 2D Perspective projection
+        z_dist = 2.0
+        z_factor = 1.0 / (z_dist - z3)
+        x2 = x3 * z_factor
+        y2 = y3 * z_factor
+        
+        # Scale to canvas (max extent is ~0.4, so scale by radius * 2.5)
+        scale = radius * 2.5
+        px = center.x() + x2 * scale
+        py = center.y() + y2 * scale
+        points_2d.append(QPointF(px, py))
 
     # Draw the glowing mesh
     # 1. Outer glow (Metallic)
     outer_glow_width = max(1.0, 4.0 * (size / 64.0))
-    painter.setPen(QPen(QColor(160, 170, 180, 100), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
-    for i in range(6):
-        for j in range(i + 1, 6):
-            if (j - i) in [1, 3, 5]:
-                painter.drawLine(points[i], points[j])
+    painter.setPen(QPen(QColor(160, 170, 180, 80), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    for e in edges:
+        painter.drawLine(points_2d[e[0]], points_2d[e[1]])
             
     # 2. Bright inner core lines (Silver/Chrome)
     inner_core_width = max(1.0, 1.5 * (size / 64.0))
-    painter.setPen(QPen(QColor(230, 240, 250, 255), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
-    for i in range(6):
-        for j in range(i + 1, 6):
-            if (j - i) in [1, 3, 5]: 
-                painter.drawLine(points[i], points[j])
-                
+    painter.setPen(QPen(QColor(230, 240, 250, 200), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    for e in edges:
+        painter.drawLine(points_2d[e[0]], points_2d[e[1]])
+        
     # Add a glowing central node
     painter.setBrush(QColor(255, 255, 255, 255))
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawEllipse(center, radius * 0.15, radius * 0.15)
     
-    # Node dots (Cute little blue file icons)
+    # Node dots (Cute little blue file icons at 4D vertices!)
     from ui.icons import get_svg_pixmap
-    icon_w = int(radius * 0.25)
-    icon_h = int(radius * 0.25)
+    icon_w = int(radius * 0.20)
+    icon_h = int(radius * 0.20)
     file_pixmap = get_svg_pixmap("file", size=icon_w, color="#00e5ff")
     if not file_pixmap.isNull():
-        for p in points:
+        for p in points_2d:
             painter.drawPixmap(int(p.x() - icon_w / 2), int(p.y() - icon_h / 2), file_pixmap)
     else:
         painter.setBrush(QColor(0, 229, 255, 255))
         painter.setPen(Qt.PenStyle.NoPen)
-        for p in points:
-            painter.drawEllipse(p, radius * 0.12, radius * 0.12)
+        for p in points_2d:
+            painter.drawEllipse(p, radius * 0.10, radius * 0.10)
 
     painter.end()
     return pixmap

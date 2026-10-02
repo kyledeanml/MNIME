@@ -114,29 +114,11 @@ def get_app_icon() -> QIcon:
     return _CACHED_APP_ICON
 
 
-def get_logo_pixmap(size: int = 48, rotation: float = 0.0) -> QPixmap:
+def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0) -> QPixmap:
     """
-    Returns a smooth QPixmap of the logo sized to (size, size).
-    Cached only if rotation is 0.0.
+    Draws the logo and returns a QPixmap.
     """
-    if rotation == 0.0 and size in _CACHED_LOGO_PIXMAPS:
-        return _CACHED_LOGO_PIXMAPS[size]
-
-    icon = get_tray_icon(size, rotation)
-    if not icon.isNull():
-        pixmap = icon.pixmap(size, size)
-        if rotation == 0.0:
-            _CACHED_LOGO_PIXMAPS[size] = pixmap
-        return pixmap
-    return QPixmap()
-
-
-def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
-    """
-    Generates a borderless, pure vector rendition of the OMNIME logo structure
-    (a glowing cyan geodesic mesh/hexagon) for the system tray. No words, no background.
-    """
-    from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QPolygonF
+    from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QPolygonF
     from PyQt6.QtCore import Qt, QPointF
     import math
     pixmap = QPixmap(size, size)
@@ -146,17 +128,18 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
     center = QPointF(size / 2, size / 2)
+    # Using 0.35 to give plenty of room without hitting edges
     radius = size * 0.35
 
     # Points for a dynamic swirling mesh (electrons around nucleus)
     points = []
     for i in range(6):
         base_angle = math.radians(60 * i - 30)
-        # Alternating directions and varied speeds for chaotic electron swirl
-        speed_mult = 1.0 + (i % 3) * 0.5
+        # Slow down the speed multipliers for a more elegant swirl (and multiple of 0.5 for seamless looping)
+        speed_mult = 0.5 + (i % 3) * 0.5 
         dir_mult = 1 if i % 2 == 0 else -1
         
-        dyn_radius = radius + math.sin(rotation * 4 + i) * (radius * 0.15)
+        dyn_radius = radius + math.sin(rotation * 2 + i) * (radius * 0.15)
         angle = base_angle + rotation * speed_mult * dir_mult
         
         points.append(QPointF(
@@ -178,7 +161,6 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     painter.setPen(QPen(QColor(230, 240, 250, 255), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
-            # Only draw outer rim and center-crossing lines to look like an origami pattern
             if (j - i) in [1, 3, 5]: 
                 painter.drawLine(points[i], points[j])
                 
@@ -188,24 +170,40 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     painter.drawEllipse(center, radius * 0.15, radius * 0.15)
     
     # Node dots (Cute little blue file icons)
-    # We want to render a tiny file icon centered on each node.
     from ui.icons import get_svg_pixmap
     icon_w = int(radius * 0.25)
     icon_h = int(radius * 0.25)
     file_pixmap = get_svg_pixmap("file", size=icon_w, color="#00e5ff")
     if not file_pixmap.isNull():
         for p in points:
-            # Draw the pixmap centered on p
             painter.drawPixmap(int(p.x() - icon_w / 2), int(p.y() - icon_h / 2), file_pixmap)
     else:
-        # Fallback if UI icons are unavailable
         painter.setBrush(QColor(0, 229, 255, 255))
         painter.setPen(Qt.PenStyle.NoPen)
         for p in points:
             painter.drawEllipse(p, radius * 0.12, radius * 0.12)
 
     painter.end()
-    return QIcon(pixmap)
+    return pixmap
+
+
+def get_tray_icon(size: int = 64, rotation: float = 0.0):
+    from PyQt6.QtGui import QIcon
+    return QIcon(_draw_logo_pixmap(size, rotation))
+
+def get_logo_pixmap(size: int = 48, rotation: float = 0.0):
+    """
+    Returns a smooth QPixmap of the logo sized to (size, size).
+    Cached only if rotation is 0.0.
+    """
+    if rotation == 0.0 and size in _CACHED_LOGO_PIXMAPS:
+        return _CACHED_LOGO_PIXMAPS[size]
+
+    pixmap = _draw_logo_pixmap(size, rotation)
+    if rotation == 0.0:
+        _CACHED_LOGO_PIXMAPS[size] = pixmap
+    return pixmap
+
 
 
 def create_windows_shortcuts() -> bool:

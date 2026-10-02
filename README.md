@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="MNIME_banner.gif" alt="MNIME Banner" width="350">
+  <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
 ## MNIME v1.0

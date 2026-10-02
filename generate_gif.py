@@ -13,7 +13,7 @@ banner_width = 500
 banner_height = 550
 
 frames = []
-num_frames = 360
+num_frames = 720
 max_rotation = 4 * math.pi
 
 for i in range(num_frames):
@@ -28,8 +28,8 @@ for i in range(num_frames):
     painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
     
     # Draw logo
-    icon = get_tray_icon(logo_size, rotation)
-    logo_pixmap = icon.pixmap(logo_size, logo_size)
+    from core.app_icon import get_logo_pixmap
+    logo_pixmap = get_logo_pixmap(logo_size, rotation)
     logo_x = (banner_width - logo_size) // 2
     painter.drawPixmap(logo_x, 0, logo_pixmap)
     
@@ -66,7 +66,7 @@ frames[0].save(
     save_all=True,
     append_images=frames[1:],
     optimize=False,
-    duration=33, # 33ms per frame = 30 fps
+    duration=33, # 33ms per frame = 30 fps for a slow smooth crawl
     loop=0
 )
 print("Saved OMNIME_banner.gif")

@@ -147,8 +147,7 @@ class InstallerUI(QWidget):
         self.swirl_angle = 0.0
         self.little_files = []
         
-        # The happy green file and the tiny files
-        self.happy_green_pixmap = self.create_file_pixmap(QColor(50, 220, 100), 64)
+        # The tiny files
         self.tiny_file_pixmap = self.create_file_pixmap(QColor(140, 230, 255), 16)
         
         self.anim_timer = QTimer(self)
@@ -257,17 +256,20 @@ class InstallerUI(QWidget):
         p.setPen(pen)
         p.drawText(x, y, text)
         
-        # 3. Happy Green File Swirling
+        # 3. Penteract Logo Swirling
         radius_x = 180
         radius_y = 60
         fx = cx + math.cos(math.radians(self.swirl_angle)) * radius_x
         fy = cy + math.sin(math.radians(self.swirl_angle)) * radius_y
         
+        from core.app_icon import get_logo_pixmap
+        animated_logo = get_logo_pixmap(64, math.radians(self.swirl_angle * 2.0))
+        
         p.save()
         p.translate(fx, fy)
-        # Add a gentle bob and spin
-        p.rotate(math.sin(math.radians(self.swirl_angle * 3)) * 15)
-        p.drawPixmap(-32, -32, 64, 64, self.happy_green_pixmap)
+        # Gentle bobbing
+        p.translate(0, math.sin(math.radians(self.swirl_angle * 3)) * 5)
+        p.drawPixmap(-32, -32, 64, 64, animated_logo)
         p.restore()
         
         # 4. Progress Bar Background

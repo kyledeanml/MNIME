@@ -2,7 +2,9 @@
   <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
-<span style="color:red">A modern, private, and ultra-fast desktop document suite with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.</span>
+<p align="center">MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</p>
+
+A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
 
 ---
 
@@ -168,7 +170,11 @@ MNIME/
 
 ## Help & User Guide
 
+<<<<<<< HEAD
 Welcome to **MNIME** — your next-generation, private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, MNIME provides blazing-fast document processing entirely offline.
+=======
+**MNIME** — your next-generation, private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, MNIME provides blazing-fast document processing entirely offline.
+>>>>>>> 70899c769a4c77afe94a0efba44579a60c4c6f04
 
 ### Core Capabilities
 

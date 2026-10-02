@@ -17,7 +17,7 @@ class ReaderPageView(QGraphicsView):
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.current_page = None
         self.zoom_factor = 4.0
-        self.scale(0.5, 0.5)
+        self.scale(1.0, 1.0)
 
     def set_page(self, page, pixmap):
         self.current_page = page
@@ -26,6 +26,14 @@ class ReaderPageView(QGraphicsView):
         self.pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.scene().addItem(self.pixmap_item)
         self.scene().setSceneRect(QRectF(pixmap.rect()))
+        
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(10, self._fit_to_view)
+        
+    def _fit_to_view(self):
+        if self.scene() and not self.scene().sceneRect().isEmpty():
+            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.scale(0.95, 0.95)
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -176,7 +184,7 @@ class ReaderDialog(QDialog):
         self.close_btn.clicked.connect(self.close)
         
         self.file_combo = QComboBox()
-        self.file_combo.setMaximumWidth(400)
+        self.file_combo.setMaximumWidth(800)
         for item in self.file_items:
             self.file_combo.addItem(item.file_name, item)
         self.file_combo.currentIndexChanged.connect(self._on_file_selected)

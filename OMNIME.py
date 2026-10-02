@@ -3,8 +3,8 @@ OMNIME Desktop - Application Entry Point
 Next-generation private, high-performance offline document suite.
 """
 
-import sys
 import os
+import sys
 
 # Ensure the root project directory is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -19,10 +19,12 @@ os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms
 from core.app_icon import setup_app_user_model_id, get_app_icon
 setup_app_user_model_id()
 
-from PyQt6.QtWidgets import QApplication, QWidget, QGraphicsOpacityEffect
-from PyQt6.QtGui import QFont, QIcon, QPainter, QLinearGradient, QColor, QFontMetrics, QPen, QBrush
 import math
 import random
+
+from PyQt6.QtWidgets import QApplication, QWidget, QGraphicsOpacityEffect
+from PyQt6.QtGui import (QFont, QPainter, QLinearGradient, QColor,
+                         QFontMetrics, QPen, QBrush, QPixmap, QPolygonF)
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QPointF
 
 class Particle:
@@ -91,7 +93,6 @@ class MetalSplashScreen(QWidget):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        from PyQt6.QtWidgets import QApplication
         screen = QApplication.primaryScreen().geometry()
         w, h = screen.width(), screen.height()
         self.setFixedSize(w, h)
@@ -104,8 +105,6 @@ class MetalSplashScreen(QWidget):
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self._update_particles)
         # Create tiny glowing file icon pixmap cache for particles
-        from PyQt6.QtGui import QPixmap, QPainter, QPolygonF
-        from PyQt6.QtCore import QPointF
         
         # Make the file icon much larger and clearer so it doesn't look like an orb when downscaled
         self.file_pixmap = QPixmap(24, 24)
@@ -169,8 +168,6 @@ class MetalSplashScreen(QWidget):
         # 0. Draw Particle System (Optimized batch rendering)
         glow_brush = QBrush(QColor(140, 230, 255, 100))
         core_brush = QBrush(QColor(255, 255, 255, 255))
-        
-        from PyQt6.QtGui import QPolygonF
         
         for p in self.particles:
             if not p.active:

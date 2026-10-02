@@ -174,7 +174,7 @@ OMNIME provides a wide array of document processing tools, all accessible from t
 
 OMNIME is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
 
-- **NLP (Chat)**: Engage with your documents using a conversational interface. **Optimized specifically for the `Qwen3.5-4B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
+- **NLP**: Engage with your documents using a conversational interface. **Optimized specifically for the `Qwen3.5-4B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
 - **Reference**: Generate synthesized briefs and cross-reference information across multiple uploaded documents.
 
 > **Note**: To use the NLP and Reference features, you must first configure the correct model path in the **Settings** menu.

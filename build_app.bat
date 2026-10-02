@@ -79,7 +79,7 @@ if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC_PATH=%LOCALAP
     echo.
     echo [5/5] Compiling Custom Animated Installer...
     if exist "custom_installer.py" (
-        "%PYINSTALLER_EXE%" --clean --noconfirm --onefile --windowed --icon=MN.ico --add-data "dist\MNIME;dist\MNIME" --name "MNIME_v1" "custom_installer.py"
+        "%PYINSTALLER_EXE%" --clean --noconfirm --onefile --windowed --hidden-import win32com.client --icon=MN.ico --add-data "dist\MNIME;app_files" --name "MNIME_v1" "custom_installer.py"
         if exist "dist\MNIME_v1.exe" (
             if not exist "installer" mkdir "installer"
             move /Y "dist\MNIME_v1.exe" "installer\" >nul

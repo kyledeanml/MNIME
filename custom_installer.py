@@ -5,11 +5,12 @@ import math
 import random
 import time
 
-# Ensure PyQt6 path
-venv_base = os.path.dirname(os.path.dirname(sys.executable))
-plugin_base = os.path.join(venv_base, "Lib", "site-packages", "PyQt6", "Qt6", "plugins")
-os.environ["QT_PLUGIN_PATH"] = plugin_base
-os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms")
+# Ensure PyQt6 path during development (skip if compiled)
+if not getattr(sys, 'frozen', False):
+    venv_base = os.path.dirname(os.path.dirname(sys.executable))
+    plugin_base = os.path.join(venv_base, "Lib", "site-packages", "PyQt6", "Qt6", "plugins")
+    os.environ["QT_PLUGIN_PATH"] = plugin_base
+    os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms")
 
 from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtGui import (QFont, QPainter, QLinearGradient, QColor,
@@ -23,11 +24,12 @@ class InstallWorker(QThread):
     def run(self):
         if getattr(sys, 'frozen', False):
             base_path = sys._MEIPASS
+            source_dir = os.path.join(base_path, 'app_files')
         else:
             base_path = os.path.dirname(os.path.abspath(__file__))
+            source_dir = os.path.join(base_path, 'dist', 'MNIME')
             
         install_dir = os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Programs', 'MNIME')
-        source_dir = os.path.join(base_path, 'dist', 'MNIME')
         
         self.progress.emit(2, "Initializing installer UI...")
         time.sleep(1.0)

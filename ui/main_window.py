@@ -24,7 +24,6 @@ from .carousel_view import CarouselView
 from .action_bar import ActionBar
 from .output_view import OutputView
 from .nlp_view import NLPView
-from .settings_dialog import SettingsDialog
 from .document_viewer import DocumentViewer
 
 import sys
@@ -560,7 +559,6 @@ class MainWindow(QMainWindow):
         # 2. Free-floating Tabs Bar inline with window controls
         self.tabs_bar = TabsBar(self)
         self.tabs_bar.mode_changed.connect(self._on_mode_changed)
-        self.tabs_bar.settings_clicked.connect(self._open_settings)
         top_bar.addWidget(self.tabs_bar, 1)
         
         min_btn = QPushButton("─")
@@ -813,7 +811,7 @@ class MainWindow(QMainWindow):
                 title.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 layout.addWidget(title)
                 
-                msg = QLabel(f"Please configure a valid GGUF model in Settings first.\n\n{engine.error}")
+                msg = QLabel(f"The bundled MNIME model could not be loaded.\n\n{engine.error}")
                 msg.setWordWrap(True)
                 msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 layout.addWidget(msg)
@@ -1134,10 +1132,6 @@ class MainWindow(QMainWindow):
         from PyQt6.QtCore import QTimer
         QTimer.singleShot(1000, self.worker.start)
 
-    def _open_settings(self):
-        dialog = SettingsDialog(self)
-        dialog.exec()
-
     def _run_reference(self, text: str, viewer: DocumentViewer):
         self.action_bar.show_progress(0, "Synthesizing brief...")
         other_files = [f for f in self.file_items if f != viewer.file_item]
@@ -1149,7 +1143,7 @@ class MainWindow(QMainWindow):
                 nlp.check_model()
                 
                 if not nlp.is_loaded:
-                    return f"⚠️ NLP Engine Unavailable.\n\n{nlp.error}\n\nPlease check the 'NLP Active' toggle in the Tabs Bar or select a valid GGUF model in Settings."
+                    return f"NLP Engine Unavailable.\n\n{nlp.error}\n\nTry clicking the Reload NLP button in the tabs bar."
                     
                 from core.search_engine import SearchEngine
                 from PyQt6.QtCore import QSettings

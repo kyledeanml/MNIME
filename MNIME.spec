@@ -41,7 +41,6 @@ hiddenimports = [
     'ui.output_view',
     'ui.pdf_editor',
     'ui.reader_dialog',
-    'ui.settings_dialog',
     'ui.tabs_bar',
 ]
 

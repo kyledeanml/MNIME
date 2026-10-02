@@ -20,7 +20,6 @@ class ToolMode(Enum):
     TXT_TO_PDF = "TXT → PDF"
     COMPRESS_PDF = "COMPRESS"
     PDF_TO_DOCX = "PDF → DOCX"
-    SETTINGS = "SETTINGS"
     NLP = "NLP"
     RELOAD_NLP = "RELOAD NLP"
 
@@ -28,7 +27,6 @@ class TabsBar(QWidget):
     """Free-floating dark metallic tab navigation bar with dark neon blue highlights."""
 
     mode_changed = pyqtSignal(ToolMode)
-    settings_clicked = pyqtSignal()
     nlp_toggled = pyqtSignal(bool)
 
     def __init__(self, parent=None):
@@ -58,7 +56,6 @@ class TabsBar(QWidget):
         right_tabs = [
             ToolMode.NLP,
             ToolMode.RELOAD_NLP,
-            ToolMode.SETTINGS
         ]
 
         def _add_tab(mode):
@@ -78,7 +75,6 @@ class TabsBar(QWidget):
                 ToolMode.REFERENCE: "book",
                 ToolMode.NLP: "message",
                 ToolMode.RELOAD_NLP: "refresh",
-                ToolMode.SETTINGS: "settings"
             }
             
             btn = QPushButton()
@@ -168,12 +164,7 @@ class TabsBar(QWidget):
             NLPEngine.get_instance().unload_model()
 
     def _on_tab_clicked(self, mode: ToolMode):
-        if mode == ToolMode.SETTINGS:
-            self.settings_clicked.emit()
-            if self.current_mode in self._buttons:
-                self._buttons[self.current_mode].setChecked(True)
-            return
-        elif mode == ToolMode.RELOAD_NLP:
+        if mode == ToolMode.RELOAD_NLP:
             from core.nlp_engine import NLPEngine
             NLPEngine.get_instance().reload_model()
             if self.current_mode in self._buttons:

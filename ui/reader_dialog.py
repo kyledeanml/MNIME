@@ -48,6 +48,7 @@ class ReaderDialog(QDialog):
         self.file_items = file_items
         self.setWindowTitle("OMNIME - READER")
         self.setMinimumSize(800, 600)
+        self.resize(1200, 900)
         
         # Frameless dark metallic UI
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)

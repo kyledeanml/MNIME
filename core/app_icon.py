@@ -129,7 +129,7 @@ def get_logo_pixmap(size: int = 48) -> QPixmap:
     return QPixmap()
 
 
-def get_tray_icon() -> QIcon:
+def get_tray_icon(size: int = 64) -> QIcon:
     """
     Generates a borderless, pure vector rendition of the OMNIME logo structure
     (a glowing cyan geodesic mesh/hexagon) for the system tray. No words, no background.
@@ -137,8 +137,6 @@ def get_tray_icon() -> QIcon:
     from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QPolygonF
     from PyQt6.QtCore import Qt, QPointF
     import math
-
-    size = 64
     pixmap = QPixmap(size, size)
     pixmap.fill(Qt.GlobalColor.transparent)
 
@@ -163,14 +161,16 @@ def get_tray_icon() -> QIcon:
 
     # Draw the glowing mesh
     # 1. Outer glow
-    painter.setPen(QPen(QColor(0, 210, 255, 60), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    outer_glow_width = max(1.0, 4.0 * (size / 64.0))
+    painter.setPen(QPen(QColor(0, 210, 255, 60), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
             if (j - i) in [1, 3, 5]:
                 painter.drawLine(points[i], points[j])
             
     # 2. Bright inner core lines
-    painter.setPen(QPen(QColor(0, 229, 255, 255), 1.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    inner_core_width = max(1.0, 1.5 * (size / 64.0))
+    painter.setPen(QPen(QColor(0, 229, 255, 255), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
             # Only draw outer rim and center-crossing lines to look like an origami pattern

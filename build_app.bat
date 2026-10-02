@@ -1,9 +1,9 @@
-@echo off
-title OMNIME Builder and Installer
+﻿@echo off
+title MNIME Builder and Installer
 cd /d "%~dp0"
 
 echo ========================================================
-echo OMNIME - Build and Install Script
+echo MNIME - Build and Install Script
 echo Building... All output is being logged to build_log.txt
 echo ========================================================
 call :main > build_log.txt 2>&1
@@ -32,15 +32,15 @@ echo [2/3] Installing build dependencies and generating App Icon...
 echo [3/4] Compiling Executable...
 if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
-:: Build as a single directory application using OMNIME.spec
-"%PYINSTALLER_EXE%" --clean --noconfirm "OMNIME.spec"
+:: Build as a single directory application using MNIME.spec
+"%PYINSTALLER_EXE%" --clean --noconfirm "MNIME.spec"
 if %errorlevel% neq 0 (
     echo.
     echo ERROR: PyInstaller failed to build the executable!
     exit /b %errorlevel%
 )
-if exist "OMN.ico" copy /Y "OMN.ico" "dist\OMNIME\" >nul
-if exist "OMNIME_reimagined_alpha.png" copy /Y "OMNIME_reimagined_alpha.png" "dist\OMNIME\" >nul
+if exist "MN.ico" copy /Y "MN.ico" "dist\MNIME\" >nul
+if exist "MNIME_reimagined_alpha.png" copy /Y "MNIME_reimagined_alpha.png" "dist\MNIME\" >nul
 
 echo [4/4] Building Standalone Installer...
 set ISCC_PATH=
@@ -48,37 +48,45 @@ if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" set "ISCC_PATH=C:\Progra
 if exist "C:\Program Files\Inno Setup 6\ISCC.exe" set "ISCC_PATH=C:\Program Files\Inno Setup 6\ISCC.exe"
 if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC_PATH=%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"
 
-if defined ISCC_PATH (
-    :: Define signtool path (look in Windows Kits)
-    set "SIGNTOOL_PATH="
-    for /d %%i in ("C:\Program Files (x86)\Windows Kits\10\bin\*") do (
-        if exist "%%i\x64\signtool.exe" set "SIGNTOOL_PATH=%%i\x64\signtool.exe"
-    )
-    
-    if exist "OMNIMECert.pfx" (
-        if defined SIGNTOOL_PATH (
-            echo Found OMNIMECert.pfx and signtool.exe, configuring digital signature...
-            "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0OMNIMECert.pfx$q /p $qomnime123$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "OMNIME.iss"
-        ) else (
-            echo Warning: signtool.exe not found in Windows Kits. Building without signature.
-            "%ISCC_PATH%" "OMNIME.iss"
+    if defined ISCC_PATH (
+        :: Define signtool path (look in Windows Kits)
+        set "SIGNTOOL_PATH="
+        for /d %%i in ("C:\Program Files (x86)\Windows Kits\10\bin\*") do (
+            if exist "%%i\x64\signtool.exe" set "SIGNTOOL_PATH=%%i\x64\signtool.exe"
         )
+        
+        if exist "MNIMECert.pfx" (
+            if defined SIGNTOOL_PATH (
+                echo Found MNIMECert.pfx and signtool.exe, configuring digital signature...
+                "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0MNIMECert.pfx$q /p $qMNIME123$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "MNIME.iss"
+            ) else (
+                echo Warning: signtool.exe not found in Windows Kits. Building without signature.
+                "%ISCC_PATH%" "MNIME.iss"
+            )
+        ) else (
+            echo Note: MNIMECert.pfx not found. Building installer without digital signature.
+            "%ISCC_PATH%" "MNIME.iss"
+        )
+        echo.
+        echo ========================================================
+        echo Build complete! Your Inno Setup installer is ready in:
+        echo %~dp0installer\MNIME_Setup.exe
+        echo ========================================================
     ) else (
-        echo Note: OMNIMECert.pfx not found. Building installer without digital signature.
-        "%ISCC_PATH%" "OMNIME.iss"
+        echo Skipping Inno Setup...
     )
+
     echo.
-    echo ========================================================
-    echo Build complete! Your standalone installer is ready in:
-    echo %~dp0installer\OMNIME_Setup.exe
-    echo ========================================================
-) else (
-    echo.
-    echo ========================================================
-    echo Build complete! You can find the standalone app in:
-    echo %~dp0dist\OMNIME\
-    echo.
-    echo NOTE: To generate the standard Windows installer (OMNIME_Setup.exe),
-    echo please install 'Inno Setup 6' and run this script again.
-    echo ========================================================
-)
+    echo [5/5] Compiling Custom Animated Installer...
+    if exist "custom_installer.py" (
+        "%PYINSTALLER_EXE%" --clean --noconfirm --onefile --windowed --icon=MN.ico --add-data "dist\MNIME;dist\MNIME" --name "MNIME_v1" "custom_installer.py"
+        if exist "dist\MNIME_v1.exe" (
+            if not exist "installer" mkdir "installer"
+            move /Y "dist\MNIME_v1.exe" "installer\" >nul
+            echo.
+            echo ========================================================
+            echo Build complete! Your modern animated installer is ready at:
+            echo %~dp0installer\MNIME_v1.exe
+            echo ========================================================
+        )
+    )

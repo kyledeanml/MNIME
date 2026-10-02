@@ -24,7 +24,7 @@ if exist "%INSTALL_DIR%" (
 echo Copying application files to %INSTALL_DIR% ...
 mkdir "%INSTALL_DIR%"
 xcopy /E /I /Q /Y "dist\MNIME\*" "%INSTALL_DIR%\"
-if exist "OMN.ico" copy /Y "OMN.ico" "%INSTALL_DIR%\" >nul
+if exist "MN.ico" copy /Y "MN.ico" "%INSTALL_DIR%\" >nul
 
 echo.
 echo Creating Desktop and Start Menu shortcuts...
@@ -32,7 +32,7 @@ echo Creating Desktop and Start Menu shortcuts...
 set "DESKTOP_LNK=%USERPROFILE%\Desktop\MNIME.lnk"
 set "STARTMENU_LNK=%APPDATA%\Microsoft\Windows\Start Menu\Programs\MNIME.lnk"
 set "EXE_PATH=%INSTALL_DIR%\MNIME.exe"
-set "ICON_PATH=%INSTALL_DIR%\OMN.ico"
+set "ICON_PATH=%INSTALL_DIR%\MN.ico"
 
 :: We write a temporary powershell script and execute it
 echo $WshShell = New-Object -ComObject WScript.Shell > create_links.ps1

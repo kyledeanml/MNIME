@@ -17,5 +17,5 @@ ptr.setsize(height * width * 4)
 arr = bytearray(ptr)
 
 pil_img = Image.frombytes("RGBA", (width, height), arr)
-pil_img.save("OMN.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-print("Saved procedural OMN.ico")
+pil_img.save("MN.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+print("Saved procedural MN.ico")

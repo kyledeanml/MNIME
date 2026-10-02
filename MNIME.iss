@@ -10,7 +10,7 @@ DefaultDirName={localappdata}\Programs\MNIME
 DefaultGroupName=MNIME
 OutputDir=installer
 OutputBaseFilename=MNIME_Setup
-SetupIconFile=OMN.ico
+SetupIconFile=MN.ico
 LicenseFile=LICENSE
 #ifdef SignInstaller
 SignTool=MySignTool
@@ -18,19 +18,19 @@ SignTool=MySignTool
 Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=lowest
-UninstallDisplayIcon={app}\OMN.ico
+UninstallDisplayIcon={app}\MN.ico
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Files]
 Source: "dist\MNIME\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "OMN.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "MN.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\MNIME"; Filename: "{app}\MNIME.exe"; IconFilename: "{app}\OMN.ico"
+Name: "{group}\MNIME"; Filename: "{app}\MNIME.exe"; IconFilename: "{app}\MN.ico"
 Name: "{group}\Uninstall MNIME"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\MNIME"; Filename: "{app}\MNIME.exe"; IconFilename: "{app}\OMN.ico"; Tasks: desktopicon
+Name: "{autodesktop}\MNIME"; Filename: "{app}\MNIME.exe"; IconFilename: "{app}\MN.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\MNIME.exe"; Description: "Launch MNIME"; Flags: nowait postinstall skipifsilent

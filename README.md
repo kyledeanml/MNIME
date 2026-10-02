@@ -138,7 +138,7 @@ MNIME/
 │   ├── settings_dialog.py # Model configuration UI
 │   └── tabs_bar.py        # Mode switcher (Merge, Images->PDF, PDF->Images, Compress, Bookmark, DOCX)
 ├── MNIME_reimagined_alpha.png# High-resolution perfectly transparent neon logo
-├── OMN.ico                # Multi-resolution native Windows icon
+├── MN.ico                # Multi-resolution native Windows icon
 ├── MNIME.py              # Main application entry point
 ├── create_shortcut.bat    # 1-click Quickbar / Desktop shortcut generator
 ├── run.bat                # 1-click Windows runner

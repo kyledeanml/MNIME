@@ -1,5 +1,5 @@
-"""
-MNIME Desktop - Application Entry Point
+﻿"""
+OMNIME Desktop - Application Entry Point
 Next-generation private, high-performance offline document suite.
 """
 
@@ -27,11 +27,9 @@ from PyQt6.QtGui import (QFont, QPainter, QLinearGradient, QColor,
                          QFontMetrics, QPen, QBrush, QPixmap, QPolygonF)
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QPointF
 
-
-
 class Particle:
     def __init__(self, cx, cy):
-        # Spawn around the MNIME text area
+        # Spawn around the OMNIME text area
         self.x = cx + random.uniform(-50, 50)
         self.y = cy + random.uniform(-50, 50)
         
@@ -85,7 +83,7 @@ class Particle:
 from ui.main_window import MainWindow
 
 class MetalSplashScreen(QWidget):
-    """A completely borderless, transparent widget that displays the MNIME title in dark metal with a rotating 5D Penteract."""
+    """A completely borderless, transparent widget that displays the OMNIME title in dark metal with particle effects."""
     def __init__(self):
         super().__init__()
         self.setWindowFlags(
@@ -102,15 +100,13 @@ class MetalSplashScreen(QWidget):
         self.opacity_effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.opacity_effect)
         
-        self.rotation = 0.0
-        self.logo_scale = 0.0
-        
         # Initialize massive full-screen Particle System
-        self.particles = [Particle(w/2, h/2) for _ in range(300)]
+        self.particles = [Particle(w/2, h/2) for _ in range(300)] # More particles
         self.anim_timer = QTimer(self)
-        self.anim_timer.timeout.connect(self._update_animation)
-        
+        self.anim_timer.timeout.connect(self._update_particles)
         # Create tiny glowing file icon pixmap cache for particles
+        
+        # Make the file icon much larger and clearer so it doesn't look like an orb when downscaled
         self.file_pixmap = QPixmap(24, 24)
         self.file_pixmap.fill(Qt.GlobalColor.transparent)
         p = QPainter(self.file_pixmap)
@@ -121,6 +117,7 @@ class MetalSplashScreen(QWidget):
             QPointF(20, 22), QPointF(4, 22)
         ])
         
+        # Draw glowing halo directly onto the icon pixmap instead of a separate circle
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QColor(140, 230, 255, 80))
         p.drawEllipse(0, 0, 24, 24)
@@ -135,7 +132,7 @@ class MetalSplashScreen(QWidget):
         
         p.end()
 
-        self.anim_timer.start(16)
+        self.anim_timer.start(16)  # ~60 FPS
         
         self.phase = 1
         self.central_file_scale = 0.0
@@ -150,12 +147,8 @@ class MetalSplashScreen(QWidget):
         self.phase = 2
         for p in self.particles:
             p.phase = 2
-
-    def _update_animation(self):
-        self.rotation += 0.03
-        if self.logo_scale < 1.0:
-            self.logo_scale = min(1.0, self.logo_scale + 0.03)
             
+    def _update_particles(self):
         arrived = 0
         for p in self.particles:
             p.update()
@@ -166,16 +159,16 @@ class MetalSplashScreen(QWidget):
             self.central_file_scale = min(1.0, arrived / len(self.particles))
             
         self.update()
-
+        
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         
-        cx = self.width() // 2
-        cy = self.height() // 2
+        # 0. Draw Particle System (Optimized batch rendering)
+        glow_brush = QBrush(QColor(140, 230, 255, 100))
+        core_brush = QBrush(QColor(255, 255, 255, 255))
         
-        # 0. Draw Particle System
         for p in self.particles:
             if not p.active:
                 continue
@@ -196,46 +189,53 @@ class MetalSplashScreen(QWidget):
                 int(icon_size),
                 self.file_pixmap
             )
-        
-        # 1. Draw Massive 5D Penteract in Background
-        if self.logo_scale > 0:
-            from core.app_icon import get_logo_pixmap
-            logo_size = int(600 * self.logo_scale)
-            pixmap = get_logo_pixmap(logo_size, self.rotation)
             
-            painter.setOpacity(min(1.0, self.logo_scale))
+        if self.phase == 2 and self.central_file_scale > 0:
+            # Draw the massive merged file at the center
+            scale = self.central_file_scale * 5.0 # Up to 5x size
+            icon_size = 24.0 * scale
+            
+            cx = self.width() / 2
+            cy = self.height() / 2 - 40
+            
+            # Strong halo for the merged file
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(140, 230, 255, int(150 * self.central_file_scale)))
+            painter.drawEllipse(QPointF(cx, cy), icon_size * 0.6, icon_size * 0.6)
+            
             painter.drawPixmap(
-                int(cx - logo_size / 2),
-                int(cy - logo_size / 2 - 40),
-                pixmap
+                int(cx - icon_size / 2),
+                int(cy - icon_size / 2),
+                int(icon_size),
+                int(icon_size),
+                self.file_pixmap
             )
-            painter.setOpacity(1.0)
         
-        # 2. Sleek, modern, and official corporate font
+        # Sleek, modern, and official corporate font
         font = QFont("Segoe UI Black", 85, QFont.Weight.Black)
         font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 5.0)
         painter.setFont(font)
         
         fm = QFontMetrics(font)
-        text_rect = fm.boundingRect("MNIME")
+        text_rect = fm.boundingRect("OMNIME")
         
-        x = cx - text_rect.width() // 2
-        y = cy + text_rect.height() // 2 - fm.descent()
+        x = (self.width() - text_rect.width()) // 2
+        y = (self.height() + text_rect.height()) // 2 - fm.descent()
         
-        # 3. Intense neon blue ambient glow
+        # 1. Intense neon blue ambient glow (optimized simulated blur)
         glow_color = QColor(0, 210, 255, 25)
         painter.setPen(glow_color)
         for offset in [3, 6]:
-            painter.drawText(x - offset, y - offset, "MNIME")
-            painter.drawText(x + offset, y - offset, "MNIME")
-            painter.drawText(x - offset, y + offset, "MNIME")
-            painter.drawText(x + offset, y + offset, "MNIME")
+            painter.drawText(x - offset, y - offset, "OMNIME")
+            painter.drawText(x + offset, y - offset, "OMNIME")
+            painter.drawText(x - offset, y + offset, "OMNIME")
+            painter.drawText(x + offset, y + offset, "OMNIME")
         
-        # 4. Deep drop shadow for desktop separation
+        # 2. Deep drop shadow for desktop separation
         painter.setPen(QColor(0, 0, 0, 200))
-        painter.drawText(x + 5, y + 5, "MNIME")
+        painter.drawText(x + 5, y + 5, "OMNIME")
         
-        # 5. Dark Metallic Gradient Core
+        # 3. Dark Metallic Gradient Core
         gradient = QLinearGradient(x, y - text_rect.height(), x, y)
         gradient.setColorAt(0.0, QColor("#ffffff")) # Bright top edge highlight
         gradient.setColorAt(0.2, QColor("#e1e4e8")) # Light silver
@@ -246,9 +246,7 @@ class MetalSplashScreen(QWidget):
         pen = QPen()
         pen.setBrush(QBrush(gradient))
         painter.setPen(pen)
-        painter.drawText(x, y, "MNIME")
-        
-        painter.end()
+        painter.drawText(x, y, "OMNIME")
 
 def main():
     # Enable high-DPI scaling
@@ -257,8 +255,8 @@ def main():
     )
 
     app = QApplication(sys.argv)
-    app.setApplicationName("MNIME")
-    app.setOrganizationName("MNIME")
+    app.setApplicationName("OMNIME")
+    app.setOrganizationName("OMNIME")
 
     # Set application icon for taskbar, quickbar, window titlebar, and system dialogs
     app_icon = get_app_icon()

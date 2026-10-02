@@ -72,6 +72,40 @@ class SearchEngine:
         return data_list
 
     @staticmethod
+    def _extract_text_windows_ocr(pixmap) -> str:
+        try:
+            import asyncio
+            from winsdk.windows.media.ocr import OcrEngine
+            from winsdk.windows.globalization import Language
+            from winsdk.windows.graphics.imaging import BitmapDecoder
+            from winsdk.windows.storage.streams import InMemoryRandomAccessStream, DataWriter
+            
+            async def _recognize(png_bytes):
+                stream = InMemoryRandomAccessStream()
+                writer = DataWriter(stream)
+                writer.write_bytes(png_bytes)
+                await writer.store_async()
+                writer.detach_stream()
+                stream.seek(0)
+                
+                decoder = await BitmapDecoder.create_async(stream)
+                software_bitmap = await decoder.get_software_bitmap_async()
+                
+                engine = OcrEngine.try_create_from_user_profile_languages()
+                if not engine:
+                    engine = OcrEngine.try_create_from_language(Language("en-US"))
+                
+                if not engine:
+                    return ""
+                    
+                result = await engine.recognize_async(software_bitmap)
+                return result.text
+                
+            return asyncio.run(_recognize(pixmap.tobytes("png")))
+        except Exception:
+            return ""
+
+    @staticmethod
     def build_index(
         file_items: List[FileItem],
         use_smart_sampling: bool = True,
@@ -97,8 +131,16 @@ class SearchEngine:
                     import pymupdf
                     doc = pymupdf.open(file_item.file_path)
                     content_str = ""
-                    for page in doc:
-                        content_str += page.get_text() + "\n"
+                    for i, page in enumerate(doc):
+                        if progress_callback:
+                            progress_callback(10, f"Reading PDF Page {i+1}/{len(doc)}...")
+                        text = page.get_text()
+                        if not text.strip():
+                            if progress_callback:
+                                progress_callback(10, f"Running OCR on PDF Page {i+1}/{len(doc)}...")
+                            pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
+                            text = SearchEngine._extract_text_windows_ocr(pix)
+                        content_str += text + "\n"
                     doc.close()
                     data_list.append({
                         "path": file_item.file_path,
@@ -155,6 +197,9 @@ class SearchEngine:
                 for _, row in df.iterrows():
                     final_docs.extend([Document(page_content=c, metadata={"source": row['path']}) for c in split.split_text(row['content'])])
 
+            if not final_docs:
+                raise ValueError("No readable text could be extracted. Ensure the documents contain selectable text (not just scanned images).")
+
             vstore = FAISS.from_documents(final_docs, emb)
             
         else:
@@ -168,6 +213,9 @@ class SearchEngine:
                     pct = 50 + int((i / len(df)) * 40)
                     progress_callback(pct, f"Full Indexing ({i+1}/{len(df)})...")
             
+            if not all_docs:
+                raise ValueError("No readable text could be extracted. Ensure the documents contain selectable text (not just scanned images).")
+
             vstore = FAISS.from_documents(all_docs, emb)
 
         if progress_callback:

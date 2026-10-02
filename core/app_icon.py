@@ -39,7 +39,7 @@ def get_resource_path(relative_path: str) -> str:
 
 
 def get_ico_path() -> str:
-    return get_resource_path("OMN.ico")
+    return get_resource_path("MN.ico")
 
 
 def get_png_path() -> str:
@@ -65,7 +65,7 @@ def setup_app_user_model_id() -> bool:
 def ensure_ico_file() -> Optional[str]:
     """
     Ensures that a multi-resolution Windows ICO file exists.
-    If OMN.ico does not exist, it converts MNIME_reimagined_alpha.png using Pillow.
+    If MN.ico does not exist, it converts MNIME_reimagined_alpha.png using Pillow.
     """
     ico_path = get_ico_path()
     if os.path.exists(ico_path):
@@ -332,7 +332,7 @@ def get_logo_pixmap(size: int = 48, rotation: float = 0.0):
 def create_windows_shortcuts() -> bool:
     """
     Creates Windows shortcuts on the Desktop and in the project directory,
-    pointing to run.bat with the custom OMN.ico icon.
+    pointing to run.bat with the custom MN.ico icon.
     """
     if sys.platform != "win32":
         return False

@@ -148,7 +148,7 @@ class InstallerUI(QWidget):
         self.little_files = []
         
         # The happy green file and the tiny files
-        self.happy_green_pixmap = self.create_file_pixmap(QColor(50, 220, 100), 64, is_happy=True)
+        self.happy_green_pixmap = self.create_file_pixmap(QColor(50, 220, 100), 64)
         self.tiny_file_pixmap = self.create_file_pixmap(QColor(140, 230, 255), 16)
         
         self.anim_timer = QTimer(self)
@@ -161,7 +161,7 @@ class InstallerUI(QWidget):
         
         QTimer.singleShot(1000, self.worker.start)
 
-    def create_file_pixmap(self, color, size=48, is_happy=False):
+    def create_file_pixmap(self, color, size=48):
         pix = QPixmap(size, size)
         pix.fill(Qt.GlobalColor.transparent)
         p = QPainter(pix)
@@ -184,18 +184,7 @@ class InstallerUI(QWidget):
         p.drawLine(QPointF(14*scale, 2*scale), QPointF(14*scale, 8*scale))
         p.drawLine(QPointF(14*scale, 8*scale), QPointF(20*scale, 8*scale))
         
-        if is_happy:
-            # Draw a happy face inside the file!
-            p.setPen(QPen(color, 2 * scale, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-            # Eyes
-            p.drawPoint(QPointF(9*scale, 12*scale))
-            p.drawPoint(QPointF(15*scale, 12*scale))
-            # Smile arc
-            smile_path = QPainterPath()
-            smile_path.moveTo(8*scale, 15*scale)
-            smile_path.quadTo(12*scale, 19*scale, 16*scale, 15*scale)
-            p.drawPath(smile_path)
-            
+        
         p.end()
         return pix
 

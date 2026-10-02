@@ -11,10 +11,11 @@ from ui.cursor_fx import get_custom_cursor
 from typing import List
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
-    QLabel, QFrame
+    QLabel, QFrame, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect, QTimer
 from PyQt6.QtGui import QColor, QPixmap, QPainter
+import math
 from core.file_item import FileItem
 from core.app_icon import get_resource_path
 from .file_card import FileCard

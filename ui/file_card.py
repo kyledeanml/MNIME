@@ -15,6 +15,7 @@ from PyQt6.QtGui import (
 )
 from core.file_item import FileItem, FileStatus
 from .icons import get_svg_pixmap, get_icon
+from PyQt6.QtCore import QThreadPool, QRunnable, QMetaObject, Q_ARG
 
 
 class FileCard(QFrame):
@@ -36,6 +37,7 @@ class FileCard(QFrame):
         self.setCursor(get_custom_cursor())
         # Only accept internal card-reorder drops; OS file drops must bubble up
         self.setAcceptDrops(True)
+        self._thumb_requested = False
 
         self._setup_ui()
         self.update_state()
@@ -178,8 +180,13 @@ class FileCard(QFrame):
                          else QColor(190, 190, 190))
                 painter.fillRect(x, y, checker_size, checker_size, color)
 
-        # 2. Thumbnail (cached pixmap)
-        scaled = self.item.get_thumbnail_pixmap(self.width() - 12, self.height() - 36)
+        # 2. Thumbnail (lazy load to prevent RAM spikes and UI stutter)
+        scaled = None
+        if self.item._cached_pixmap is not None:
+            scaled = self.item._cached_pixmap
+        elif self.item.thumbnail_bytes is not None:
+            scaled = self.item.get_thumbnail_pixmap(self.width() - 12, self.height() - 36)
+            
         if scaled and not scaled.isNull():
             px = (self.width() - scaled.width()) // 2
             py = 24 + (self.height() - 36 - scaled.height()) // 2
@@ -188,9 +195,27 @@ class FileCard(QFrame):
         else:
             painter.fillRect(6, 24, self.width() - 12, self.height() - 40, QColor(20, 26, 38))
             painter.fillRect(0, 0, self.width(), self.height(), QColor(10, 15, 24, 120))
+            if not self._thumb_requested:
+                self._thumb_requested = True
+                self._request_thumbnail_async()
 
         painter.end()
         super().paintEvent(event)
+
+    def _request_thumbnail_async(self):
+        class ThumbWorker(QRunnable):
+            def __init__(self, item, card_width, card_height, cb):
+                super().__init__()
+                self.item = item
+                self.card_width = card_width
+                self.card_height = card_height
+                self.cb = cb
+
+            def run(self):
+                self.item.generate_thumbnail(self.card_width * 2, self.card_height * 2)
+                QMetaObject.invokeMethod(self.cb, "update", Qt.ConnectionType.QueuedConnection)
+
+        QThreadPool.globalInstance().start(ThumbWorker(self.item, self.width(), self.height(), self))
 
     # ------------------------------------------------------------------
     # Mouse events — manual drag reorder (no QDrag/OLE, works with WM_DROPFILES)

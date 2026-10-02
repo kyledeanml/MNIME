@@ -31,7 +31,6 @@ class PDFEngine:
             import pymupdf
 
             merged_doc = pymupdf.open()
-            open_docs = []
             for idx, item in enumerate(file_items):
                 if progress_callback:
                     pct = int((idx / total_items) * 90)
@@ -41,14 +40,14 @@ class PDFEngine:
                 if ext == ".pdf":
                     sub_doc = pymupdf.open(item.file_path)
                     merged_doc.insert_pdf(sub_doc)
-                    open_docs.append(sub_doc)
+                    sub_doc.close()
                 elif ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp"]:
                     img_doc = pymupdf.open(item.file_path)
                     pdf_bytes = img_doc.convert_to_pdf()
                     img_pdf = pymupdf.open("pdf", pdf_bytes)
                     merged_doc.insert_pdf(img_pdf)
-                    open_docs.append(img_pdf)
-                    open_docs.append(img_doc)
+                    img_pdf.close()
+                    img_doc.close()
                 elif ext == ".txt":
                     with open(item.file_path, "r", encoding="utf-8") as f:
                         text_content = f.read()
@@ -57,16 +56,13 @@ class PDFEngine:
                     rect = pymupdf.Rect(50, 50, page.rect.width - 50, page.rect.height - 50)
                     page.insert_textbox(rect, text_content, fontsize=12, fontname="helv")
                     merged_doc.insert_pdf(txt_pdf)
-                    open_docs.append(txt_pdf)
+                    txt_pdf.close()
 
             if progress_callback:
                 progress_callback(95, "Compacting and saving document...")
 
             merged_doc.save(output_path, garbage=3, deflate=True)
             merged_doc.close()
-            
-            for d in open_docs:
-                d.close()
 
             if progress_callback:
                 progress_callback(100, f"Finished! Merged {total_items} files.")

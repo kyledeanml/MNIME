@@ -870,7 +870,7 @@ class MainWindow(QMainWindow):
     MAX_FILE_LIMIT = 5000
 
     def _add_files(self, paths: List[str]):
-        """Add newly selected files to the queue, recursively expanding any dropped folders."""
+        """Add newly selected files to the queue, recursively expanding any dropped folders asynchronously."""
         import re
         def natural_sort_key(s):
             return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
@@ -890,36 +890,66 @@ class MainWindow(QMainWindow):
         if not expanded_paths:
             return
 
-        # Sort the entire incoming batch naturally so multi-file selections arrive ordered
         expanded_paths = sorted(expanded_paths, key=natural_sort_key)
+        
+        # Disable UI components during load to prevent duplicate drops
+        self.action_bar.action_btn.setEnabled(False)
+        self.action_bar.show_progress(0, "Scanning files...")
 
-        added_count = 0
         existing_paths = {item.file_path for item in self.file_items}
+        
+        def _load_batch_task(progress_callback=None):
+            new_items = []
+            added = 0
+            total = len(expanded_paths)
+            current_count = len(self.file_items)
+            
+            for i, path in enumerate(expanded_paths):
+                if current_count + added >= self.MAX_FILE_LIMIT:
+                    break
+                    
+                if progress_callback and i % 5 == 0:
+                    progress_callback(int((i / total) * 100), f"Loading metadata {i+1}/{total}...")
+                    
+                if path in existing_paths:
+                    continue
+                    
+                try:
+                    item = FileItem(path)
+                    new_items.append(item)
+                    existing_paths.add(path)
+                    added += 1
+                except Exception:
+                    pass
+            return new_items
 
-        for path in expanded_paths:
+        def _on_load_finished(new_items):
+            self.action_bar.hide_progress()
+            self.action_bar.action_btn.setEnabled(True)
+            
+            if new_items:
+                self.file_items.extend(new_items)
+                self.carousel.set_items(self.file_items)
+                self.action_bar.update_count(len(self.file_items))
+                
             if len(self.file_items) >= self.MAX_FILE_LIMIT:
                 QMessageBox.information(
                     self,
                     "Batch Limit",
-                    f"You can select up to {self.MAX_FILE_LIMIT} files at a time."
+                    f"Queue reached maximum capacity of {self.MAX_FILE_LIMIT} files."
                 )
-                break
 
-            # Fast O(1) duplicate check
-            if path in existing_paths:
-                continue
+        def _on_load_error(err):
+            self.action_bar.hide_progress()
+            self.action_bar.action_btn.setEnabled(True)
+            print(f"Error loading files: {err}")
 
-            try:
-                item = FileItem(path)
-                self.file_items.append(item)
-                existing_paths.add(path)
-                added_count += 1
-            except Exception as e:
-                print(f"Error loading file {path}: {e}")
-
-        if added_count > 0:
-            self.carousel.set_items(self.file_items)
-            self.action_bar.update_count(len(self.file_items))
+        # Reuse TaskWorker for background loading
+        self._load_worker = TaskWorker(_load_batch_task)
+        self._load_worker.progress.connect(self._on_worker_progress)
+        self._load_worker.finished.connect(_on_load_finished)
+        self._load_worker.error.connect(_on_load_error)
+        self._load_worker.start()
 
     def _clear_files(self):
         """Clear all files from the queue and reset the view."""
@@ -955,6 +985,11 @@ class MainWindow(QMainWindow):
             return
 
         if is_hovered and self.file_items:
+            # Particle Physics Throttling: Disable simulation for extreme batch sizes to maintain 60 FPS
+            if len(self.file_items) > 100:
+                self.particle_overlay.stop_hover_pull()
+                return
+
             local_pos = self.mapFromGlobal(global_pos)
             if self.particle_overlay.hover_active:
                 self.particle_overlay.update_target_pos(local_pos)
@@ -1009,7 +1044,8 @@ class MainWindow(QMainWindow):
 
         # Trigger hyper-speed collapse of file particles into the merge button center!
         if hasattr(self, 'particle_overlay') and self.current_mode != ToolMode.EDIT_IMAGE:
-            self.particle_overlay.trigger_hyper_collapse()
+            if len(self.file_items) <= 100:
+                self.particle_overlay.trigger_hyper_collapse()
 
         if self.current_mode == ToolMode.EDIT_IMAGE:
             for item in self.file_items:

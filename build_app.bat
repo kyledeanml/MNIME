@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 title MNIME Builder and Installer
 cd /d "%~dp0"
 

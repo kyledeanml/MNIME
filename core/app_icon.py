@@ -285,6 +285,17 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
         for p in points_2d:
             painter.drawEllipse(p, radius * 0.10, radius * 0.10)
 
+    # The happy little neon green file swirling in its own independent arching orbit!
+    green_icon_w = int(radius * (0.35 if is_tray else 0.22))
+    green_icon_h = int(radius * (0.35 if is_tray else 0.22))
+    green_file_pixmap = get_svg_pixmap("file", size=green_icon_w, color="#39ff14")
+    
+    if not green_file_pixmap.isNull():
+        # Creates a sweeping, spirograph-style arching orbit
+        happy_x = center.x() + radius * 0.85 * math.sin(rotation * 2.7)
+        happy_y = center.y() + radius * 0.85 * math.sin(rotation * 1.4) * math.cos(rotation * 0.9)
+        painter.drawPixmap(int(happy_x - green_icon_w / 2), int(happy_y - green_icon_h / 2), green_file_pixmap)
+
     painter.end()
     return pixmap
 

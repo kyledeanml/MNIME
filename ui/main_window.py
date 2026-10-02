@@ -795,7 +795,7 @@ class MainWindow(QMainWindow):
                 layout.setContentsMargins(30, 30, 30, 30)
                 layout.setSpacing(15)
                 
-                title = QLabel("AI Model Required")
+                title = QLabel("NLP Model Required")
                 title.setObjectName("title")
                 title.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 layout.addWidget(title)

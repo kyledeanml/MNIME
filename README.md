@@ -2,7 +2,7 @@
   <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
-A modern, private, and ultra-fast desktop document suite seamlessly integrated with a powerful local NLP engine. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational AI over your files with total privacy.
+A modern, private, and ultra-fast desktop document suite seamlessly integrated with a powerful local NLP engine. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your files with total privacy.
 
 ---
 
@@ -31,21 +31,21 @@ A modern, private, and ultra-fast desktop document suite seamlessly integrated w
 ### High-Performance Engine & Optimizations
 - **C-Accelerated PyMuPDF Core**: Multi-file merging, image extraction, and compression run through native C-level PyMuPDF routines (up to 50x faster than pure-Python libraries with negligible RAM footprint).
 - **O(1) Carousel Layout Operations**: Drag-and-drop card reordering and card removal execute via surgical layout index shifts rather than tearing down and rebuilding hundreds of widgets.
-- **Dynamic AI Memory Management**: The GGUF model and FAISS vector index are completely cleared from memory the moment NLP is toggled off or the app closes, preventing background memory hoarding.
+- **Dynamic Memory Management**: The GGUF model and FAISS vector index are completely cleared from memory the moment NLP is toggled off or the app closes, preventing background memory hoarding.
 - **Manual NLP Control**: NLP models no longer force-load on startup. They wait idly until you explicitly click the "Reload NLP" button, keeping startup times instant.
 - **In-Memory Pixmap & Icon Caching**: Thumbnails and vector SVG icons are rasterized and pre-scaled once, eliminating CPU resampling during continuous scroll and hover events.
 - **Lightweight Hardware-Accelerated Cards**: Replaced heavy drop shadow bitmap textures with pure stylesheet hardware borders, keeping UI scrolling silky smooth even with 5000 files loaded.
 - **Non-blocking Background Processing**: Smooth 60 FPS UI using `QThread` workers with real-time progress bars.
 
-### AI & NLP Hardware Tuning
-MNIME puts you in complete control of your AI hardware acceleration via the Settings gear:
+### NLP Hardware Tuning
+MNIME puts you in complete control of your hardware acceleration via the Settings gear:
 - **LLM Model Source**: Manually point MNIME to any local `.gguf` model file on your drive (e.g., Qwen3.5-4B-Q4_K_M.gguf) to act as the core engine.
 - **VRAM Offload (GPU Layers)**: Use the slider to explicitly allocate how much of the model runs on your graphics card. Set it to `Max (All)` for blazing-fast generation on high-end GPUs, `0` for pure CPU processing, or somewhere in the middle to prevent "Out of Memory" crashes on smaller GPUs by splitting the workload.
 - **Context Window**: Tune the maximum token limit (e.g., 2048 to 32768) depending on how large your PDFs are and how much VRAM you have available.
-- **GPU Device Selection**: MNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local AI engine.
+- **GPU Device Selection**: MNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local NLP engine.
 - **Flash Attention**: Toggle this on to massively accelerate the processing of long documents. It optimizes memory reads and scales much better when you crank up the Context Window.
 - **VRAM Memory Saver (KV Quantization)**: If you are running out of VRAM, toggle this on to compress the model's short-term memory (KV cache) to 8-bit. This allows you to run much larger context windows on GPUs with limited memory without sacrificing noticeable accuracy.
-- **Lock Model in RAM (mlock)**: For machines with fast, abundant system RAM. This prevents the operating system from paging the AI model to your hard drive, explicitly reserving space in RAM for zero-latency memory reads.
+- **Lock Model in RAM (mlock)**: For machines with fast, abundant system RAM. This prevents the operating system from paging the NLP model to your hard drive, explicitly reserving space in RAM for zero-latency memory reads.
 
 ---
 

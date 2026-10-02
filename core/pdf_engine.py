@@ -590,7 +590,7 @@ class PDFEngine:
                 if best_text:
                     if is_nlp_active:
                         if progress_callback:
-                            progress_callback(pct, f"AI summarizing page {i+1}/{total_pages}...")
+                            progress_callback(pct, f"NLP summarizing page {i+1}/{total_pages}...")
                         page_text = page.get_text("text").strip()
                         best_text = nlp_engine.generate_verbose_bookmark(best_text, page_text)
                         

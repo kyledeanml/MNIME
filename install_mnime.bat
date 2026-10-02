@@ -7,9 +7,48 @@ echo Installing MNIME Application
 echo ========================================================
 echo.
 
-if not exist "dist\MNIME\MNIME.exe" (
-    echo ERROR: Could not find compiled application!
-    echo Please run build_app.bat first.
+:: -------------------------------------------------------
+:: Stale-build check: compare dist exe timestamp against
+:: the most recently modified source file in core\ and ui\
+:: If source is newer than the exe, force a rebuild first.
+:: -------------------------------------------------------
+set "EXE=dist\MNIME\MNIME.exe"
+set "NEED_BUILD=0"
+
+if not exist "%EXE%" (
+    echo No compiled application found. Will build first.
+    set "NEED_BUILD=1"
+    goto :maybe_build
+)
+
+:: Use PowerShell to compare timestamps
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$exe = Get-Item '%EXE%'; " ^
+    "$src = Get-ChildItem -Recurse -Include *.py 'core','ui' | Sort-Object LastWriteTime -Descending | Select-Object -First 1; " ^
+    "if ($src -and $src.LastWriteTime -gt $exe.LastWriteTime) { exit 1 } else { exit 0 }"
+
+if %errorlevel% equ 1 (
+    echo Source files are newer than the compiled exe. Rebuilding...
+    set "NEED_BUILD=1"
+)
+
+:maybe_build
+if "%NEED_BUILD%"=="1" (
+    echo.
+    echo ========================================================
+    echo Running build_app.bat to compile latest changes...
+    echo ========================================================
+    call build_app.bat
+    if %errorlevel% neq 0 (
+        echo.
+        echo ERROR: Build failed. Installation aborted.
+        pause
+        exit /b %errorlevel%
+    )
+)
+
+if not exist "%EXE%" (
+    echo ERROR: Could not find compiled application after build!
     pause
     exit /b 1
 )

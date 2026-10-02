@@ -1,12 +1,94 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextBrowser, 
-    QLineEdit, QPushButton, QLabel, QProgressBar
+    QLineEdit, QPushButton, QLabel, QProgressBar, QDialog, QFrame
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QThread
 from typing import List, Any
 from core.file_item import FileItem
 from core.search_engine import SearchEngine
 from core.nlp_engine import NLPEngine
+
+class ClickableTextBrowser(QTextBrowser):
+    doubleClicked = pyqtSignal()
+    def mouseDoubleClickEvent(self, event):
+        self.doubleClicked.emit()
+        super().mouseDoubleClickEvent(event)
+
+class ExpandedNLPDialog(QDialog):
+    def __init__(self, parent_view, parent=None):
+        super().__init__(parent)
+        self.parent_view = parent_view
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.resize(850, 650)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(30, 30, 30, 30)
+        
+        frame = QFrame()
+        frame.setStyleSheet("QFrame { background-color: rgba(11, 15, 25, 240); border: 2px solid #00d2ff; border-radius: 12px; }")
+        frame_layout = QVBoxLayout(frame)
+        
+        header_layout = QHBoxLayout()
+        title = QLabel("OMNIME")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("color: #00e5ff; font-size: 18px; font-weight: bold; border: none; background: transparent;")
+        
+        close_btn = QPushButton("CLOSE")
+        close_btn.setStyleSheet("QPushButton { background-color: transparent; color: #00e5ff; font-weight: bold; border: none; font-size: 14px; } QPushButton:hover { color: #ffffff; }")
+        close_btn.clicked.connect(self.close)
+        
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        header_layout.addWidget(close_btn)
+        
+        self.history_view = QTextBrowser()
+        self.history_view.setStyleSheet("""
+            QTextBrowser { background-color: transparent; color: #c9d1d9; border: none; font-size: 16px; }
+            QScrollBar:vertical { background: transparent; width: 10px; margin: 0px 0px 0px 0px; }
+            QScrollBar::handle:vertical { background: #1f2737; min-height: 20px; border-radius: 5px; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+        """)
+        
+        self.query_input = QLineEdit()
+        self.query_input.setPlaceholderText("Ask a question...")
+        self.query_input.setStyleSheet("""
+            QLineEdit { background-color: rgba(22, 27, 34, 180); color: #f0f6fc; border: 1px solid #30363d; border-radius: 6px; padding: 15px; font-size: 16px; }
+        """)
+        self.query_input.returnPressed.connect(self._submit_query)
+        
+        frame_layout.addLayout(header_layout)
+        frame_layout.addWidget(self.history_view)
+        frame_layout.addWidget(self.query_input)
+        layout.addWidget(frame)
+        
+        self.parent_view.window().installEventFilter(self)
+        
+    def center_on_parent(self):
+        parent_rect = self.parent_view.window().geometry()
+        x = parent_rect.x() + (parent_rect.width() - self.width()) // 2
+        y = parent_rect.y() + (parent_rect.height() - self.height()) // 2
+        self.move(x, y)
+        
+    def eventFilter(self, obj, event):
+        if obj is self.parent_view.window() and event.type() in (event.Type.Move, event.Type.Resize):
+            self.center_on_parent()
+        return super().eventFilter(obj, event)
+
+    def _submit_query(self):
+        query = self.query_input.text().strip()
+        if not query: return
+        self.query_input.clear()
+        self.parent_view.query_input.setText(query)
+        self.parent_view._submit_query()
+        
+    def append_html(self, html: str):
+        self.history_view.append(html)
+        
+    def set_input_enabled(self, enabled: bool):
+        self.query_input.setEnabled(enabled)
+        if enabled:
+            self.query_input.setFocus()
 
 class IndexWorker(QThread):
     progress = pyqtSignal(int, str)
@@ -58,7 +140,25 @@ class NLPView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.vectorstore = None
+        self.expanded_dialog = None
         self._setup_ui()
+        
+        import atexit, sys
+        atexit.register(self.clear_index)
+        self._old_excepthook = sys.excepthook
+        sys.excepthook = self._crash_hook
+
+    def _crash_hook(self, exctype, value, traceback):
+        self.clear_index()
+        if self._old_excepthook:
+            self._old_excepthook(exctype, value, traceback)
+
+    def clear_index(self):
+        if self.vectorstore:
+            del self.vectorstore
+            self.vectorstore = None
+            import gc
+            gc.collect()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -76,7 +176,7 @@ class NLPView(QWidget):
         
         self.start_over_btn = QPushButton("START OVER")
         self.start_over_btn.setStyleSheet("""
-            QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 6px; padding: 6px 18px; font-weight: bold; }
+            QPushButton { background-color: #162438; color: #00e5ff; border: 1px solid #00d2ff; border-radius: 4px; padding: 4px 12px; font-weight: bold; font-size: 11px; }
             QPushButton:hover { background-color: #0077b6; color: #ffffff; }
         """)
         self.start_over_btn.clicked.connect(self.start_over_clicked.emit)
@@ -87,10 +187,12 @@ class NLPView(QWidget):
         top_layout.addStretch()
         top_layout.addWidget(self.start_over_btn)
         
-        self.history_view = QTextBrowser()
+        self.history_view = ClickableTextBrowser()
         self.history_view.setStyleSheet("""
             QTextBrowser { background-color: #0a0d14; color: #c9d1d9; border: 1px solid #1f2737; border-radius: 6px; padding: 10px; font-size: 14px; }
         """)
+        self.history_view.setToolTip("Double click for expanded view")
+        self.history_view.doubleClicked.connect(self._on_history_double_clicked)
         
         self.query_input = QLineEdit()
         self.query_input.setPlaceholderText("Ask a question about your documents...")
@@ -103,6 +205,26 @@ class NLPView(QWidget):
         layout.addLayout(top_layout)
         layout.addWidget(self.history_view)
         layout.addWidget(self.query_input)
+
+    def _on_history_double_clicked(self):
+        if not self.expanded_dialog:
+            self.expanded_dialog = ExpandedNLPDialog(self, self.window())
+        self.expanded_dialog.history_view.setHtml(self.history_view.toHtml())
+        self.expanded_dialog.set_input_enabled(self.query_input.isEnabled())
+        
+        # Center on parent window
+        self.expanded_dialog.center_on_parent()
+        self.expanded_dialog.show()
+
+    def _append_history(self, html_msg: str):
+        self.history_view.append(html_msg)
+        if self.expanded_dialog and self.expanded_dialog.isVisible():
+            self.expanded_dialog.append_html(html_msg)
+            
+    def _set_input_enabled(self, enabled: bool):
+        self.query_input.setEnabled(enabled)
+        if self.expanded_dialog and self.expanded_dialog.isVisible():
+            self.expanded_dialog.set_input_enabled(enabled)
 
     def start_indexing(self, file_items: List[FileItem]):
         if not file_items:
@@ -129,23 +251,23 @@ class NLPView(QWidget):
         self.progress_bar.setVisible(False)
         self.status_label.setText("Indexing complete! Ask a question below.")
         self.start_over_btn.setEnabled(True)
-        self.query_input.setEnabled(True)
+        self._set_input_enabled(True)
         self.query_input.setFocus()
-        self.history_view.append("<div style='color:#00e5ff'><b>System:</b> Indexing complete. Ready for queries.</div><br>")
+        self._append_history("<div style='color:#00e5ff'><b>System:</b> Indexing complete. Ready for queries.</div><br>")
 
     def _on_index_error(self, err: str):
         self.progress_bar.setVisible(False)
         self.status_label.setText("Error during indexing.")
         self.start_over_btn.setEnabled(True)
-        self.history_view.append(f"<div style='color:#ff5555'><b>Error:</b> {err}</div><br>")
+        self._append_history(f"<div style='color:#ff5555'><b>Error:</b> {err}</div><br>")
 
     def _submit_query(self):
         query = self.query_input.text().strip()
         if not query: return
         
         self.query_input.clear()
-        self.history_view.append(f"<div style='color:#c9d1d9'><b>You:</b> {query}</div><br>")
-        self.query_input.setEnabled(False)
+        self._append_history(f"<div style='color:#c9d1d9'><b>You:</b> {query}</div><br>")
+        self._set_input_enabled(False)
         self.status_label.setText("Generating answer...")
         
         # 1. Semantic Search
@@ -159,7 +281,7 @@ class NLPView(QWidget):
     def _on_query_response(self, response: str):
         # Format response with line breaks
         response_html = response.replace("\n", "<br>")
-        self.history_view.append(f"<div style='color:#00e5ff'><b>NLP:</b> {response_html}</div><br><hr><br>")
-        self.query_input.setEnabled(True)
+        self._append_history(f"<div style='color:#00e5ff'><b>OMNIME:</b> {response_html}</div><br><hr><br>")
+        self._set_input_enabled(True)
         self.query_input.setFocus()
         self.status_label.setText("Ready.")

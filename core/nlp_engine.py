@@ -1,5 +1,8 @@
 import os
+import sys
 import threading
+import atexit
+import signal
 from typing import List, Dict, Any, Optional
 from PyQt6.QtCore import QSettings
 
@@ -13,6 +16,40 @@ class NLPEngine:
         self.is_loaded = False
         self.error = None
         self._lock = threading.Lock()
+        
+        # Register cleanup for normal exit
+        atexit.register(self.unload_model)
+        
+        # Register cleanup for crashes
+        self._original_excepthook = sys.excepthook
+        sys.excepthook = self._crash_handler
+        
+        # Attempt to register signal handlers for termination
+        try:
+            signal.signal(signal.SIGINT, self._signal_handler)
+            signal.signal(signal.SIGTERM, self._signal_handler)
+        except Exception:
+            pass
+
+    def _crash_handler(self, exc_type, exc_value, exc_traceback):
+        self.unload_model()
+        if self._original_excepthook:
+            self._original_excepthook(exc_type, exc_value, exc_traceback)
+
+    def _signal_handler(self, signum, frame):
+        self.unload_model()
+        sys.exit(0)
+
+    def unload_model(self):
+        with self._lock:
+            if self.llm is not None:
+                try:
+                    self.llm.close()
+                except AttributeError:
+                    pass
+                del self.llm
+                self.llm = None
+            self.is_loaded = False
 
     @classmethod
     def get_instance(cls):
@@ -26,8 +63,7 @@ class NLPEngine:
         self.reload_model()
 
     def reload_model(self):
-        self.llm = None
-        self.is_loaded = False
+        self.unload_model()
         self.error = None
         if not self.model_path or not os.path.exists(self.model_path):
             self.error = "Model path not set or file does not exist."
@@ -79,12 +115,13 @@ class NLPEngine:
     def check_model(self):
         enabled = str(self.settings.value("nlp_enabled", "true")).lower() == "true"
         if not enabled:
-            self.is_loaded = False
+            self.unload_model()
             self.error = "NLP is globally disabled via Tabs Bar toggle."
             return
-            
-        if not self.is_loaded and self.model_path:
-            self.reload_model()
+        
+        if not self.is_loaded:
+            self.error = "Model not loaded. Click the reload button to start NLP."
+            return
 
     def generate_response(self, prompt: str, context_docs: List[Dict[str, Any]]) -> str:
         self.check_model()

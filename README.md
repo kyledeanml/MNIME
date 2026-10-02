@@ -2,6 +2,8 @@
   <img src="OMNIME_reimagined_alpha.png" alt="OMNIME Banner" width="100%">
 </p>
 
+## OMNIME v1.0
+
 A modern, ultra-fast, and private desktop document suite engineered with Python and PyQt6. Runs 100% locally and offline on your machine with zero external uploads.
 
 ---
@@ -16,7 +18,8 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 6. **PDF → DOCX**: Convert PDF pages and text layout into editable .docx documents.
 7. **Semantic Bookmarks**: Intelligently analyze PDF typography and use the local NLP engine to automatically generate verbose, context-aware chapter summaries.
 8. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally with your own offline GGUF language model.
-9. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize a NLP comparative brief against other documents.
+9. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.
+10. **Expanded Translucent Pop-out Chat**: Double-click the NLP console to spawn a magnetic, translucent floating chat window perfectly synced with the main app.
 
 ### Visual & Aesthetic Highlights
 - **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
@@ -30,6 +33,8 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 ### High-Performance Engine & Optimizations
 - **C-Accelerated PyMuPDF Core**: Multi-file merging, image extraction, and compression run through native C-level PyMuPDF routines (up to 50x faster than pure-Python libraries with negligible RAM footprint).
 - **O(1) Carousel Layout Operations**: Drag-and-drop card reordering and card removal execute via surgical layout index shifts rather than tearing down and rebuilding hundreds of widgets.
+- **Dynamic AI Memory Management**: The GGUF model and FAISS vector index are completely cleared from memory the moment NLP is toggled off or the app closes, preventing background memory hoarding.
+- **Manual NLP Control**: NLP models no longer force-load on startup. They wait idly until you explicitly click the "Reload NLP" button, keeping startup times instant.
 - **In-Memory Pixmap & Icon Caching**: Thumbnails and vector SVG icons are rasterized and pre-scaled once, eliminating CPU resampling during continuous scroll and hover events.
 - **Lightweight Hardware-Accelerated Cards**: Replaced heavy drop shadow bitmap textures with pure stylesheet hardware borders, keeping UI scrolling silky smooth even with 5000 files loaded.
 - **Non-blocking Background Processing**: Smooth 60 FPS UI using `QThread` workers with real-time progress bars.

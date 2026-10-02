@@ -613,6 +613,7 @@ class MainWindow(QMainWindow):
         # NLP View (Hidden by default)
         self.nlp_view = NLPView(self)
         self.nlp_view.start_over_clicked.connect(self._start_over)
+        self.tabs_bar.nlp_toggled.connect(lambda checked: self.nlp_view.clear_index() if not checked else None)
         self.nlp_view.hide()
         main_layout.addWidget(self.nlp_view, 1)
 
@@ -818,6 +819,8 @@ class MainWindow(QMainWindow):
                 
                 dialog.exec()
                 
+                # Fix TabsBar state mismatch
+                self.tabs_bar.current_mode = ToolMode.COMBINE_PDF
                 self.tabs_bar._buttons[ToolMode.COMBINE_PDF].setChecked(True)
                 self._on_mode_changed(ToolMode.COMBINE_PDF)
                 return

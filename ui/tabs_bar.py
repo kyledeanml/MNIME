@@ -22,12 +22,14 @@ class ToolMode(Enum):
     PDF_TO_DOCX = "PDF → DOCX"
     SETTINGS = "SETTINGS"
     NLP = "NLP"
+    RELOAD_NLP = "RELOAD NLP"
 
 class TabsBar(QWidget):
     """Free-floating dark metallic tab navigation bar with dark neon blue highlights."""
 
     mode_changed = pyqtSignal(ToolMode)
     settings_clicked = pyqtSignal()
+    nlp_toggled = pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -55,6 +57,7 @@ class TabsBar(QWidget):
         ]
         right_tabs = [
             ToolMode.NLP,
+            ToolMode.RELOAD_NLP,
             ToolMode.SETTINGS
         ]
 
@@ -74,18 +77,24 @@ class TabsBar(QWidget):
                 ToolMode.PDF_TO_DOCX: "document",
                 ToolMode.REFERENCE: "book",
                 ToolMode.NLP: "message",
+                ToolMode.RELOAD_NLP: "refresh",
                 ToolMode.SETTINGS: "settings"
             }
             
             btn = QPushButton()
             btn.setCheckable(True)
             btn.setCursor(get_custom_cursor())
-            btn.setFixedHeight(28)
-            # Make width same as height for a clean square/circle look, or just set fixed width
-            btn.setFixedWidth(40)
+            
+            if mode in [ToolMode.NLP, ToolMode.RELOAD_NLP]:
+                btn.setFixedHeight(21)
+                btn.setFixedWidth(30)
+                btn.setIconSize(QSize(12, 12))
+            else:
+                btn.setFixedHeight(28)
+                btn.setFixedWidth(40)
+                btn.setIconSize(QSize(16, 16))
             
             btn.setIcon(get_icon(icon_map.get(mode, "document"), "#00e5ff"))
-            btn.setIconSize(QSize(16, 16))
             btn.setToolTip(mode.value)
             
             btn.setStyleSheet("""
@@ -133,7 +142,7 @@ class TabsBar(QWidget):
         
         from PyQt6.QtWidgets import QCheckBox
         from PyQt6.QtCore import QSettings
-        self.nlp_checkbox = QCheckBox("NLP Active")
+        self.nlp_checkbox = QCheckBox("NLP")
         self.nlp_checkbox.setStyleSheet("""
             QCheckBox { color: #00e5ff; font-weight: bold; font-size: 11px; margin-right: 10px; }
             QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #00d2ff; border-radius: 3px; background-color: #162438; }
@@ -152,12 +161,21 @@ class TabsBar(QWidget):
 
     def _on_nlp_toggled(self, checked):
         from PyQt6.QtCore import QSettings
+        from core.nlp_engine import NLPEngine
         settings = QSettings("OMNIME", "OMNIMEApp")
         settings.setValue("nlp_enabled", checked)
+        if not checked:
+            NLPEngine.get_instance().unload_model()
 
     def _on_tab_clicked(self, mode: ToolMode):
         if mode == ToolMode.SETTINGS:
             self.settings_clicked.emit()
+            if self.current_mode in self._buttons:
+                self._buttons[self.current_mode].setChecked(True)
+            return
+        elif mode == ToolMode.RELOAD_NLP:
+            from core.nlp_engine import NLPEngine
+            NLPEngine.get_instance().reload_model()
             if self.current_mode in self._buttons:
                 self._buttons[self.current_mode].setChecked(True)
             return

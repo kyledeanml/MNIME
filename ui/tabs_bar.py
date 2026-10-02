@@ -6,7 +6,7 @@ Merge Files, JPG -> PDF, PDF -> JPG, Compress PDF, PDF -> Word.
 from ui.cursor_fx import get_custom_cursor
 from enum import Enum
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QButtonGroup, QFrame
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, QTimer
 
 
 class ToolMode(Enum):
@@ -154,6 +154,69 @@ class TabsBar(QWidget):
 
         # Set initial active tab
         self._buttons[ToolMode.COMBINE_PDF].setChecked(True)
+
+        self.status_timer = QTimer(self)
+        self.status_timer.timeout.connect(self._update_reload_button_status)
+        self.status_timer.start(1000)
+
+    def _update_reload_button_status(self):
+        from core.nlp_engine import NLPEngine
+        is_loaded = NLPEngine.get_instance().is_loaded
+        btn = self._buttons.get(ToolMode.RELOAD_NLP)
+        if not btn: return
+        
+        if not is_loaded:
+            btn.setStyleSheet("""
+                QToolTip {
+                    background-color: #0b0f19;
+                    color: #00e5ff;
+                    border: 1px solid #00d2ff;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    font-size: 11px;
+                    font-weight: 900;
+                    letter-spacing: 1px;
+                }
+                QPushButton {
+                    background-color: #162438;
+                    border: 1px solid #00e5ff;
+                    border-radius: 10px;
+                }
+                QPushButton:hover {
+                    background-color: #0077b6;
+                    border: 1px solid #00d2ff;
+                }
+                QPushButton:checked {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #005f8c, stop:1 #00a8e8);
+                    border: 1px solid #00e5ff;
+                }
+            """)
+        else:
+            btn.setStyleSheet("""
+                QToolTip {
+                    background-color: #0b0f19;
+                    color: #00e5ff;
+                    border: 1px solid #00d2ff;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    font-size: 11px;
+                    font-weight: 900;
+                    letter-spacing: 1px;
+                }
+                QPushButton {
+                    background-color: #162438;
+                    border: 1px solid #1f2737;
+                    border-radius: 10px;
+                }
+                QPushButton:hover {
+                    background-color: #0077b6;
+                    border: 1px solid #00d2ff;
+                }
+                QPushButton:checked {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #005f8c, stop:1 #00a8e8);
+                    border: 1px solid #00e5ff;
+                }
+            """)
 
     def _on_nlp_toggled(self, checked):
         from PyQt6.QtCore import QSettings

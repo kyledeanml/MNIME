@@ -30,7 +30,7 @@ class ExpandedNLPDialog(QDialog):
         frame_layout = QVBoxLayout(frame)
         
         header_layout = QHBoxLayout()
-        title = QLabel("MNIME")
+        title = QLabel("NLP")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: #00e5ff; font-size: 18px; font-weight: bold; border: none; background: transparent;")
         

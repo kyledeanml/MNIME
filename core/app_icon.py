@@ -104,28 +104,14 @@ _CACHED_LOGO_PIXMAPS: dict = {}
 def get_app_icon() -> QIcon:
     """
     Returns the QIcon for the application (cached).
-    Prefers the multi-resolution ICO for native Windows taskbar fidelity,
-    falling back to OMN.jpg if needed.
+    Uses the pure programmatic vector logo (origami geometric pattern).
     """
     global _CACHED_APP_ICON
     if _CACHED_APP_ICON is not None and not _CACHED_APP_ICON.isNull():
         return _CACHED_APP_ICON
 
-    ico = ensure_ico_file()
-    if ico and os.path.exists(ico):
-        icon = QIcon(ico)
-        if not icon.isNull():
-            _CACHED_APP_ICON = icon
-            return _CACHED_APP_ICON
-
-    png = get_png_path()
-    if os.path.exists(png):
-        icon = QIcon(png)
-        if not icon.isNull():
-            _CACHED_APP_ICON = icon
-            return _CACHED_APP_ICON
-
-    return QIcon()
+    _CACHED_APP_ICON = get_tray_icon()
+    return _CACHED_APP_ICON
 
 
 def get_logo_pixmap(size: int = 48) -> QPixmap:
@@ -176,13 +162,14 @@ def get_tray_icon() -> QIcon:
     painter.setPen(QPen(QColor(0, 210, 255, 60), 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
-            painter.drawLine(points[i], points[j])
+            if (j - i) in [1, 3, 5]:
+                painter.drawLine(points[i], points[j])
             
     # 2. Bright inner core lines
     painter.setPen(QPen(QColor(0, 229, 255, 255), 1.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
-            # Only draw outer rim and center-crossing lines to keep it clean and mesh-like
+            # Only draw outer rim and center-crossing lines to look like an origami pattern
             if (j - i) in [1, 3, 5]: 
                 painter.drawLine(points[i], points[j])
                 
@@ -211,6 +198,7 @@ def create_windows_shortcuts() -> bool:
     try:
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         target_path = os.path.join(project_root, "run.bat")
+        ensure_ico_file()
         icon_path = get_ico_path()
         desktop_dir = os.path.normpath(os.path.expanduser("~/Desktop"))
         desktop_lnk = os.path.join(desktop_dir, "OMNIME.lnk")

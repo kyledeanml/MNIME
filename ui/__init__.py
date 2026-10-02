@@ -1,5 +1,5 @@
 """
-UI package for OMNIME Desktop Application.
+UI package for MNIME Desktop Application.
 """
 
 from .main_window import MainWindow

@@ -1,9 +1,9 @@
 @echo off
-title OMNIME - Create Desktop ^& Quickbar Shortcut
+title MNIME - Create Desktop ^& Quickbar Shortcut
 cd /d "%~dp0"
 
 echo ========================================================
-echo Generating OMNIME Quickbar and Desktop Shortcuts
+echo Generating MNIME Quickbar and Desktop Shortcuts
 echo ========================================================
 echo.
 
@@ -17,7 +17,7 @@ if exist ".venv\Scripts\python.exe" (
 
 echo.
 echo ========================================================
-echo A shortcut 'OMNIME' has been created on
+echo A shortcut 'MNIME' has been created on
 echo your Desktop and inside this folder!
 echo.
 echo To pin to your Quickbar / Taskbar:

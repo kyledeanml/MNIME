@@ -1,5 +1,5 @@
 """
-Merge particle animation system for OMNIME.
+Merge particle animation system for MNIME.
 Provides:
 1. Continuous gravitational file particle pull toward the Merge button on hover.
 2. Hyper-speed particle collapse on click.
@@ -171,7 +171,7 @@ class StreamParticle:
 
 class MergeParticleOverlay(QWidget):
     """
-    Master particle and cinematic transition overlay for OMNIME.
+    Master particle and cinematic transition overlay for MNIME.
     Handles:
     - Inward gravitational pull of file particles on Merge button hover.
     - Violent hyper-collapse on Merge button click.

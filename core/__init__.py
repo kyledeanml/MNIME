@@ -1,5 +1,5 @@
 """
-Core business logic and processing engines for OMNIME Desktop.
+Core business logic and processing engines for MNIME Desktop.
 """
 
 from .file_item import FileItem, FileStatus

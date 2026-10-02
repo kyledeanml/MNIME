@@ -1,20 +1,20 @@
 @echo off
-title Install OMNIME
+title Install MNIME
 cd /d "%~dp0"
 
 echo ========================================================
-echo Installing OMNIME Application
+echo Installing MNIME Application
 echo ========================================================
 echo.
 
-if not exist "dist\OMNIME\OMNIME.exe" (
+if not exist "dist\MNIME\MNIME.exe" (
     echo ERROR: Could not find compiled application!
     echo Please run build_app.bat first.
     pause
     exit /b 1
 )
 
-set "INSTALL_DIR=%LOCALAPPDATA%\Programs\OMNIME"
+set "INSTALL_DIR=%LOCALAPPDATA%\Programs\MNIME"
 
 if exist "%INSTALL_DIR%" (
     echo Removing old installation...
@@ -23,15 +23,15 @@ if exist "%INSTALL_DIR%" (
 
 echo Copying application files to %INSTALL_DIR% ...
 mkdir "%INSTALL_DIR%"
-xcopy /E /I /Q /Y "dist\OMNIME\*" "%INSTALL_DIR%\"
+xcopy /E /I /Q /Y "dist\MNIME\*" "%INSTALL_DIR%\"
 if exist "OMN.ico" copy /Y "OMN.ico" "%INSTALL_DIR%\" >nul
 
 echo.
 echo Creating Desktop and Start Menu shortcuts...
 
-set "DESKTOP_LNK=%USERPROFILE%\Desktop\OMNIME.lnk"
-set "STARTMENU_LNK=%APPDATA%\Microsoft\Windows\Start Menu\Programs\OMNIME.lnk"
-set "EXE_PATH=%INSTALL_DIR%\OMNIME.exe"
+set "DESKTOP_LNK=%USERPROFILE%\Desktop\MNIME.lnk"
+set "STARTMENU_LNK=%APPDATA%\Microsoft\Windows\Start Menu\Programs\MNIME.lnk"
+set "EXE_PATH=%INSTALL_DIR%\MNIME.exe"
 set "ICON_PATH=%INSTALL_DIR%\OMN.ico"
 
 :: We write a temporary powershell script and execute it
@@ -52,7 +52,7 @@ del create_links.ps1
 
 echo.
 echo ========================================================
-echo OMNIME has been successfully installed!
+echo MNIME has been successfully installed!
 echo You can now launch it from your Desktop or Start Menu.
 echo ========================================================
 pause

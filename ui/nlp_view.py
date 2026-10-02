@@ -30,7 +30,7 @@ class ExpandedNLPDialog(QDialog):
         frame_layout = QVBoxLayout(frame)
         
         header_layout = QHBoxLayout()
-        title = QLabel("OMNIME")
+        title = QLabel("MNIME")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: #00e5ff; font-size: 18px; font-weight: bold; border: none; background: transparent;")
         
@@ -102,7 +102,7 @@ class IndexWorker(QThread):
     def run(self):
         try:
             from PyQt6.QtCore import QSettings
-            settings = QSettings("OMNIME", "OMNIMEApp")
+            settings = QSettings("MNIME", "MNIMEApp")
             smart_sampling = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
             
             vectorstore = SearchEngine.build_index(
@@ -281,7 +281,7 @@ class NLPView(QWidget):
     def _on_query_response(self, response: str):
         # Format response with line breaks
         response_html = response.replace("\n", "<br>")
-        self._append_history(f"<div style='color:#00e5ff'><b>OMNIME:</b> {response_html}</div><br><hr><br>")
+        self._append_history(f"<div style='color:#00e5ff'><b>MNIME:</b> {response_html}</div><br><hr><br>")
         self._set_input_enabled(True)
         self.query_input.setFocus()
         self.status_label.setText("Ready.")

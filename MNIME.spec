@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('OMNIME_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
+datas = [('MNIME_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
 binaries = []
 hiddenimports = [
     'fitz',
@@ -55,7 +55,7 @@ for pkg in ['pymupdf', 'pdf2docx', 'pypdf', 'langchain', 'langchain_community', 
         pass
 
 a = Analysis(
-    ['OMNIME.py'],
+    ['MNIME.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -74,7 +74,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='OMNIME',
+    name='MNIME',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -94,5 +94,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='OMNIME',
+    name='MNIME',
 )

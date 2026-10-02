@@ -39,7 +39,7 @@ for i in range(num_frames):
     painter.setPen(QColor(176, 196, 222))
     
     text_rect = QRect(0, logo_size - 20, banner_width, banner_height - logo_size + 20)
-    painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, "OMNIME")
+    painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, "MNIME")
     
     painter.end()
     
@@ -61,11 +61,11 @@ for i in range(num_frames):
 
 # Save as GIF
 frames[0].save(
-    "OMNIME_banner.gif",
+    "MNIME_banner.gif",
     save_all=True,
     append_images=frames[1:],
     optimize=False,
     duration=33, # 33ms per frame = 30 fps for a slow smooth crawl
     loop=0
 )
-print("Saved OMNIME_banner.gif")
+print("Saved MNIME_banner.gif")

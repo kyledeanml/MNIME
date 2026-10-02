@@ -11,7 +11,7 @@ import subprocess
 from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
 
-APP_USER_MODEL_ID = "OMNIME.Desktop.1.5"
+APP_USER_MODEL_ID = "MNIME.Desktop.1.5"
 
 
 def get_resource_path(relative_path: str) -> str:
@@ -43,14 +43,14 @@ def get_ico_path() -> str:
 
 
 def get_png_path() -> str:
-    return get_resource_path("OMNIME_reimagined_alpha.png")
+    return get_resource_path("MNIME_reimagined_alpha.png")
 
 
 def setup_app_user_model_id() -> bool:
     """
     Sets the explicit Application User Model ID on Windows.
     This prevents Windows from grouping the app under python.exe and
-    ensures the taskbar / quickbar displays the custom OMNIME logo.
+    ensures the taskbar / quickbar displays the custom MNIME logo.
     """
     if sys.platform == "win32":
         try:
@@ -65,7 +65,7 @@ def setup_app_user_model_id() -> bool:
 def ensure_ico_file() -> Optional[str]:
     """
     Ensures that a multi-resolution Windows ICO file exists.
-    If OMN.ico does not exist, it converts OMNIME_reimagined_alpha.png using Pillow.
+    If OMN.ico does not exist, it converts MNIME_reimagined_alpha.png using Pillow.
     """
     ico_path = get_ico_path()
     if os.path.exists(ico_path):
@@ -343,8 +343,8 @@ def create_windows_shortcuts() -> bool:
         ensure_ico_file()
         icon_path = get_ico_path()
         desktop_dir = os.path.normpath(os.path.expanduser("~/Desktop"))
-        desktop_lnk = os.path.join(desktop_dir, "OMNIME.lnk")
-        project_lnk = os.path.join(project_root, "OMNIME.lnk")
+        desktop_lnk = os.path.join(desktop_dir, "MNIME.lnk")
+        project_lnk = os.path.join(project_root, "MNIME.lnk")
 
         ps_script = f"""
 $WshShell = New-Object -ComObject WScript.Shell

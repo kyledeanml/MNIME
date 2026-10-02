@@ -348,8 +348,8 @@ class CarouselView(QWidget):
         cloud_icon = AnimatedLogoWidget(200, self.empty_zone)
         empty_layout.addWidget(cloud_icon)
         
-        # Add OMNIME Typography under logo
-        title_label = QLabel("OMNIME")
+        # Add MNIME Typography under logo
+        title_label = QLabel("MNIME")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #b0c4de; font-family: 'Segoe UI', Arial; font-size: 26px; font-weight: 900; letter-spacing: 6px; background: transparent; border: none;")
         empty_layout.addWidget(title_label)

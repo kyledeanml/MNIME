@@ -148,7 +148,7 @@ class TabsBar(QWidget):
             QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #00d2ff; border-radius: 3px; background-color: #162438; }
             QCheckBox::indicator:checked { background-color: #00e5ff; }
         """)
-        settings = QSettings("OMNIME", "OMNIMEApp")
+        settings = QSettings("MNIME", "MNIMEApp")
         self.nlp_checkbox.setChecked(str(settings.value("nlp_enabled", "true")).lower() == "true")
         self.nlp_checkbox.toggled.connect(self._on_nlp_toggled)
         layout.addWidget(self.nlp_checkbox)
@@ -162,7 +162,7 @@ class TabsBar(QWidget):
     def _on_nlp_toggled(self, checked):
         from PyQt6.QtCore import QSettings
         from core.nlp_engine import NLPEngine
-        settings = QSettings("OMNIME", "OMNIMEApp")
+        settings = QSettings("MNIME", "MNIMEApp")
         settings.setValue("nlp_enabled", checked)
         if not checked:
             NLPEngine.get_instance().unload_model()

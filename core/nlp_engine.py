@@ -10,7 +10,7 @@ class NLPEngine:
     _instance = None
     
     def __init__(self):
-        self.settings = QSettings("OMNIME", "OMNIMEApp")
+        self.settings = QSettings("MNIME", "MNIMEApp")
         self.model_path = self.settings.value("gguf_model_path", "")
         self.llm = None
         self.is_loaded = False
@@ -133,7 +133,7 @@ class NLPEngine:
         context_text = "\n\n".join([f"Document ({doc.get('source', 'Unknown')}):\n{doc.get('content', '')}" for doc in context_docs])
         
         system_prompt = (
-            "You are an advanced local NLP assistant for OMNIME. "
+            "You are an advanced local NLP assistant for MNIME. "
             "Use the provided document context to answer the user's query accurately. "
             "If the answer is not in the context, state that clearly."
         )

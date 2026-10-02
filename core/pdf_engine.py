@@ -242,7 +242,7 @@ class PDFEngine:
             from PyQt6.QtCore import QSettings
             from core.nlp_engine import NLPEngine
 
-            settings = QSettings("OMNIME", "OMNIMEApp")
+            settings = QSettings("MNIME", "MNIMEApp")
             use_nlp = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
             nlp_engine = NLPEngine.get_instance()
             if use_nlp:
@@ -495,7 +495,7 @@ class PDFEngine:
             
             os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
-            settings = QSettings("OMNIME", "OMNIMEApp")
+            settings = QSettings("MNIME", "MNIMEApp")
             use_nlp = str(settings.value("nlp_smart_indexing", "true")).lower() == "true"
             nlp_engine = NLPEngine.get_instance()
             if use_nlp:

@@ -1,5 +1,5 @@
 """
-Semantic Search Engine for OMNIME.
+Semantic Search Engine for MNIME.
 Adapts the "CodeEyes" codebase semantic search concept for offline document/codebase querying.
 """
 

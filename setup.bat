@@ -1,9 +1,9 @@
 @echo off
-title OMNIME Desktop - Setup
+title MNIME Desktop - Setup
 cd /d "%~dp0"
 
 echo ========================================================
-echo Installing OMNIME Desktop Dependencies
+echo Installing MNIME Desktop Dependencies
 echo ========================================================
 echo.
 
@@ -33,6 +33,6 @@ if exist ".venv\Scripts\pip.exe" (
 echo.
 echo ========================================================
 echo Setup complete! You can now run 'run.bat' or open
-echo this directory in PyCharm and run OMNIME.py.
+echo this directory in PyCharm and run MNIME.py.
 echo ========================================================
 pause

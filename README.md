@@ -45,6 +45,8 @@ OMNIME puts you in complete control of your AI hardware acceleration via the Set
 - **VRAM Offload (GPU Layers)**: Use the slider to explicitly allocate how much of the model runs on your graphics card. Set it to `Max (All)` for blazing-fast generation on high-end GPUs, `0` for pure CPU processing, or somewhere in the middle to prevent "Out of Memory" crashes on smaller GPUs by splitting the workload.
 - **Context Window**: Tune the maximum token limit (e.g., 2048 to 32768) depending on how large your PDFs are and how much VRAM you have available.
 - **GPU Device Selection**: OMNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local AI engine.
+- **Flash Attention**: Toggle this on to massively accelerate the processing of long documents. It optimizes memory reads and scales much better when you crank up the Context Window.
+- **VRAM Memory Saver (KV Quantization)**: If you are running out of VRAM, toggle this on to compress the model's short-term memory (KV cache) to 8-bit. This allows you to run much larger context windows on GPUs with limited memory without sacrificing noticeable accuracy.
 
 ---
 

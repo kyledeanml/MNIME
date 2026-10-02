@@ -39,6 +39,13 @@ A modern, ultra-fast, and private desktop document suite engineered with Python 
 - **Lightweight Hardware-Accelerated Cards**: Replaced heavy drop shadow bitmap textures with pure stylesheet hardware borders, keeping UI scrolling silky smooth even with 5000 files loaded.
 - **Non-blocking Background Processing**: Smooth 60 FPS UI using `QThread` workers with real-time progress bars.
 
+### AI & NLP Hardware Tuning
+OMNIME puts you in complete control of your AI hardware acceleration via the Settings gear:
+- **LLM Model Source**: Manually point OMNIME to any local `.gguf` model file on your drive (e.g., Qwen3.5-4B-Q4_K_M.gguf) to act as the core engine.
+- **VRAM Offload (GPU Layers)**: Use the slider to explicitly allocate how much of the model runs on your graphics card. Set it to `Max (All)` for blazing-fast generation on high-end GPUs, `0` for pure CPU processing, or somewhere in the middle to prevent "Out of Memory" crashes on smaller GPUs by splitting the workload.
+- **Context Window**: Tune the maximum token limit (e.g., 2048 to 32768) depending on how large your PDFs are and how much VRAM you have available.
+- **GPU Device Selection**: OMNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local AI engine.
+
 ---
 
 ## Setup & Installation

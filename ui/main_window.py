@@ -165,6 +165,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
         self.setMouseTracking(True)
         self.setAcceptDrops(True)
         self._dnd_registered = False
@@ -477,22 +478,39 @@ class MainWindow(QMainWindow):
         base_layout.setContentsMargins(10, 24, 10, 10) # 24px padding for the extended bezel effect
 
         class WatermarkFrame(QFrame):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self._cached_pixmap = None
+
+            def resizeEvent(self, event):
+                super().resizeEvent(event)
+                self._cached_pixmap = None
+
             def paintEvent(self, event):
                 super().paintEvent(event)
-                from PyQt6.QtGui import QPainter, QFont, QPen, QColor
+                from PyQt6.QtGui import QPainter, QFont, QPen, QColor, QPixmap
                 from PyQt6.QtCore import Qt
-                painter = QPainter(self)
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                font = QFont("Segoe UI Black", 80, QFont.Weight.Black)
-                font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 15.0)
-                painter.setFont(font)
-                painter.setPen(QPen(QColor(255, 255, 255, 4))) # Extremely light translucent watermark
                 
-                text = "MNIME        " * 20
-                y_offset = 80
-                while y_offset < self.height() + 100:
-                    painter.drawText(-100, y_offset, text)
-                    y_offset += 180
+                if self._cached_pixmap is None or self._cached_pixmap.size() != self.size():
+                    self._cached_pixmap = QPixmap(self.size())
+                    self._cached_pixmap.fill(Qt.GlobalColor.transparent)
+                    
+                    p = QPainter(self._cached_pixmap)
+                    p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+                    font = QFont("Segoe UI Black", 80, QFont.Weight.Black)
+                    font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 15.0)
+                    p.setFont(font)
+                    p.setPen(QPen(QColor(255, 255, 255, 4)))
+                    
+                    text = "MNIME        " * 20
+                    y_offset = 80
+                    while y_offset < self.height() + 100:
+                        p.drawText(-100, y_offset, text)
+                        y_offset += 180
+                    p.end()
+
+                painter = QPainter(self)
+                painter.drawPixmap(0, 0, self._cached_pixmap)
 
         self.container_frame = WatermarkFrame()
         self.container_frame.setMouseTracking(True)
@@ -511,13 +529,8 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # Premium drop shadow for the free-floating borderless effect
-        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 180))
-        shadow.setOffset(0, 4)
-        self.container_frame.setGraphicsEffect(shadow)
+        # Removed QGraphicsDropShadowEffect as it causes severe CPU bottlenecks and window flickering during system resize on frameless windows.
+        # The clean glassmorphic border defined in the stylesheet above provides sufficient edge definition.
         
         # Center the window seamlessly on the primary display
         if app := QApplication.instance():

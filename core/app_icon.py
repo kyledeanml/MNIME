@@ -127,8 +127,8 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0) -> QPixmap:
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
     center = QPointF(size / 2, size / 2)
-    # Using 0.35 to give plenty of room without hitting edges
-    radius = size * 0.35
+    # Using 0.44 to make the logo significantly larger without clipping
+    radius = size * 0.44
 
     # 4D Hypercube (Tesseract) Projection
     points_4d = []
@@ -232,7 +232,7 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0) -> QPixmap:
     return pixmap
 
 
-def get_tray_icon(size: int = 64, rotation: float = 0.0):
+def get_tray_icon(size: int = 256, rotation: float = 0.0):
     from PyQt6.QtGui import QIcon
     return QIcon(_draw_logo_pixmap(size, rotation))
 

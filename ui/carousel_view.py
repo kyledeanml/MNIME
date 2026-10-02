@@ -26,8 +26,8 @@ class AnimatedLogoWidget(QLabel):
         super().__init__(parent)
         self.logo_size = size
         self.rotation = 0.0
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._update_rotation)
@@ -40,6 +40,16 @@ class AnimatedLogoWidget(QLabel):
         pixmap = get_logo_pixmap(self.logo_size, self.rotation)
         if not pixmap.isNull():
             self.setPixmap(pixmap)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.timer.isActive():
+                self.timer.stop()
+            else:
+                self.timer.start(33)
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
 # ---------------------------------------------------------------------------
 # ClippedCardsArea – a simple scrollable container with NO QScrollArea

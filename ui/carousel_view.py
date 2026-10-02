@@ -36,8 +36,6 @@ class AnimatedLogoWidget(QLabel):
 
     def _update_rotation(self):
         self.rotation += 0.015
-        if self.rotation > math.pi * 2:
-            self.rotation -= math.pi * 2
         from core.app_icon import get_logo_pixmap
         pixmap = get_logo_pixmap(self.logo_size, self.rotation)
         if not pixmap.isNull():

@@ -170,7 +170,7 @@ MNIME/
 
 ## Help & User Guide
 
-Welcome to **MNIME** — your next-generation, private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, MNIME provides blazing-fast document processing entirely offline.
+**MNIME** — your next-generation, private, high-performance offline document suite. Designed with a premium dark-metallic and neon-blue aesthetic, MNIME provides blazing-fast document processing entirely offline.
 
 ### Core Capabilities
 

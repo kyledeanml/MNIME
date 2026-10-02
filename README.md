@@ -4,7 +4,7 @@
 
 <p align="center">MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</p>
 
-A modern, private, and ultra-fast desktop document suite with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
+A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
 
 ---
 

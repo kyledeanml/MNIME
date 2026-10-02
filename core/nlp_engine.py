@@ -82,40 +82,23 @@ class NLPEngine:
         try:
             from llama_cpp import Llama
             
-            # Read hardware settings
-            gpu_layers = int(self.settings.value("nlp_gpu_layers", -1))
-            ctx_window = int(self.settings.value("nlp_ctx_window", 4096))
-            gpu_id = int(self.settings.value("nlp_gpu_id", 0))
-            flash_attn = str(self.settings.value("nlp_flash_attn", "true")).lower() == "true"
-            kv_quant = str(self.settings.value("nlp_kv_quant", "false")).lower() == "true"
-            use_mlock = str(self.settings.value("nlp_use_mlock", "false")).lower() == "true"
-            
             kwargs = {
                 "model_path": self.model_path,
-                "n_ctx": ctx_window,
+                "n_ctx": 4096,
                 "n_threads": 8,
-                "n_gpu_layers": gpu_layers,
-                "main_gpu": gpu_id,
-                "use_mlock": use_mlock,
+                "n_gpu_layers": -1,
+                "main_gpu": 0,
+                "use_mlock": False,
             }
             
             # Conditionally inject new features that might fail on older builds
             try:
                 # Add flash attention if supported
-                if flash_attn:
-                    kwargs["flash_attn"] = True
-                    
-                # Add KV Cache quantization if supported (8 is Q8_0)
-                if kv_quant:
-                    kwargs["type_k"] = 8
-                    kwargs["type_v"] = 8
-                    
+                kwargs["flash_attn"] = True
                 self.llm = Llama(**kwargs)
             except TypeError:
                 # Fallback if specific flags like flash_attn or type_k are unsupported by this older llama-cpp-python version
                 kwargs.pop("flash_attn", None)
-                kwargs.pop("type_k", None)
-                kwargs.pop("type_v", None)
                 self.llm = Llama(**kwargs)
                 
             self.is_loaded = True

@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('MNIME_reimagined_alpha.png', '.'), ('OMN.ico', '.')]
+datas = [('MNIME_reimagined_alpha.png', '.'), ('MN.ico', '.')]
 binaries = []
 hiddenimports = [
     'fitz',
@@ -85,7 +85,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['OMN.ico'],
+    icon=['MN.ico'],
 )
 coll = COLLECT(
     exe,

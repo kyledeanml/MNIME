@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('MN.ico', '.')]
+datas = [('MN.ico', '.'), ('models/*', 'models')]
 binaries = []
 hiddenimports = [
     'fitz',

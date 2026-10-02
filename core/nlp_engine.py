@@ -11,7 +11,17 @@ class NLPEngine:
     
     def __init__(self):
         self.settings = QSettings("MNIME", "MNIMEApp")
-        self.model_path = self.settings.value("gguf_model_path", "")
+        # Check for bundled model
+        bundled_model = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "MNIME-Core-1.5B-Q4_K_M.gguf")
+        default_path = bundled_model if os.path.exists(bundled_model) else ""
+        
+        saved_path = self.settings.value("gguf_model_path", "")
+        if not saved_path or not os.path.exists(saved_path):
+            self.model_path = default_path
+            if default_path:
+                self.settings.setValue("gguf_model_path", default_path)
+        else:
+            self.model_path = saved_path
         self.llm = None
         self.is_loaded = False
         self.error = None

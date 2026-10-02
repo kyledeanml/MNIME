@@ -2,7 +2,7 @@
   <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
-A modern, private, and ultra-fast desktop document suite seamlessly integrated with a powerful local NLP engine. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
+A modern, private, and ultra-fast desktop document suite seamlessly integrated with a fine-tuned integrated local NLP engine. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
 
 ---
 
@@ -39,7 +39,7 @@ A modern, private, and ultra-fast desktop document suite seamlessly integrated w
 
 ### NLP Hardware Tuning
 MNIME puts you in complete control of your hardware acceleration via the Settings gear:
-- **LLM Model Source**: Manually point MNIME to any local `.gguf` model file on your drive (e.g., Qwen3.5-4B-Q4_K_M.gguf) to act as the core engine.
+- **LLM Model Source**: Manually point MNIME to any local `.gguf` model file on your drive (e.g., MNIME-Core-1.5B-Q4_K_M.gguf) to act as the core engine.
 - **VRAM Offload (GPU Layers)**: Use the slider to explicitly allocate how much of the model runs on your graphics card. Set it to `Max (All)` for blazing-fast generation on high-end GPUs, `0` for pure CPU processing, or somewhere in the middle to prevent "Out of Memory" crashes on smaller GPUs by splitting the workload.
 - **Context Window**: Tune the maximum token limit (e.g., 2048 to 32768) depending on how large your PDFs are and how much VRAM you have available.
 - **GPU Device Selection**: MNIME auto-detects NVIDIA graphics cards. If you have multiple GPUs, you can explicitly select which one powers the local NLP engine.
@@ -173,7 +173,7 @@ MNIME provides a wide array of document processing tools, all accessible from th
 
 MNIME is deeply integrated with local Natural Language Processing (NLP) to help you understand your documents better, entirely offline.
 
-- **NLP**: Engage with your documents using a conversational interface. **Optimized specifically for the `Qwen3.5-4B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
+- **NLP**: Engage with your documents using a conversational interface. **Optimized specifically for the custom `MNIME-Core-1.5B-Q4_K_M.gguf` model**, ensuring fast inference on NVIDIA GPUs.
 - **Reference**: Generate synthesized briefs and cross-reference information across multiple uploaded documents.
 
 > **Note**: To use the NLP and Reference features, you must first configure the correct model path in the **Settings** menu.

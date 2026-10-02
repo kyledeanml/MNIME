@@ -42,3 +42,5 @@ OMNIME Builder and Installer.txt
 .DS_Store
 *.gguf
 AGENTS.md
+training/outputs/
+training/.venv/

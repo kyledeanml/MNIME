@@ -30,11 +30,13 @@ OMNIME Builder and Installer.txt
 
 # Documents and Test files
 *.pdf
+!MNIME_Spec_Manual.pdf
 *.docx
 *.jpg
 *.jpeg
 *.png
 !OMNIME_reimagined_alpha.png
+!docs/*.png
 *_bookmarked.pdf
 *_compressed.pdf
 *_merged.pdf

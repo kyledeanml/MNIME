@@ -8,6 +8,24 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
 
 ---
 
+## Specification Sheet & User Manual
+
+<p align="center">
+  <a href="MNIME_Spec_Manual.pdf">
+    <img src="docs/spec_cover.png" alt="MNIME Specification Sheet & User Manual" width="480">
+  </a>
+</p>
+
+<p align="center">
+  <a href="MNIME_Spec_Manual.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Spec%20%26%20Manual-PDF-00e5ff?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="View Spec Sheet PDF">
+  </a>
+</p>
+
+> Click the cover or badge above to open the full **Specification Sheet & User Manual** — 14 sections covering all features, technical specs, architecture, NLP engine details, UI guide, installation, keyboard shortcuts, performance notes, dependency stack, error handling, and changelog.
+
+---
+
 ## Key Features
 
 1. **Merge Files**: Select up to 5000 PDF and image files, drag and drop to reorder, and merge them sequentially into a single PDF document.

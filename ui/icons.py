@@ -4,7 +4,7 @@ Vector SVG icons and QIcon generator for resolution-independent UI rendering.
 
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor
 from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtCore import QByteArray, QSize
+from PyQt6.QtCore import QByteArray
 
 
 SVG_ICONS = {

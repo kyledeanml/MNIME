@@ -11,12 +11,10 @@ from ui.cursor_fx import get_custom_cursor
 from typing import List
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
-    QLabel, QFrame, QGraphicsDropShadowEffect
+    QLabel, QFrame
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect, QTimer
-from PyQt6.QtGui import QColor, QPixmap, QPainter, QRegion
-import os
-import math
+from PyQt6.QtGui import QColor, QPixmap, QPainter
 from core.file_item import FileItem
 from core.app_icon import get_resource_path
 from .file_card import FileCard
@@ -338,7 +336,7 @@ class CarouselView(QWidget):
         empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.setSpacing(10)
 
-        cloud_icon = AnimatedLogoWidget(240, self.empty_zone)
+        cloud_icon = AnimatedLogoWidget(140, self.empty_zone)
         empty_layout.addWidget(cloud_icon)
         
         # Add OMNIME Typography under logo

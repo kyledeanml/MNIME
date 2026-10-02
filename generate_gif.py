@@ -3,7 +3,6 @@ import math
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QColor
 from PyQt6.QtCore import Qt, QRect
-from core.app_icon import get_tray_icon
 from PIL import Image
 
 app = QApplication(sys.argv)

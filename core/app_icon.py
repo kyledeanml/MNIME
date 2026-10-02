@@ -10,7 +10,6 @@ import ctypes
 import subprocess
 from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtCore import Qt
 
 APP_USER_MODEL_ID = "OMNIME.Desktop.1.5"
 
@@ -118,7 +117,7 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0) -> QPixmap:
     """
     Draws the logo and returns a QPixmap.
     """
-    from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor, QPolygonF
+    from PyQt6.QtGui import QPixmap, QPainter, QPen, QColor
     from PyQt6.QtCore import Qt, QPointF
     import math
     pixmap = QPixmap(size, size)

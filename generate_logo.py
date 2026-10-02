@@ -1,6 +1,5 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import Qt
 from core.app_icon import get_logo_pixmap
 
 app = QApplication(sys.argv)

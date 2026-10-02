@@ -3,7 +3,7 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('MNIME_reimagined_alpha.png', '.'), ('MN.ico', '.')]
+datas = [('MN.ico', '.')]
 binaries = []
 hiddenimports = [
     'fitz',

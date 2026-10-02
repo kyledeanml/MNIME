@@ -90,8 +90,37 @@ powershell -NoProfile -ExecutionPolicy Bypass -File create_links.ps1
 del create_links.ps1
 
 echo.
+echo Registering uninstall entry in Add/Remove Programs...
+
+set "UNINST_KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME"
+set "UNINST_BAT=%INSTALL_DIR%\uninstall_mnime.bat"
+
+:: Write uninstaller script into the install dir
+(
+    echo @echo off
+    echo title Uninstall MNIME
+    echo echo Removing MNIME...
+    echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME" /f ^>nul 2^>^&1
+    echo if exist "%DESKTOP_LNK%" del /f /q "%DESKTOP_LNK%"
+    echo if exist "%STARTMENU_LNK%" del /f /q "%STARTMENU_LNK%"
+    echo rmdir /S /Q "%INSTALL_DIR%"
+    echo echo MNIME has been uninstalled.
+    echo pause
+) > "%UNINST_BAT%"
+
+reg add "%UNINST_KEY%" /v "DisplayName"     /t REG_SZ /d "MNIME"                    /f >nul
+reg add "%UNINST_KEY%" /v "DisplayVersion"  /t REG_SZ /d "99"                        /f >nul
+reg add "%UNINST_KEY%" /v "Publisher"       /t REG_SZ /d "MNIME"                     /f >nul
+reg add "%UNINST_KEY%" /v "InstallLocation" /t REG_SZ /d "%INSTALL_DIR%"             /f >nul
+reg add "%UNINST_KEY%" /v "DisplayIcon"     /t REG_SZ /d "%ICON_PATH%,0"             /f >nul
+reg add "%UNINST_KEY%" /v "UninstallString" /t REG_SZ /d "\"%UNINST_BAT%\""          /f >nul
+reg add "%UNINST_KEY%" /v "NoModify"        /t REG_DWORD /d 1                         /f >nul
+reg add "%UNINST_KEY%" /v "NoRepair"        /t REG_DWORD /d 1                         /f >nul
+
+echo.
 echo ========================================================
 echo MNIME has been successfully installed!
+echo It now appears in Add/Remove Programs for clean removal.
 echo You can now launch it from your Desktop or Start Menu.
 echo ========================================================
 pause

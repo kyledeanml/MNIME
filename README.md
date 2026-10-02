@@ -40,10 +40,12 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
 - **Lightweight Hardware-Accelerated Cards**: Replaced heavy drop shadow bitmap textures with pure stylesheet hardware borders, keeping UI scrolling silky smooth even with 5000 files loaded.
 - **Non-blocking Background Processing**: Smooth 60 FPS UI using `QThread` workers with real-time progress bars.
 
-### Bundled NLP Model — MNIME-Core
-The `MNIME-Core-1.5B-Q4_K_M.gguf` model ships inside the application under `models/`. It is a fine-tuned Qwen2.5-1.5B-Instruct model, quantized to Q4_K_M, trained specifically on document-processing and cross-referencing tasks. No external model download or configuration is needed — NLP features work out of the box.
+### NLP Model — MNIME-Core
+The `MNIME-Core-1.5B-Q4_K_M.gguf` model is a fine-tuned Qwen2.5-1.5B-Instruct model, quantized to Q4_K_M, trained specifically on document-processing and cross-referencing tasks. 
 
-MNIME auto-detects the bundled model on startup and will pick up the hardware it can find (NVIDIA GPU layers are set to `-1` by default, meaning the runtime offloads as many layers as will fit in VRAM automatically).
+If you download the pre-built installer, it comes bundled out of the box. If you are running or building from source, you must download the model from [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) and place it in the `models/` folder.
+
+MNIME auto-detects the model on startup and will pick up the hardware it can find (NVIDIA GPU layers are set to `-1` by default, meaning the runtime offloads as many layers as will fit in VRAM automatically).
 
 ---
 
@@ -63,7 +65,12 @@ Both installers place MNIME at `%LOCALAPPDATA%\Programs\MNIME`.
 
 **1. Initial Setup (Required)**
 
-Run `setup.bat` to automatically create a Python virtual environment and install all required dependencies from `requirements.txt`.
+First, you must download the required NLP model from Hugging Face:
+- Go to [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M)
+- Download the `.gguf` model file.
+- Place it inside the `models/` directory in this project.
+
+Next, run `setup.bat` to automatically create a Python virtual environment and install all required dependencies from `requirements.txt`.
 
 **2. Launch**
 
@@ -81,7 +88,11 @@ Run `create_shortcut.bat` to generate a desktop shortcut, then right-click → *
 
 ## Building the Application
 
-Run `build_app.bat` with Inno Setup 6 installed. The script will:
+Run `build_app.bat` with Inno Setup 6 installed. 
+
+**Note:** Ensure you have downloaded the `.gguf` model from Hugging Face into the `models/` folder first, otherwise it won't be packaged into your installers!
+
+The script will:
 
 1. Create/update the `.venv` and install all build dependencies.
 2. Compile the app with PyInstaller using `MNIME.spec` → `dist/MNIME/`.

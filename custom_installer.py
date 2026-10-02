@@ -206,7 +206,7 @@ class InstallerUI(QWidget):
         sys.exit(0)
 
     def update_anim(self):
-        self.swirl_angle += 2.5
+        self.swirl_angle += 1.25
         for lf in self.little_files:
             lf.update()
         self.little_files = [lf for lf in self.little_files if lf.t < 1.0]
@@ -256,20 +256,18 @@ class InstallerUI(QWidget):
         p.setPen(pen)
         p.drawText(x, y, text)
         
-        # 3. Penteract Logo Swirling
-        radius_x = 180
-        radius_y = 60
-        fx = cx + math.cos(math.radians(self.swirl_angle)) * radius_x
-        fy = cy + math.sin(math.radians(self.swirl_angle)) * radius_y
+        # 3. Logo Placement (Above Title)
+        fx = cx
+        fy = cy - 80
         
         from core.app_icon import get_logo_pixmap
-        animated_logo = get_logo_pixmap(64, math.radians(self.swirl_angle * 2.0))
+        animated_logo = get_logo_pixmap(80, math.radians(self.swirl_angle * 2.0))
         
         p.save()
         p.translate(fx, fy)
         # Gentle bobbing
         p.translate(0, math.sin(math.radians(self.swirl_angle * 3)) * 5)
-        p.drawPixmap(-32, -32, 64, 64, animated_logo)
+        p.drawPixmap(-40, -40, 80, 80, animated_logo)
         p.restore()
         
         # 4. Progress Bar Background

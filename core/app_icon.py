@@ -248,7 +248,7 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
             x2 = x * z_factor
             y2 = y * z_factor
             
-            scale = radius * 5.8 
+            scale = radius * 4.5
             px = center.x() + x2 * scale
             py = center.y() + y2 * scale
             points_2d.append(QPointF(px, py))

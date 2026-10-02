@@ -114,22 +114,24 @@ def get_app_icon() -> QIcon:
     return _CACHED_APP_ICON
 
 
-def get_logo_pixmap(size: int = 48) -> QPixmap:
+def get_logo_pixmap(size: int = 48, rotation: float = 0.0) -> QPixmap:
     """
-    Returns a smooth QPixmap of the logo sized to (size, size) (cached).
+    Returns a smooth QPixmap of the logo sized to (size, size).
+    Cached only if rotation is 0.0.
     """
-    if size in _CACHED_LOGO_PIXMAPS:
+    if rotation == 0.0 and size in _CACHED_LOGO_PIXMAPS:
         return _CACHED_LOGO_PIXMAPS[size]
 
-    icon = get_app_icon()
+    icon = get_tray_icon(size, rotation)
     if not icon.isNull():
         pixmap = icon.pixmap(size, size)
-        _CACHED_LOGO_PIXMAPS[size] = pixmap
+        if rotation == 0.0:
+            _CACHED_LOGO_PIXMAPS[size] = pixmap
         return pixmap
     return QPixmap()
 
 
-def get_tray_icon(size: int = 64) -> QIcon:
+def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     """
     Generates a borderless, pure vector rendition of the OMNIME logo structure
     (a glowing cyan geodesic mesh/hexagon) for the system tray. No words, no background.
@@ -149,7 +151,7 @@ def get_tray_icon(size: int = 64) -> QIcon:
     # Points for a hexagon (geodesic structure)
     points = []
     for i in range(6):
-        angle = math.radians(60 * i - 30)
+        angle = math.radians(60 * i - 30) + rotation
         points.append(QPointF(
             center.x() + radius * math.cos(angle),
             center.y() + radius * math.sin(angle)

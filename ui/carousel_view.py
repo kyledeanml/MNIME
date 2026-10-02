@@ -13,14 +13,36 @@ from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
     QLabel, QFrame, QGraphicsDropShadowEffect
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect
+from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect, QTimer
 from PyQt6.QtGui import QColor, QPixmap, QPainter, QRegion
 import os
+import math
 from core.file_item import FileItem
 from core.app_icon import get_resource_path
 from .file_card import FileCard
 from .icons import get_svg_pixmap, get_icon
 
+class AnimatedLogoWidget(QLabel):
+    def __init__(self, size=240, parent=None):
+        super().__init__(parent)
+        self.logo_size = size
+        self.rotation = 0.0
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._update_rotation)
+        self.timer.start(33) # ~30fps
+        self._update_rotation()
+
+    def _update_rotation(self):
+        self.rotation += 0.015
+        if self.rotation > math.pi * 2:
+            self.rotation -= math.pi * 2
+        from core.app_icon import get_logo_pixmap
+        pixmap = get_logo_pixmap(self.logo_size, self.rotation)
+        if not pixmap.isNull():
+            self.setPixmap(pixmap)
 
 # ---------------------------------------------------------------------------
 # ClippedCardsArea – a simple scrollable container with NO QScrollArea
@@ -316,13 +338,7 @@ class CarouselView(QWidget):
         empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.setSpacing(10)
 
-        cloud_icon = QLabel()
-        cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        from core.app_icon import get_logo_pixmap
-        logo_pixmap = get_logo_pixmap(240)
-        if not logo_pixmap.isNull():
-            cloud_icon.setPixmap(logo_pixmap)
-        cloud_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        cloud_icon = AnimatedLogoWidget(240, self.empty_zone)
         empty_layout.addWidget(cloud_icon)
         
         # Add OMNIME Typography under logo

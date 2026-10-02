@@ -90,15 +90,37 @@ class MinimizeAnimationOverlay(QWidget):
 
     def _update_animation(self):
         active_count = 0
+        min_x, min_y = float('inf'), float('inf')
+        max_x, max_y = -float('inf'), -float('inf')
+        
         for p in self.particles:
             p.update()
             if p.active:
                 active_count += 1
+                for tx, ty in p.trail:
+                    if tx < min_x: min_x = tx
+                    if ty < min_y: min_y = ty
+                    if tx > max_x: max_x = tx
+                    if ty > max_y: max_y = ty
+                if p.x < min_x: min_x = p.x
+                if p.y < min_y: min_y = p.y
+                if p.x > max_x: max_x = p.x
+                if p.y > max_y: max_y = p.y
                 
-        self.update()
-        
         if active_count == 0:
             self._finish()
+            return
+
+        margin = 20
+        rect = QRect(int(min_x - margin), int(min_y - margin), int(max_x - min_x + margin*2), int(max_y - min_y + margin*2))
+        
+        if hasattr(self, '_last_rect'):
+            update_rect = rect.united(self._last_rect)
+        else:
+            update_rect = rect
+            
+        self._last_rect = rect
+        self.update(update_rect)
             
     def _finish(self):
         self.anim_timer.stop()
@@ -221,15 +243,37 @@ class RestoreAnimationOverlay(QWidget):
 
     def _update_animation(self):
         active_count = 0
+        min_x, min_y = float('inf'), float('inf')
+        max_x, max_y = -float('inf'), -float('inf')
+        
         for p in self.particles:
             p.update()
             if p.active:
                 active_count += 1
+                for tx, ty in p.trail:
+                    if tx < min_x: min_x = tx
+                    if ty < min_y: min_y = ty
+                    if tx > max_x: max_x = tx
+                    if ty > max_y: max_y = ty
+                if p.x < min_x: min_x = p.x
+                if p.y < min_y: min_y = p.y
+                if p.x > max_x: max_x = p.x
+                if p.y > max_y: max_y = p.y
                 
-        self.update()
-        
         if active_count == 0:
             self._finish()
+            return
+            
+        margin = 20
+        rect = QRect(int(min_x - margin), int(min_y - margin), int(max_x - min_x + margin*2), int(max_y - min_y + margin*2))
+        
+        if hasattr(self, '_last_rect'):
+            update_rect = rect.united(self._last_rect)
+        else:
+            update_rect = rect
+            
+        self._last_rect = rect
+        self.update(update_rect)
             
     def _finish(self):
         self.anim_timer.stop()

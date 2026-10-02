@@ -148,29 +148,25 @@ def get_tray_icon(size: int = 64) -> QIcon:
 
     # Points for a hexagon (geodesic structure)
     points = []
-    import random
-    random.seed(42) # Consistent scatter
     for i in range(6):
         angle = math.radians(60 * i - 30)
-        scatter_x = random.uniform(-radius * 0.15, radius * 0.15)
-        scatter_y = random.uniform(-radius * 0.15, radius * 0.15)
         points.append(QPointF(
-            center.x() + radius * math.cos(angle) + scatter_x,
-            center.y() + radius * math.sin(angle) + scatter_y
+            center.x() + radius * math.cos(angle),
+            center.y() + radius * math.sin(angle)
         ))
 
     # Draw the glowing mesh
-    # 1. Outer glow
+    # 1. Outer glow (Metallic)
     outer_glow_width = max(1.0, 4.0 * (size / 64.0))
-    painter.setPen(QPen(QColor(0, 210, 255, 60), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    painter.setPen(QPen(QColor(160, 170, 180, 100), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
             if (j - i) in [1, 3, 5]:
                 painter.drawLine(points[i], points[j])
             
-    # 2. Bright inner core lines
+    # 2. Bright inner core lines (Silver/Chrome)
     inner_core_width = max(1.0, 1.5 * (size / 64.0))
-    painter.setPen(QPen(QColor(0, 229, 255, 255), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    painter.setPen(QPen(QColor(230, 240, 250, 255), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for i in range(6):
         for j in range(i + 1, 6):
             # Only draw outer rim and center-crossing lines to look like an origami pattern
@@ -182,8 +178,8 @@ def get_tray_icon(size: int = 64) -> QIcon:
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawEllipse(center, radius * 0.15, radius * 0.15)
     
-    # Node dots
-    painter.setBrush(QColor(0, 210, 255, 255))
+    # Node dots (Metallic)
+    painter.setBrush(QColor(190, 200, 210, 255))
     for p in points:
         painter.drawEllipse(p, radius * 0.12, radius * 0.12)
 

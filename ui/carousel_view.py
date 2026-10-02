@@ -319,11 +319,20 @@ class CarouselView(QWidget):
         cloud_icon = QLabel()
         cloud_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         from core.app_icon import get_logo_pixmap
-        logo_pixmap = get_logo_pixmap(160)
+        logo_pixmap = get_logo_pixmap(240)
         if not logo_pixmap.isNull():
             cloud_icon.setPixmap(logo_pixmap)
         cloud_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(cloud_icon)
+        
+        # Add OMNIME Typography under logo
+        title_label = QLabel("OMNIME")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("color: #b0c4de; font-family: 'Segoe UI', Arial; font-size: 26px; font-weight: 900; letter-spacing: 6px; background: transparent; border: none;")
+        empty_layout.addWidget(title_label)
+        
+        # Spacer between typography and button
+        empty_layout.addSpacing(10)
         
         self.add_files_btn = QPushButton("  ADD FILES")
         self.add_files_btn.setIcon(get_icon("upload", "#00e5ff"))

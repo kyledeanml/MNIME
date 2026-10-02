@@ -146,7 +146,7 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
     center = QPointF(size / 2, size / 2)
-    radius = size * 0.45
+    radius = size * 0.35
 
     # Points for a dynamic swirling mesh (electrons around nucleus)
     points = []

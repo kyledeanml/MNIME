@@ -148,13 +148,20 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     center = QPointF(size / 2, size / 2)
     radius = size * 0.45
 
-    # Points for a hexagon (geodesic structure)
+    # Points for a dynamic swirling mesh (electrons around nucleus)
     points = []
     for i in range(6):
-        angle = math.radians(60 * i - 30) + rotation
+        base_angle = math.radians(60 * i - 30)
+        # Alternating directions and varied speeds for chaotic electron swirl
+        speed_mult = 1.0 + (i % 3) * 0.5
+        dir_mult = 1 if i % 2 == 0 else -1
+        
+        dyn_radius = radius + math.sin(rotation * 4 + i) * (radius * 0.15)
+        angle = base_angle + rotation * speed_mult * dir_mult
+        
         points.append(QPointF(
-            center.x() + radius * math.cos(angle),
-            center.y() + radius * math.sin(angle)
+            center.x() + dyn_radius * math.cos(angle),
+            center.y() + dyn_radius * math.sin(angle)
         ))
 
     # Draw the glowing mesh
@@ -180,10 +187,22 @@ def get_tray_icon(size: int = 64, rotation: float = 0.0) -> QIcon:
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawEllipse(center, radius * 0.15, radius * 0.15)
     
-    # Node dots (Metallic)
-    painter.setBrush(QColor(190, 200, 210, 255))
-    for p in points:
-        painter.drawEllipse(p, radius * 0.12, radius * 0.12)
+    # Node dots (Cute little blue file icons)
+    # We want to render a tiny file icon centered on each node.
+    from ui.icons import get_svg_pixmap
+    icon_w = int(radius * 0.25)
+    icon_h = int(radius * 0.25)
+    file_pixmap = get_svg_pixmap("file", size=icon_w, color="#00e5ff")
+    if not file_pixmap.isNull():
+        for p in points:
+            # Draw the pixmap centered on p
+            painter.drawPixmap(int(p.x() - icon_w / 2), int(p.y() - icon_h / 2), file_pixmap)
+    else:
+        # Fallback if UI icons are unavailable
+        painter.setBrush(QColor(0, 229, 255, 255))
+        painter.setPen(Qt.PenStyle.NoPen)
+        for p in points:
+            painter.drawEllipse(p, radius * 0.12, radius * 0.12)
 
     painter.end()
     return QIcon(pixmap)

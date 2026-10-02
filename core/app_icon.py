@@ -254,15 +254,15 @@ def _draw_logo_pixmap(size: int = 64, rotation: float = 0.0, is_tray: bool = Fal
             points_2d.append(QPointF(px, py))
 
     # Draw the glowing mesh
-    # 1. Outer glow (Metallic)
-    outer_glow_width = max(1.0, 4.0 * (size / 64.0))
-    painter.setPen(QPen(QColor(160, 170, 180, 80), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    # 1. Outer glow (Metallic) - Halved thickness, lower opacity
+    outer_glow_width = max(0.5, 2.0 * (size / 64.0))
+    painter.setPen(QPen(QColor(160, 170, 180, 40), outer_glow_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for e in edges:
         painter.drawLine(points_2d[e[0]], points_2d[e[1]])
             
-    # 2. Bright inner core lines (Silver/Chrome)
-    inner_core_width = max(1.0, 1.5 * (size / 64.0))
-    painter.setPen(QPen(QColor(230, 240, 250, 200), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    # 2. Bright inner core lines (Silver/Chrome) - Halved thickness, lower opacity
+    inner_core_width = max(0.5, 0.75 * (size / 64.0))
+    painter.setPen(QPen(QColor(230, 240, 250, 120), inner_core_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
     for e in edges:
         painter.drawLine(points_2d[e[0]], points_2d[e[1]])
         

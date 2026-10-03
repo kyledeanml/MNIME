@@ -50,7 +50,9 @@ A modern, private, ultra-fast desktop interface with a fine-tuned local NLP engi
 
 ### 2. Local Intelligence & RAG Engine
 - **Local NLP Engine**: Query across all open documents locally using the fine-tuned `MNIME-Core-1.5B-Q4_K_M.gguf` model with zero network traffic.
+- **Dynamic LoRA Injection (The "Stomach")**: Surgically inject Low-Rank Adaptation (LoRA) adapters at runtime to dynamically augment the base GGUF model's capabilities without reloading the entire weight matrix.
 - **Semantic Search (RAG)**: Fast vector search powered by FAISS embeddings (`bge-small-en-v1.5`).
+- **Global Memory Cortex**: Automatically permanently caches every document loaded into MNIME into a persistent global FAISS vectorstore, enabling cross-session historical recall and long-term knowledge retention.
 - **Document Cross-Referencing**: Highlight sections in a document to synthesize an automated comparative brief against other open files.
 - **Translucent Pop-Out Console**: Double-click the NLP console to spawn a magnetic, translucent floating chat window synchronized with the primary window.
 

@@ -32,6 +32,13 @@ class NLPEngine:
                 settings.setValue("gguf_model_path", default_path)
         else:
             self.model_path = saved_path
+            
+        self.lora_path = settings.value("gguf_lora_path", "")
+        try:
+            self.lora_scale = float(settings.value("gguf_lora_scale", 1.0))
+        except (ValueError, TypeError):
+            self.lora_scale = 1.0
+            
         self.llm = None
         self.is_loaded = False
         self.is_loading = False
@@ -81,6 +88,14 @@ class NLPEngine:
         QSettings("MNIME", "MNIMEApp").setValue("gguf_model_path", path)
         self.reload_model()
 
+    def set_lora(self, path: str, scale: float = 1.0):
+        self.lora_path = path
+        self.lora_scale = scale
+        settings = QSettings("MNIME", "MNIMEApp")
+        settings.setValue("gguf_lora_path", path)
+        settings.setValue("gguf_lora_scale", scale)
+        self.reload_model()
+
     def reload_model(self):
         """Reload the model synchronously. Call reload_model_async() to run on a background thread."""
         with self._lock:
@@ -105,6 +120,11 @@ class NLPEngine:
                     "use_mlock": False,
                     "verbose": False,
                 }
+                
+                if getattr(self, "lora_path", "") and os.path.exists(self.lora_path):
+                    kwargs["lora_path"] = self.lora_path
+                    kwargs["lora_scale"] = getattr(self, "lora_scale", 1.0)
+                    log.info("Injecting LoRA adapter: %s (scale: %s)", self.lora_path, kwargs["lora_scale"])
 
                 # Conditionally inject features that might not exist on older builds
                 try:

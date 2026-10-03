@@ -160,6 +160,14 @@ class SearchEngine:
         return cls._embedding_model
 
     @staticmethod
+    def get_global_cache_path() -> str:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.abspath(os.path.join(script_dir, "..", "models", "global_memory_cache"))
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+        return path
+
+    @staticmethod
     def build_index(
         file_items: List[FileItem],
         use_smart_sampling: bool = True,
@@ -265,6 +273,7 @@ class SearchEngine:
             if not final_docs:
                 raise ValueError("No readable text could be extracted. Ensure the documents contain selectable text (not just scanned images).")
 
+            docs_to_index = final_docs
             vstore = FAISS.from_documents(final_docs, emb)
             
         else:
@@ -281,7 +290,23 @@ class SearchEngine:
             if not all_docs:
                 raise ValueError("No readable text could be extracted. Ensure the documents contain selectable text (not just scanned images).")
 
+            docs_to_index = all_docs
             vstore = FAISS.from_documents(all_docs, emb)
+
+        # Update global persistent memory cache
+        if progress_callback:
+            progress_callback(95, "Updating Global Memory Cortex...")
+        try:
+            cache_path = SearchEngine.get_global_cache_path()
+            if os.path.exists(os.path.join(cache_path, "index.faiss")):
+                global_vstore = FAISS.load_local(cache_path, emb, allow_dangerous_deserialization=True)
+                global_vstore.add_documents(docs_to_index)
+                global_vstore.save_local(cache_path)
+            else:
+                global_vstore = FAISS.from_documents(docs_to_index, emb)
+                global_vstore.save_local(cache_path)
+        except Exception as e:
+            log.exception("Failed to update global memory cache: %s", e)
 
         if progress_callback:
             progress_callback(100, "Index Ready!")
@@ -305,3 +330,29 @@ class SearchEngine:
                 "source": hit.metadata.get("source", "Unknown")
             })
         return results
+
+    @staticmethod
+    def search_global_memory(query: str, k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Searches the global persistent memory cache.
+        Returns a list of dicts with 'content' and 'source'.
+        """
+        cache_path = SearchEngine.get_global_cache_path()
+        if not os.path.exists(os.path.join(cache_path, "index.faiss")):
+            return []
+            
+        emb = SearchEngine.get_embeddings()
+        try:
+            from langchain_community.vectorstores import FAISS
+            global_vstore = FAISS.load_local(cache_path, emb, allow_dangerous_deserialization=True)
+            hits = global_vstore.similarity_search(query, k=k)
+            results = []
+            for hit in hits:
+                results.append({
+                    "content": hit.page_content,
+                    "source": hit.metadata.get("source", "Unknown")
+                })
+            return results
+        except Exception as e:
+            log.exception("Failed to search global memory cache: %s", e)
+            return []

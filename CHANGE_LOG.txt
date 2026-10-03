@@ -885,3 +885,9 @@ FILES TOUCHED:
 ================================================================================
 END OF CHANGE LOG - MNIME v2.1 RELEASE BUILD
 ================================================================================
+
+[2026-10-03] Session 23: MNIME - Memory Cortex & Stomach Integration
+- Integrated LoRA (Low-Rank Adaptation) adapter support in NLP engine.
+- Implemented Global Persistent Memory Cortex using FAISS for cross-session vector caching.
+- Updated README.md, MNIME_paper.tex, and MNIME_Spec_Manual.pdf to document new capabilities.
+

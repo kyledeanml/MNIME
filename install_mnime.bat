@@ -93,29 +93,54 @@ echo.
 echo Registering uninstall entry in Add/Remove Programs...
 
 set "UNINST_KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME"
-set "UNINST_BAT=%INSTALL_DIR%\uninstall_mnime.bat"
+set "UNINST_BAT=%INSTALL_DIR%\uninstall.bat"
 
 :: Write uninstaller script into the install dir
 (
     echo @echo off
     echo title Uninstall MNIME
-    echo echo Removing MNIME...
+    echo echo ========================================================
+    echo echo Uninstalling MNIME...
+    echo echo ========================================================
+    echo.
+    echo :: Close running application
+    echo taskkill /F /IM MNIME.exe /T ^>nul 2^>^&1
+    echo.
+    echo :: Remove registry entry
     echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME" /f ^>nul 2^>^&1
-    echo if exist "%DESKTOP_LNK%" del /f /q "%DESKTOP_LNK%"
-    echo if exist "%STARTMENU_LNK%" del /f /q "%STARTMENU_LNK%"
-    echo rmdir /S /Q "%INSTALL_DIR%"
-    echo echo MNIME has been uninstalled.
-    echo pause
+    echo.
+    echo :: Remove shortcuts
+    echo if exist "%DESKTOP_LNK%" del /f /q "%DESKTOP_LNK%" ^>nul 2^>^&1
+    echo if exist "%STARTMENU_LNK%" del /f /q "%STARTMENU_LNK%" ^>nul 2^>^&1
+    echo.
+    echo :: Clean up application files via detached background cleanup
+    echo set "TARGET_DIR=%INSTALL_DIR%"
+    echo set "TEMP_CLEANUP=%%TEMP%%\mnime_uninstall_%%RANDOM%%.bat"
+    echo (
+    echo     echo @echo off
+    echo     echo :wait_loop
+    echo     echo timeout /t 1 /nobreak ^^>nul
+    echo     echo rmdir /s /q "%%TARGET_DIR%%" ^^>nul 2^^>^^^&1
+    echo     echo if exist "%%TARGET_DIR%%" goto wait_loop
+    echo     echo del "%%%%~f0" ^^>nul 2^^>^^^&1
+    echo ^) ^> "%%TEMP_CLEANUP%%"
+    echo.
+    echo start "" /b cmd /c "%%TEMP_CLEANUP%%"
+    echo echo MNIME has been successfully uninstalled.
+    echo timeout /t 2 /nobreak ^>nul
 ) > "%UNINST_BAT%"
 
-reg add "%UNINST_KEY%" /v "DisplayName"     /t REG_SZ /d "MNIME"                    /f >nul
-reg add "%UNINST_KEY%" /v "DisplayVersion"  /t REG_SZ /d "MNIME"                        /f >nul
-reg add "%UNINST_KEY%" /v "Publisher"       /t REG_SZ /d "MNIME"                     /f >nul
-reg add "%UNINST_KEY%" /v "InstallLocation" /t REG_SZ /d "%INSTALL_DIR%"             /f >nul
-reg add "%UNINST_KEY%" /v "DisplayIcon"     /t REG_SZ /d "%ICON_PATH%,0"             /f >nul
-reg add "%UNINST_KEY%" /v "UninstallString" /t REG_SZ /d "\"%UNINST_BAT%\""          /f >nul
-reg add "%UNINST_KEY%" /v "NoModify"        /t REG_DWORD /d 1                         /f >nul
-reg add "%UNINST_KEY%" /v "NoRepair"        /t REG_DWORD /d 1                         /f >nul
+reg add "%UNINST_KEY%" /v "DisplayName"          /t REG_SZ    /d "MNIME"                    /f >nul
+reg add "%UNINST_KEY%" /v "DisplayVersion"       /t REG_SZ    /d "2.1"                      /f >nul
+reg add "%UNINST_KEY%" /v "Publisher"            /t REG_SZ    /d "MNIME"                    /f >nul
+reg add "%UNINST_KEY%" /v "InstallLocation"      /t REG_SZ    /d "%INSTALL_DIR%"            /f >nul
+reg add "%UNINST_KEY%" /v "DisplayIcon"          /t REG_SZ    /d "%ICON_PATH%,0"            /f >nul
+reg add "%UNINST_KEY%" /v "UninstallString"      /t REG_SZ    /d "\"%UNINST_BAT%\""         /f >nul
+reg add "%UNINST_KEY%" /v "QuietUninstallString" /t REG_SZ    /d "\"%UNINST_BAT%\""         /f >nul
+reg add "%UNINST_KEY%" /v "NoModify"             /t REG_DWORD /d 1                          /f >nul
+reg add "%UNINST_KEY%" /v "NoRepair"             /t REG_DWORD /d 1                          /f >nul
+reg add "%UNINST_KEY%" /v "URLInfoAbout"         /t REG_SZ    /d "https://MNIME.app"        /f >nul
+reg add "%UNINST_KEY%" /v "HelpLink"             /t REG_SZ    /d "https://MNIME.app"        /f >nul
 
 echo.
 echo ========================================================

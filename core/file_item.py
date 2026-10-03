@@ -10,6 +10,11 @@ from typing import Optional
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
+# File types accepted when another process asks the running instance to open files
+SUPPORTED_EXTENSIONS = frozenset({
+    ".pdf", ".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff", ".tif", ".txt",
+})
+
 
 class FileStatus(Enum):
     QUEUED = "queued"

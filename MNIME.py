@@ -17,6 +17,19 @@ if not getattr(sys, "frozen", False):
         os.environ["QT_PLUGIN_PATH"] = plugin_base
         os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms")
 
+# Logging must be configured before anything else can fail
+from core.logging_setup import setup_logging, get_logger
+setup_logging()
+log = get_logger("app")
+
+
+def _log_uncaught(exc_type, exc_value, exc_tb):
+    log.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_tb))
+    sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+
+sys.excepthook = _log_uncaught
+
 # Configure Windows AppUserModelID early so taskbar/quickbar pinning groups correctly
 from core.app_icon import setup_app_user_model_id, get_app_icon
 setup_app_user_model_id()
@@ -252,18 +265,15 @@ class MetalSplashScreen(QWidget):
         
         painter.end()
 
-import json
 from PyQt6.QtNetwork import QLocalSocket, QLocalServer
-
-IPC_PIPE_NAME = "MNIME_SingleInstance_IPC_Server"
+from core.ipc import IPC_PIPE_NAME, MAX_IPC_BYTES, build_open_request, parse_open_request
 
 def send_to_existing_instance(file_paths: list) -> bool:
     """Attempt to connect to an already running MNIME instance and send file paths."""
     socket = QLocalSocket()
     socket.connectToServer(IPC_PIPE_NAME)
     if socket.waitForConnected(500):
-        payload = json.dumps({"action": "open", "files": file_paths}).encode("utf-8")
-        socket.write(payload)
+        socket.write(build_open_request(file_paths))
         socket.flush()
         socket.waitForBytesWritten(1000)
         # Wait up to 1 second for the running instance to acknowledge receipt
@@ -325,28 +335,44 @@ def main():
             if not client_socket:
                 return
 
+            buf = bytearray()
+
             def process_incoming():
+                buf.extend(client_socket.readAll().data())
+                if len(buf) > MAX_IPC_BYTES:
+                    log.warning("IPC payload exceeded %d bytes; dropping connection", MAX_IPC_BYTES)
+                    buf.clear()
+                    client_socket.abort()
+                    return
                 try:
-                    raw = client_socket.readAll().data()
-                    if not raw:
-                        return
-                    client_socket.write(b"ACK\n")
-                    client_socket.flush()
-                    data = raw.decode("utf-8")
-                    msg = json.loads(data)
-                    files = msg.get("files", [])
-                    app.main_window.handle_external_open(files)
-                except Exception:
+                    files = parse_open_request(bytes(buf))
+                except ValueError:
+                    return  # Possibly incomplete; wait for more data or for disconnect
+                buf.clear()
+                client_socket.write(b"ACK\n")
+                client_socket.flush()
+                app.main_window.handle_external_open(files)
+
+            def on_disconnected():
+                if buf:
+                    log.warning("Discarded malformed IPC payload (%d bytes)", len(buf))
                     app.main_window.showNormal()
                     app.main_window.activateWindow()
                     app.main_window.raise_()
+                client_socket.deleteLater()
 
             client_socket.readyRead.connect(process_incoming)
+            client_socket.disconnected.connect(on_disconnected)
             if client_socket.bytesAvailable() > 0:
                 process_incoming()
 
         ipc_server.newConnection.connect(on_new_connection)
+    else:
+        log.warning("IPC server could not listen: %s", ipc_server.errorString())
     app.ipc_server = ipc_server
+
+    # Remove temporary job output on any exit path (tray Quit, OS shutdown, ...)
+    app.aboutToQuit.connect(app.main_window._cleanup_temp_dirs)
 
     # If launched with a document (e.g. user double-clicked a PDF):
     if target_files:

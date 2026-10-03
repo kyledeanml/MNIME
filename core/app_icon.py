@@ -11,6 +11,10 @@ import subprocess
 from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
 
+from core.logging_setup import get_logger
+
+log = get_logger("app_icon")
+
 APP_USER_MODEL_ID = "MNIME.Desktop"
 
 
@@ -57,7 +61,7 @@ def setup_app_user_model_id() -> bool:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
             return True
         except Exception as e:
-            print(f"Warning: Failed to set AppUserModelID: {e}")
+            log.warning("Failed to set AppUserModelID: %s", e)
             return False
     return False
 
@@ -92,7 +96,7 @@ def ensure_ico_file() -> Optional[str]:
         square_crop.save(ico_path, format="ICO", sizes=icon_sizes)
         return ico_path
     except Exception as e:
-        print(f"Warning: Could not create ICO file: {e}")
+        log.warning("Could not create ICO file: %s", e)
         return None
 
 

@@ -39,7 +39,7 @@ class InstallWorker(QThread):
                 self.progress.emit(5, "Removing old version...")
                 try:
                     shutil.rmtree(install_dir)
-                except:
+                except Exception:
                     pass
             
             os.makedirs(install_dir, exist_ok=True)
@@ -57,7 +57,7 @@ class InstallWorker(QThread):
                     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                     try:
                         shutil.copy2(file_path, dest_path)
-                    except:
+                    except Exception:
                         pass
                     
                     if i % max(1, (total_files // 100)) == 0:
@@ -69,7 +69,7 @@ class InstallWorker(QThread):
             if not os.path.exists(os.path.join(install_dir, "MN.ico")):
                 try:
                     shutil.copy2("MN.ico", os.path.join(install_dir, "MN.ico"))
-                except: pass
+                except Exception: pass
         else:
             self.progress.emit(0, "Error: Application build files not found (dist/MNIME). Please build before running installer.")
             time.sleep(2.0)

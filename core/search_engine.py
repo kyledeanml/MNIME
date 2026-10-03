@@ -13,6 +13,23 @@ from collections import Counter
 from typing import List, Callable, Optional, Dict, Any
 
 from .file_item import FileItem
+from .logging_setup import get_logger
+
+log = get_logger("search")
+
+EMBEDDING_MODEL_DIRNAME = "bge-small-en-v1.5"
+
+
+def get_embedding_model_path() -> str:
+    """Locate the bundled embedding model so semantic search never touches the network."""
+    from .app_icon import get_resource_path
+    path = get_resource_path(os.path.join("models", EMBEDDING_MODEL_DIRNAME))
+    if not os.path.isfile(os.path.join(path, "model.safetensors")):
+        raise FileNotFoundError(
+            f"Embedding model not found at '{path}'. Run 'python scripts/fetch_models.py' "
+            "to download it once, or reinstall MNIME."
+        )
+    return path
 
 
 class SearchEngine:
@@ -133,26 +150,26 @@ class SearchEngine:
             if file_item.extension == ".pdf":
                 try:
                     import pymupdf
-                    doc = pymupdf.open(file_item.file_path)
-                    content_str = ""
-                    for i, page in enumerate(doc):
-                        if progress_callback:
-                            progress_callback(10, f"Reading PDF Page {i+1}/{len(doc)}...")
-                        text = page.get_text()
-                        if not text.strip():
+                    with pymupdf.open(file_item.file_path) as doc:
+                        parts = []
+                        for i, page in enumerate(doc):
                             if progress_callback:
-                                progress_callback(10, f"Running OCR on PDF Page {i+1}/{len(doc)}...")
-                            pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
-                            text = SearchEngine._extract_text_windows_ocr(pix)
-                        content_str += text + "\n"
-                    doc.close()
+                                progress_callback(10, f"Reading PDF Page {i+1}/{len(doc)}...")
+                            text = page.get_text()
+                            if not text.strip():
+                                if progress_callback:
+                                    progress_callback(10, f"Running OCR on PDF Page {i+1}/{len(doc)}...")
+                                pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
+                                text = SearchEngine._extract_text_windows_ocr(pix)
+                            parts.append(text)
+                    content_str = "\n".join(parts)
                     data_list.append({
                         "path": file_item.file_path,
                         "content": content_str,
                         "lines": len(content_str.splitlines())
                     })
-                except Exception as e:
-                    pass
+                except Exception:
+                    log.exception("Could not read PDF for indexing: %s", file_item.file_path)
             elif file_item.extension in (".py", ".txt", ".md", ".json", ".csv", ".js", ".ts", ".html", ".css", ".cpp", ".c", ".h", ".java"):
                 try:
                     try:
@@ -167,7 +184,7 @@ class SearchEngine:
                         "lines": len(content_str.splitlines())
                     })
                 except Exception:
-                    pass
+                    log.exception("Could not read file for indexing: %s", file_item.file_path)
 
         if not data_list:
             raise ValueError("No valid text files found to index.")
@@ -177,7 +194,10 @@ class SearchEngine:
         if progress_callback:
             progress_callback(40, "Initializing Embedding Model...")
 
-        emb = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+        # Fully offline: load the bundled model from disk, never from the Hugging Face hub.
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        emb = HuggingFaceEmbeddings(model_name=get_embedding_model_path())
         split = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
 
         if use_smart_sampling and len(df) > 0:

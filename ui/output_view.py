@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from PyQt6.QtWidgets import (
@@ -219,15 +220,20 @@ class OutputView(QWidget):
     def _on_name_changed(self, text):
         if not self.file_path or not os.path.exists(self.file_path): return
         if not text: return
+        from core.text_safety import safe_filename
+        # Keep the extension the user typed, but never allow path separators or illegal characters
+        stem, ext = os.path.splitext(text)
+        clean = safe_filename(stem, fallback="") + ext.replace("/", "").replace("\\", "")
+        if not clean or clean.startswith("."): return
         dir_name = os.path.dirname(self.file_path)
-        new_path = os.path.join(dir_name, text)
-        if new_path != self.file_path:
+        new_path = os.path.join(dir_name, clean)
+        if new_path != self.file_path and not os.path.exists(new_path):
             try:
                 os.rename(self.file_path, new_path)
                 self.file_path = new_path
                 self.icon_label.file_path = new_path
-            except Exception:
-                pass
+            except OSError:
+                logging.getLogger("mnime.output_view").exception("Rename failed: %s -> %s", self.file_path, new_path)
                 
     def _browse_loc(self):
         d = QFileDialog.getExistingDirectory(self, "Select Save Location", self.default_dir)
@@ -235,6 +241,17 @@ class OutputView(QWidget):
             self.default_dir = os.path.normpath(d)
             self.loc_display.setText(self.default_dir)
             
+    @staticmethod
+    def _unique_destination(dest: str) -> str:
+        """Return dest, or 'name (2).ext' / 'name (3).ext' ... if it already exists."""
+        if not os.path.exists(dest):
+            return dest
+        stem, ext = os.path.splitext(dest)
+        n = 2
+        while os.path.exists(f"{stem} ({n}){ext}"):
+            n += 1
+        return f"{stem} ({n}){ext}"
+
     def _save_file(self):
         if not self.file_path or not os.path.exists(self.file_path): return
         dest = os.path.join(self.default_dir, os.path.basename(self.file_path))
@@ -242,9 +259,9 @@ class OutputView(QWidget):
         # If they haven't explicitly dragged it, we save it here
         try:
             if os.path.abspath(self.file_path) != os.path.abspath(dest):
+                # Never delete or overwrite something the user already has
+                dest = self._unique_destination(dest)
                 if os.path.isdir(self.file_path):
-                    if os.path.exists(dest):
-                        shutil.rmtree(dest)
                     shutil.copytree(self.file_path, dest)
                     self.title_label.setText("Folder Saved Successfully!")
                 else:
@@ -254,5 +271,6 @@ class OutputView(QWidget):
                 self.title_label.setText("Saved Successfully!")
             self.title_label.setStyleSheet("color: #3fb950; font-size: 18px; font-weight: 800; border: none; background: transparent;")
         except Exception as e:
+            logging.getLogger("mnime.output_view").exception("Save failed: %s", e)
             self.title_label.setText("Error Saving")
             self.title_label.setStyleSheet("color: #ff4444; font-size: 18px; font-weight: 800; border: none; background: transparent;")

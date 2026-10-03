@@ -5,7 +5,9 @@ Handles file picking, OS drag-and-drop, worker threads, and file conversions.
 """
 
 import os
+import shutil
 import subprocess
+import tempfile
 from typing import List, Optional
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
@@ -18,6 +20,9 @@ from core.file_item import FileItem, FileStatus
 from core.pdf_engine import PDFEngine
 from core.worker import TaskWorker
 from core.app_icon import get_app_icon
+from core.logging_setup import get_logger
+
+log = get_logger("main_window")
 
 from .tabs_bar import TabsBar, ToolMode
 from .carousel_view import CarouselView
@@ -170,6 +175,9 @@ class MainWindow(QMainWindow):
         self.current_mode = ToolMode.COMBINE_PDF
         self.file_items: List[FileItem] = []
         self.worker: TaskWorker = None
+        self._reference_worker: TaskWorker = None
+        self._load_worker: TaskWorker = None
+        self._temp_roots: List[str] = []
         self._drag_pos: QPoint = None
         self._active_reader = None
 
@@ -686,7 +694,7 @@ class MainWindow(QMainWindow):
         tray_menu.addSeparator()
         
         quit_action = tray_menu.addAction("Quit")
-        quit_action.triggered.connect(QApplication.instance().quit)
+        quit_action.triggered.connect(self._quit_app)
         
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self._on_tray_activated)
@@ -773,7 +781,8 @@ class MainWindow(QMainWindow):
             elif s.startswith("file://"):
                 s = urllib.parse.unquote(s[7:])
             s = os.path.normpath(s)
-            if os.path.isfile(s):
+            from core.file_item import SUPPORTED_EXTENSIONS
+            if os.path.isfile(s) and os.path.splitext(s)[1].lower() in SUPPORTED_EXTENSIONS:
                 cleaned.append(os.path.abspath(s))
 
         if cleaned:
@@ -1035,7 +1044,7 @@ class MainWindow(QMainWindow):
                     existing_paths.add(path)
                     added += 1
                 except Exception:
-                    pass
+                    log.exception("Could not load file metadata: %s", path)
             return new_items
 
         def _on_load_finished(new_items):
@@ -1057,7 +1066,7 @@ class MainWindow(QMainWindow):
         def _on_load_error(err):
             self.action_bar.hide_progress()
             self.action_bar.action_btn.setEnabled(True)
-            print(f"Error loading files: {err}")
+            log.error("Error loading files: %s", err)
 
         # Reuse TaskWorker for background loading
         self._load_worker = TaskWorker(_load_batch_task)
@@ -1194,8 +1203,7 @@ class MainWindow(QMainWindow):
             self._open_reader(target)
             return
 
-        import tempfile
-        temp_dir = tempfile.gettempdir()
+        temp_dir = self._new_temp_dir()
 
         from core.pdf_engine import PDFEngine
 
@@ -1210,17 +1218,13 @@ class MainWindow(QMainWindow):
             # Reuse the high-speed combine_files which already handles .txt merging & conversion
             self._start_task(target=PDFEngine.combine_files, file_items=self.file_items, output_path=output_file)
         elif self.current_mode == ToolMode.PDF_TO_JPG:
-            import shutil
             output_dir = os.path.join(temp_dir, "MNIME_jpg_export")
-            if os.path.exists(output_dir): shutil.rmtree(output_dir)
-            os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
             self._start_task(target=PDFEngine.convert_pdf_to_jpg, pdf_item=self.file_items[0], output_dir=output_dir, dpi=200)
             self.temp_dir_to_zip = output_dir
         elif self.current_mode == ToolMode.SPLIT_PDF:
-            import shutil
             output_dir = os.path.join(temp_dir, "MNIME_split_export")
-            if os.path.exists(output_dir): shutil.rmtree(output_dir)
-            os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
             self._start_task(target=PDFEngine.split_pdf, pdf_item=self.file_items[0], output_dir=output_dir)
             self.temp_dir_to_zip = output_dir
         elif self.current_mode == ToolMode.COMPRESS_PDF:
@@ -1236,8 +1240,47 @@ class MainWindow(QMainWindow):
             output_file = os.path.join(temp_dir, f"{base_name}_bookmarked.pdf")
             self._start_task(target=PDFEngine.bookmark, pdf_item=self.file_items[0], output_path=output_file)
 
+    # ------------------------------------------------------------------
+    # Temp directory + worker lifecycle
+    # ------------------------------------------------------------------
+
+    def _new_temp_dir(self) -> str:
+        """Create a unique per-job working directory and discard the previous jobs' output."""
+        if not (self.worker is not None and self.worker.isRunning()):
+            self._cleanup_temp_dirs()
+        root = tempfile.mkdtemp(prefix="MNIME_")
+        self._temp_roots.append(root)
+        return root
+
+    def _cleanup_temp_dirs(self):
+        for root in self._temp_roots:
+            shutil.rmtree(root, ignore_errors=True)
+        self._temp_roots.clear()
+
+    def _any_worker_running(self) -> bool:
+        return any(
+            w is not None and w.isRunning()
+            for w in (self.worker, self._reference_worker, self._load_worker)
+        )
+
+    def _quit_app(self):
+        """Cancel and join background work, remove temp output, then exit."""
+        for w in (self.worker, self._reference_worker, self._load_worker):
+            if w is not None and w.isRunning():
+                w.cancel()
+                if not w.wait(5000):
+                    log.warning("Worker did not stop in time; terminating")
+                    w.terminate()
+                    w.wait(1000)
+        self._cleanup_temp_dirs()
+        QApplication.instance().quit()
+
     def _start_task(self, target, **kwargs):
         """Starts worker thread and connects UI feedback signals."""
+        if self.worker is not None and self.worker.isRunning():
+            log.warning("Ignored start request: a task is already running")
+            return
+
         self.action_bar.action_btn.setEnabled(False)
         self.action_bar.show_progress(0, "Processing task...")
 
@@ -1250,7 +1293,8 @@ class MainWindow(QMainWindow):
         # that the cinematic particle collapse animation finishes rendering at 
         # 60 FPS without being starved by Python's Global Interpreter Lock (GIL).
         from PyQt6.QtCore import QTimer
-        QTimer.singleShot(1000, self.worker.start)
+        worker = self.worker
+        QTimer.singleShot(1000, worker.start)
 
     def _run_reference(self, text: str, viewer: DocumentViewer):
         self.action_bar.show_progress(0, "Synthesizing brief...")
@@ -1275,10 +1319,13 @@ class MainWindow(QMainWindow):
                 return NLPEngine.get_instance().synthesize_reference(text, context_docs)
             return "No other documents available to reference against."
 
-        self.worker = TaskWorker(_reference_task)
-        self.worker.finished.connect(lambda res: self._on_reference_finished(res, viewer))
-        self.worker.error.connect(lambda err: self._on_reference_finished(f"Error: {err}", viewer))
-        self.worker.start()
+        if self._reference_worker is not None and self._reference_worker.isRunning():
+            return  # A synthesis is already in flight
+
+        self._reference_worker = TaskWorker(_reference_task)
+        self._reference_worker.finished.connect(lambda res: self._on_reference_finished(res, viewer))
+        self._reference_worker.error.connect(lambda err: self._on_reference_finished(f"Error: {err}", viewer))
+        self._reference_worker.start()
 
     def _on_reference_finished(self, result: str, viewer: DocumentViewer):
         self.action_bar.hide_progress()

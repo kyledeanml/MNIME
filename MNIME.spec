@@ -6,7 +6,6 @@ from PyInstaller.utils.hooks import collect_all
 datas = [('MN.ico', '.'), ('models/*', 'models')]
 binaries = []
 hiddenimports = [
-    'fitz',
     'pymupdf',
     'pypdf',
     'PIL',
@@ -81,7 +80,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -89,13 +88,14 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=['MN.ico'],
+    version='version_info.txt',
 )
 coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name='MNIME',
 )

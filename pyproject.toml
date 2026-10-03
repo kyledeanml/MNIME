@@ -14,9 +14,15 @@ dependencies = [
     "Pillow>=10.0.0",
     "pdf2docx>=0.5.6",
     "pymupdf>=1.23.0",
-    "numpy>=2.0.0",
+    "numpy==2.5.3",
     "llama-cpp-python>=0.2.75",
-    "sentence-transformers"
+    "sentence-transformers",
+    "faiss-cpu",
+    "langchain",
+    "pandas",
+    "torch==2.14.1",
+    "pywin32",
+    "winsdk==1.0.0.post10"
 ]
 
 [project.scripts]

@@ -343,7 +343,8 @@ class StatsBenchmarkWorker(QThread):
             self.finished.emit({})
             return
 
-        model_path = os.path.join("models", "MNIME-Core-1.5B-Q4_K_M.gguf")
+        from core.app_icon import get_resource_path
+        model_path = get_resource_path(os.path.join("models", "MNIME-Core-1.5B-Q4_K_M.gguf"))
         if not os.path.exists(model_path):
             self.log_message.emit(f"Model file not found at: {model_path}", "ERROR")
             self.finished.emit({})

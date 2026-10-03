@@ -11,6 +11,7 @@ from ctypes import wintypes
 from typing import Callable, Optional, Tuple
 
 MAX_DPI = 300  # Upper bound for the raster resolution sent to the printer
+MAX_RASTER_PIXELS = 60_000_000  # Hard memory cap per page raster (~240 MB as BGRA)
 
 
 class PrintCancelled(Exception):
@@ -126,7 +127,7 @@ def _load_apis():
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _to_bgra(rgb) -> "np.ndarray":
+def _to_bgra(rgb) -> "numpy.ndarray":
     """Convert an (h, w, 3) RGB uint8 array to a contiguous (h, w, 4) BGRA array."""
     import numpy as np
     h, w = rgb.shape[:2]
@@ -150,11 +151,12 @@ def _fit(src_w: float, src_h: float, box_w: int, box_h: int, allow_upscale: bool
 # ---------------------------------------------------------------------------
 
 # render(index, area_w, area_h, dpi_x, dpi_y) -> (bgra_array, dest_x, dest_y, dest_w, dest_h)
-RenderFn = Callable[[int, int, int, int, int], Tuple["np.ndarray", int, int, int, int]]
+RenderFn = Callable[[int, int, int, int, int], Tuple["numpy.ndarray", int, int, int, int]]
 
 
 def _run_job(hwnd: int, title: str, page_count: int, render: RenderFn,
-             progress: Optional[Callable[[int, int], None]] = None) -> int:
+             progress: Optional[Callable[[int, int], None]] = None,
+             on_start: Optional[Callable[[], None]] = None) -> int:
     comdlg32, gdi32, kernel32 = _load_apis()
 
     dlg = PRINTDLGW()

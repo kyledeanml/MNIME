@@ -8,6 +8,37 @@ import os
 import io
 from typing import List, Callable, Optional
 from .file_item import FileItem
+from .logging_setup import get_logger
+from .text_safety import safe_filename
+
+log = get_logger("pdf_engine")
+
+
+class PDFInputError(ValueError):
+    """A problem with the user's input file (encrypted, empty, missing) that no fallback can fix."""
+
+
+def open_pdf_checked(path: str):
+    """Open a PDF with PyMuPDF and fail early with a clear, user-facing message."""
+    import pymupdf
+
+    if not os.path.isfile(path):
+        raise PDFInputError(f"File not found: {path}")
+    if os.path.getsize(path) == 0:
+        raise PDFInputError(f"'{os.path.basename(path)}' contains no data.")
+        
+    try:
+        doc = pymupdf.open(path)
+    except Exception as e:
+        raise PDFInputError(f"Could not open '{os.path.basename(path)}': {e}")
+        
+    if doc.needs_pass:
+        doc.close()
+        raise PDFInputError(f"'{os.path.basename(path)}' is password protected. Remove the password first.")
+    if len(doc) == 0:
+        doc.close()
+        raise PDFInputError(f"'{os.path.basename(path)}' contains no pages.")
+    return doc
 
 
 class PDFEngine:
@@ -38,7 +69,7 @@ class PDFEngine:
 
                 ext = item.extension.lower()
                 if ext == ".pdf":
-                    sub_doc = pymupdf.open(item.file_path)
+                    sub_doc = open_pdf_checked(item.file_path)
                     merged_doc.insert_pdf(sub_doc)
                     sub_doc.close()
                 elif ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp"]:
@@ -80,7 +111,10 @@ class PDFEngine:
 
             return output_path
 
-        except Exception as e:
+        except PDFInputError:
+            raise  # Clear user-facing problem (e.g. encrypted PDF); a fallback engine cannot fix it
+        except Exception:
+            log.exception("PyMuPDF merge failed; falling back to pypdf/Pillow")
             # 2. Fallback Engine: pypdf & Pillow
             import pypdf
             from PIL import Image
@@ -249,7 +283,6 @@ class PDFEngine:
 
         try:
             import pymupdf
-            import concurrent.futures
             from PyQt6.QtCore import QSettings
             from core.nlp_engine import NLPEngine
 
@@ -260,20 +293,11 @@ class PDFEngine:
                 nlp_engine.check_model()
             is_nlp_active = use_nlp and nlp_engine.is_loaded
 
-            doc = pymupdf.open(pdf_item.file_path)
-            total_pages = len(doc)
-            doc.close()
-
-            import re
-
-            def safe_name(name: str) -> str:
-                # Strip path separators / illegal Windows filename characters
-                name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name).strip(" .")
-                return name[:120] or "page"
-
+            failed_pages: List[int] = []
             # NOTE: MuPDF is not thread-safe; split sequentially.
-            local_doc = pymupdf.open(pdf_item.file_path)
+            local_doc = open_pdf_checked(pdf_item.file_path)
             try:
+                total_pages = len(local_doc)
                 for page_num in range(total_pages):
                     try:
                         page = local_doc[page_num]
@@ -285,31 +309,41 @@ class PDFEngine:
                             smart_name = nlp_engine.generate_smart_filename(page_text, fallback_name)
                             # Append page number to guarantee uniqueness
                             if smart_name != fallback_name:
-                                final_name = f"{safe_name(smart_name)}_p{page_num + 1:03d}"
+                                final_name = f"{safe_filename(smart_name)}_p{page_num + 1:03d}"
 
                         new_doc = pymupdf.open()
-                        new_doc.insert_pdf(local_doc, from_page=page_num, to_page=page_num)
-                        out_path = os.path.join(output_dir, f"{final_name}.pdf")
-                        new_doc.save(out_path, garbage=3, deflate=True)
-                        new_doc.close()
+                        try:
+                            new_doc.insert_pdf(local_doc, from_page=page_num, to_page=page_num)
+                            out_path = os.path.join(output_dir, f"{final_name}.pdf")
+                            new_doc.save(out_path, garbage=3, deflate=True)
+                        finally:
+                            new_doc.close()
                         output_files.append(out_path)
-                    except Exception as e:
-                        print(f"Error splitting page {page_num}: {e}")
+                    except Exception:
+                        log.exception("Error splitting page %d of %s", page_num + 1, pdf_item.file_path)
+                        failed_pages.append(page_num + 1)
                     if progress_callback:
                         pct = int(((page_num + 1) / total_pages) * 95)
                         progress_callback(pct, f"Split {page_num + 1}/{total_pages} pages...")
             finally:
                 local_doc.close()
 
+            if not output_files:
+                raise RuntimeError("No pages could be written.")
             output_files.sort()
 
             if progress_callback:
-                progress_callback(100, f"Saved {len(output_files)} pages.")
+                msg = f"Saved {len(output_files)} pages."
+                if failed_pages:
+                    msg += f" Skipped pages: {', '.join(map(str, failed_pages))}."
+                progress_callback(100, msg)
 
             return output_files
 
+        except PDFInputError:
+            raise
         except Exception as e:
-            raise RuntimeError(f"Error splitting PDF: {e}")
+            raise RuntimeError(f"Error splitting PDF: {e}") from e
 
     @staticmethod
     def convert_pdf_to_jpg(
@@ -324,20 +358,17 @@ class PDFEngine:
         output_files: List[str] = []
         os.makedirs(output_dir, exist_ok=True)
         base_name = os.path.splitext(pdf_item.file_name)[0]
+        dpi = max(36, min(int(dpi), 600))  # Bound memory use
 
         try:
             import pymupdf
-            import concurrent.futures
-            
-            # Open just to get page count, then close
-            doc = pymupdf.open(pdf_item.file_path)
-            total_pages = len(doc)
-            doc.close()
 
             # NOTE: MuPDF is not thread-safe; render sequentially to avoid blank pages.
             zoom = dpi / 72.0
             matrix = pymupdf.Matrix(zoom, zoom)
-            with pymupdf.open(pdf_item.file_path) as render_doc:
+            render_doc = open_pdf_checked(pdf_item.file_path)
+            try:
+                total_pages = len(render_doc)
                 for page_num in range(total_pages):
                     pix = render_doc[page_num].get_pixmap(
                         matrix=matrix, colorspace=pymupdf.csRGB, alpha=False
@@ -348,11 +379,15 @@ class PDFEngine:
                     if progress_callback:
                         pct = int(((page_num + 1) / total_pages) * 95)
                         progress_callback(pct, f"Rendered {page_num + 1}/{total_pages} pages...")
+            finally:
+                render_doc.close()
 
             output_files.sort()
 
+        except PDFInputError:
+            raise
         except Exception as e:
-            raise RuntimeError(f"Error rendering PDF to images: {e}")
+            raise RuntimeError(f"Error rendering PDF to images: {e}") from e
 
         if progress_callback:
             progress_callback(100, f"Saved {len(output_files)} images.")

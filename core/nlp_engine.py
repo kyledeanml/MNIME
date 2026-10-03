@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import threading
 import atexit
@@ -6,15 +7,24 @@ import signal
 from typing import List, Dict, Any, Optional
 from PyQt6.QtCore import QSettings
 
+from core.logging_setup import get_logger
+from core.text_safety import sanitize_prompt_text, safe_filename
+
+log = get_logger("nlp")
+
+_STOP_TOKENS = ["<|im_end|>", "<|im_start|>"]
+
+
 class NLPEngine:
     _instance = None
-    
+    _instance_lock = threading.Lock()
+
     def __init__(self):
         self.settings = QSettings("MNIME", "MNIMEApp")
         # Check for bundled model
         bundled_model = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "MNIME-Core-1.5B-Q4_K_M.gguf")
         default_path = bundled_model if os.path.exists(bundled_model) else ""
-        
+
         saved_path = self.settings.value("gguf_model_path", "")
         if not saved_path or not os.path.exists(saved_path):
             self.model_path = default_path
@@ -26,26 +36,20 @@ class NLPEngine:
         self.is_loaded = False
         self.is_loading = False
         self.error = None
-        self._lock = threading.Lock()
-        
-        # Register cleanup for normal exit
-        atexit.register(self.unload_model)
-        
-        # Register cleanup for crashes
-        self._original_excepthook = sys.excepthook
-        sys.excepthook = self._crash_handler
-        
-        # Attempt to register signal handlers for termination
-        try:
-            signal.signal(signal.SIGINT, self._signal_handler)
-            signal.signal(signal.SIGTERM, self._signal_handler)
-        except Exception:
-            pass
+        # Re-entrant: a single llama.cpp context is NOT safe for concurrent calls,
+        # so every inference and every load/unload goes through this lock.
+        self._lock = threading.RLock()
 
-    def _crash_handler(self, exc_type, exc_value, exc_traceback):
-        self.unload_model()
-        if self._original_excepthook:
-            self._original_excepthook(exc_type, exc_value, exc_traceback)
+        # Free the model on normal interpreter exit
+        atexit.register(self.unload_model)
+
+        # Signal handlers can only be installed from the main thread
+        if threading.current_thread() is threading.main_thread():
+            try:
+                signal.signal(signal.SIGINT, self._signal_handler)
+                signal.signal(signal.SIGTERM, self._signal_handler)
+            except (ValueError, OSError) as e:
+                log.debug("Signal handlers not installed: %s", e)
 
     def _signal_handler(self, signum, frame):
         self.unload_model()
@@ -58,7 +62,8 @@ class NLPEngine:
                     self.llm.close()
                 except AttributeError:
                     pass
-                del self.llm
+                except Exception:
+                    log.exception("Error closing model")
                 self.llm = None
             self.is_loaded = False
             self.is_loading = False
@@ -66,7 +71,9 @@ class NLPEngine:
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            cls._instance = NLPEngine()
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = NLPEngine()
         return cls._instance
 
     def set_model_path(self, path: str):
@@ -75,44 +82,47 @@ class NLPEngine:
         self.reload_model()
 
     def reload_model(self):
-        """Reload the model synchronously. Call _reload_model_async() to run on a background thread."""
-        self.unload_model()
-        self.error = None
-        self.is_loading = True
-        if not self.model_path or not os.path.exists(self.model_path):
-            self.error = "Model path not set or file does not exist."
-            self.is_loading = False
-            return False
+        """Reload the model synchronously. Call reload_model_async() to run on a background thread."""
+        with self._lock:
+            self.unload_model()
+            self.error = None
+            self.is_loading = True
+            if not self.model_path or not os.path.exists(self.model_path):
+                self.error = "Model path not set or file does not exist."
+                self.is_loading = False
+                log.warning(self.error)
+                return False
 
-        try:
-            from llama_cpp import Llama
-            
-            kwargs = {
-                "model_path": self.model_path,
-                "n_ctx": 4096,
-                "n_threads": 8,
-                "n_gpu_layers": -1,
-                "main_gpu": 0,
-                "use_mlock": False,
-            }
-            
-            # Conditionally inject new features that might fail on older builds
             try:
-                # Add flash attention if supported
-                kwargs["flash_attn"] = True
-                self.llm = Llama(**kwargs)
-            except TypeError:
-                # Fallback if specific flags like flash_attn or type_k are unsupported by this older llama-cpp-python version
-                kwargs.pop("flash_attn", None)
-                self.llm = Llama(**kwargs)
-                
-            self.is_loaded = True
-            self.is_loading = False
-            return True
-        except Exception as e:
-            self.error = str(e)
-            self.is_loading = False
-            return False
+                from llama_cpp import Llama
+
+                kwargs = {
+                    "model_path": self.model_path,
+                    "n_ctx": 4096,
+                    "n_threads": max(1, min(8, os.cpu_count() or 4)),
+                    "n_gpu_layers": -1,
+                    "main_gpu": 0,
+                    "use_mlock": False,
+                    "verbose": False,
+                }
+
+                # Conditionally inject features that might not exist on older builds
+                try:
+                    kwargs["flash_attn"] = True
+                    self.llm = Llama(**kwargs)
+                except TypeError:
+                    kwargs.pop("flash_attn", None)
+                    self.llm = Llama(**kwargs)
+
+                self.is_loaded = True
+                self.is_loading = False
+                log.info("NLP model loaded: %s", self.model_path)
+                return True
+            except Exception as e:
+                self.error = str(e)
+                self.is_loading = False
+                log.exception("Failed to load NLP model")
+                return False
 
     def reload_model_async(self):
         """Reload the model on a background thread so the UI stays responsive."""
@@ -125,7 +135,7 @@ class NLPEngine:
             self.unload_model()
             self.error = "NLP is globally disabled via Tabs Bar toggle."
             return
-        
+
         if not self.is_loaded:
             if auto_load and not self.is_loading:
                 self.reload_model()
@@ -135,34 +145,48 @@ class NLPEngine:
                 self.error = "Model not loaded. Click the reload button to start NLP."
                 return
 
+    def _complete(self, prompt: str, max_tokens: int, extra_stop: Optional[List[str]] = None) -> str:
+        """Run one thread-safe completion. Raises if the model is unavailable."""
+        with self._lock:
+            if self.llm is None:
+                raise RuntimeError(self.error or "Model not loaded.")
+            response = self.llm(
+                prompt,
+                max_tokens=max_tokens,
+                stop=_STOP_TOKENS + (extra_stop or []),
+                echo=False,
+            )
+        return response["choices"][0]["text"].strip()
+
+    @staticmethod
+    def _format_context(context_docs: List[Dict[str, Any]]) -> str:
+        parts = []
+        for doc in context_docs:
+            source = sanitize_prompt_text(str(doc.get("source", "Unknown")), 300)
+            content = sanitize_prompt_text(str(doc.get("content", "")), 3000)
+            parts.append(f"Document ({source}):\n{content}")
+        return sanitize_prompt_text("\n\n".join(parts))
+
     def generate_response(self, prompt: str, context_docs: List[Dict[str, Any]]) -> str:
         self.check_model(auto_load=True)
         if not self.is_loaded:
             return f"Error: {self.error}"
 
-        context_text = "\n\n".join([f"Document ({doc.get('source', 'Unknown')}):\n{doc.get('content', '')}" for doc in context_docs])
-        
+        context_text = self._format_context(context_docs)
         system_prompt = (
             "You are an advanced local NLP assistant for MNIME. "
             "Use the provided document context to answer the user's query accurately. "
             "If the answer is not in the context, state that clearly."
         )
-        
         full_prompt = (
             f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
-            f"<|im_start|>user\nCONTEXT:\n{context_text}\n\nQUERY: {prompt}<|im_end|>\n"
+            f"<|im_start|>user\nCONTEXT:\n{context_text}\n\nQUERY: {sanitize_prompt_text(prompt, 4000)}<|im_end|>\n"
             f"<|im_start|>assistant\n"
         )
-        
         try:
-            response = self.llm(
-                full_prompt,
-                max_tokens=1024,
-                stop=["<|im_end|>", "<|im_start|>"],
-                echo=False
-            )
-            return response['choices'][0]['text'].strip()
+            return self._complete(full_prompt, 1024)
         except Exception as e:
+            log.exception("generate_response failed")
             return f"Error generating response: {e}"
 
     def synthesize_reference(self, source_text: str, context_docs: List[Dict[str, Any]]) -> str:
@@ -170,30 +194,23 @@ class NLPEngine:
         if not self.is_loaded:
             return f"Error: {self.error}"
 
-        context_text = "\n\n".join([f"Document ({doc.get('source', 'Unknown')}):\n{doc.get('content', '')}" for doc in context_docs])
-        
+        context_text = self._format_context(context_docs)
         system_prompt = (
             "You are an advanced legal and document analysis NLP. "
             "The user has highlighted a specific section from one document. "
             "You are provided with semantic search results from other open documents in their workspace. "
             "Synthesize a comparative brief: analyze how the highlighted text relates, conflicts, or aligns with the other documents."
         )
-        
         full_prompt = (
             f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
-            f"<|im_start|>user\nOTHER DOCUMENTS CONTEXT:\n{context_text}\n\nHIGHLIGHTED SOURCE TEXT:\n{source_text}<|im_end|>\n"
+            f"<|im_start|>user\nOTHER DOCUMENTS CONTEXT:\n{context_text}\n\n"
+            f"HIGHLIGHTED SOURCE TEXT:\n{sanitize_prompt_text(source_text, 4000)}<|im_end|>\n"
             f"<|im_start|>assistant\nCOMPARATIVE BRIEF:\n"
         )
-        
         try:
-            response = self.llm(
-                full_prompt,
-                max_tokens=1024,
-                stop=["<|im_end|>", "<|im_start|>"],
-                echo=False
-            )
-            return response['choices'][0]['text'].strip()
+            return self._complete(full_prompt, 1024)
         except Exception as e:
+            log.exception("synthesize_reference failed")
             return f"Error generating synthesis: {e}"
 
     def generate_verbose_bookmark(self, heading_candidate: str, page_text: str) -> str:
@@ -201,35 +218,25 @@ class NLPEngine:
         if not self.is_loaded:
             return heading_candidate
 
-        # Create a fast, constrained prompt for a concise sub-60-char title
         system_prompt = (
             "You are an expert document summarizer. "
             "Based on the following page text, generate a single, highly concise bookmark title (under 60 characters) that summarizes the core topic. "
             "Do not include introductory text, quotes, or markdown. Just return the bookmark text."
         )
-        
         # Limit page text to 1500 chars to speed up inference and avoid huge context
-        safe_text = page_text[:1500].strip()
-        
+        safe_text = sanitize_prompt_text(page_text, 1500).strip()
+        safe_heading = sanitize_prompt_text(heading_candidate, 300)
         full_prompt = (
             f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
-            f"<|im_start|>user\nHEADING CANDIDATE: {heading_candidate}\n\nPAGE TEXT:\n{safe_text}<|im_end|>\n"
+            f"<|im_start|>user\nHEADING CANDIDATE: {safe_heading}\n\nPAGE TEXT:\n{safe_text}<|im_end|>\n"
             f"<|im_start|>assistant\n"
         )
-        
         try:
-            # Low max_tokens to force short generation
-            response = self.llm(
-                full_prompt,
-                max_tokens=25,
-                stop=["<|im_end|>", "<|im_start|>", "\n"],
-                echo=False
-            )
-            title = response['choices'][0]['text'].strip()
-            # Clean up potential leading/trailing quotes or punctuation if needed
+            title = self._complete(full_prompt, 25, extra_stop=["\n"])
             title = title.strip('\'"*- ')
             return title if title else heading_candidate
         except Exception:
+            log.exception("generate_verbose_bookmark failed")
             return heading_candidate
 
     def generate_smart_filename(self, page_text: str, fallback_name: str) -> str:
@@ -243,32 +250,20 @@ class NLPEngine:
             "Use underscores instead of spaces. Do not include file extensions. "
             "If the text is empty or meaningless, just reply UNKNOWN."
         )
-
-        safe_text = page_text[:1000].strip()
+        safe_text = sanitize_prompt_text(page_text, 1000).strip()
         full_prompt = (
             f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
             f"<|im_start|>user\nDOCUMENT TEXT:\n{safe_text}<|im_end|>\n"
             f"<|im_start|>assistant\n"
         )
-
-        # Use thread lock to prevent parallel crashing in Split PDF
-        with self._lock:
-            try:
-                response = self.llm(
-                    full_prompt,
-                    max_tokens=20,
-                    stop=["<|im_end|>", "<|im_start|>", "\n", "."],
-                    echo=False
-                )
-                raw_name = response['choices'][0]['text'].strip()
-                if "UNKNOWN" in raw_name.upper() or not raw_name:
-                    return fallback_name
-
-                # Sanitize filename
-                import re
-                clean_name = re.sub(r'[<>:"/\\|?*]', '', raw_name)
-                clean_name = clean_name.replace(' ', '_')
-                clean_name = clean_name.strip('\'"_-')
-                return clean_name if clean_name else fallback_name
-            except Exception:
+        try:
+            raw_name = self._complete(full_prompt, 20, extra_stop=["\n", "."])
+            if not raw_name or "UNKNOWN" in raw_name.upper():
                 return fallback_name
+
+            clean_name = re.sub(r'[<>:"/\\|?*]', "", raw_name).replace(" ", "_").strip('\'"_-')
+            clean_name = safe_filename(clean_name, fallback="")
+            return clean_name if clean_name else fallback_name
+        except Exception:
+            log.exception("generate_smart_filename failed")
+            return fallback_name

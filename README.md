@@ -263,7 +263,7 @@ MNIME bundles a standalone graphical benchmarking utility (`benchmark.py`) desig
 
 <p align="center">
   <a href="MNIME_paper.pdf">
-    <img src="docs/paper_cover.png?v=2" alt="MNIME Research Paper" width="480">
+    <img src="docs/paper_cover.png?v=3" alt="MNIME Research Paper" width="480">
   </a>
 </p>
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MNIME-desktop"
-version = "2.1.0"
+
 description = "MNIME - Native, high-performance offline document suite"
 readme = "README.md"
 requires-python = ">=3.9"

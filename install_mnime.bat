@@ -109,7 +109,7 @@ set "UNINST_BAT=%INSTALL_DIR%\uninstall_mnime.bat"
 ) > "%UNINST_BAT%"
 
 reg add "%UNINST_KEY%" /v "DisplayName"     /t REG_SZ /d "MNIME"                    /f >nul
-reg add "%UNINST_KEY%" /v "DisplayVersion"  /t REG_SZ /d "2.1.0"                        /f >nul
+reg add "%UNINST_KEY%" /v "DisplayVersion"  /t REG_SZ /d "MNIME"                        /f >nul
 reg add "%UNINST_KEY%" /v "Publisher"       /t REG_SZ /d "MNIME"                     /f >nul
 reg add "%UNINST_KEY%" /v "InstallLocation" /t REG_SZ /d "%INSTALL_DIR%"             /f >nul
 reg add "%UNINST_KEY%" /v "DisplayIcon"     /t REG_SZ /d "%ICON_PATH%,0"             /f >nul

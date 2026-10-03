@@ -75,7 +75,7 @@ Run one of the two pre-built installers from the `installer/` folder:
 | Installer | Description |
 |---|---|
 | `MNIME_Setup.exe` | Classic Windows wizard installer built with Inno Setup. Creates Start Menu entries and an optional desktop shortcut. |
-| `MNIME_v1.exe` | Premium animated installer with a custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation. |
+| `MNIME_installer.exe` | Premium animated installer with a custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation. |
 
 Both installers place MNIME at `%LOCALAPPDATA%\Programs\MNIME`.
 
@@ -115,7 +115,7 @@ The script will:
 1. Create/update the `.venv` and install all build dependencies.
 2. Compile the app with PyInstaller using `MNIME.spec` → `dist/MNIME/`.
 3. Package it into `installer/MNIME_Setup.exe` via Inno Setup (supports optional code signing with `MNIMECert.pfx`).
-4. Build the custom animated installer `installer/MNIME_v1.exe` via PyInstaller + `custom_installer.py`.
+4. Build the custom animated installer `installer/MNIME_installer.exe` via PyInstaller + `custom_installer.py`.
 
 ---
 
@@ -125,7 +125,7 @@ The script will:
 - **Changed**: The fine-tuned `MNIME-Core-1.5B-Q4_K_M.gguf` model is now bundled directly inside the application under `models/`. No external model download or Settings configuration is required.
 - **Removed**: The Settings gear icon and NLP hardware configuration dialog have been removed. Hardware offloading is handled automatically at runtime.
 - **Removed**: The finetuning workflow (`training/`) is no longer part of the repository. The model is shipped as a finished artifact.
-- **Added**: Two parallel installer formats — `MNIME_Setup.exe` (Inno Setup) and `MNIME_v1.exe` (custom animated PyQt6 installer).
+- **Added**: Two parallel installer formats — `MNIME_Setup.exe` (Inno Setup) and `MNIME_installer.exe` (custom animated PyQt6 installer).
 
 ### MNIME — UI & UX Complete Overhaul
 - **Added**: Procedurally generated 5D Penteract branding logo with true mathematical 3D depth-sorting and an independent orbiting neon file.
@@ -134,12 +134,12 @@ The script will:
 - **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, automatic document fitting with margin padding, native smooth diagonal resizing, and integrated file-explorer connectivity.
 - **Improved**: The Image and PDF Edit UIs have been fully upgraded to the MNIME translucent dark metallic theme, matching the rest of the application's premium aesthetic.
 
-### Version 2.1 — Compatibility & Stability
+### Compatibility & Stability
 - **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py`.
 - **Updated**: NumPy dependency bumped to `>=2.0.0`. NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
 - **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
 
-### Version 2.0 — Initial Public Release
+### Initial Public Release
 - Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
 - Free-floating dark metallic PyQt6 UI with physics particle transitions.
 - Local offline GGUF model integration via `llama-cpp-python`.
@@ -183,7 +183,7 @@ MNIME/
 ├── custom_installer.py    # Animated PyQt6 installer source
 ├── MNIME.iss              # Inno Setup compiler script
 ├── MNIME.spec             # PyInstaller spec (app)
-├── MNIME_v1.spec          # PyInstaller spec (animated installer)
+├── MNIME_installer.spec   # PyInstaller spec (animated installer)
 ├── build_app.bat          # Full build pipeline (venv → PyInstaller → Inno Setup → animated installer)
 ├── create_shortcut.bat    # 1-click Desktop / Taskbar shortcut generator
 ├── install_mnime.bat      # 1-click local installer

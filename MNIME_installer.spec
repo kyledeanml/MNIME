@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='MNIME_v1',
+    name='MNIME_installer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

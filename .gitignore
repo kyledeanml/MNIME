@@ -12,7 +12,7 @@ installer/
 *.exe
 *.spec
 !MNIME.spec
-!MNIME_v1.spec
+!MNIME_installer.spec
 
 # IDEs
 .idea/

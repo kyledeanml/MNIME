@@ -304,7 +304,7 @@ class NLPView(QWidget):
 
     def _on_query_chunk(self, chunk: str):
         import html
-        safe_chunk = html.escape(chunk).replace("\n", "<br>")
+        safe_chunk = html.escape(chunk).replace("\n", "<br>").replace(" ", "&nbsp;")
         self._insert_html_at_end(f"<span style='color:#00e5ff'>{safe_chunk}</span>")
 
     def _on_query_response(self, response: str):

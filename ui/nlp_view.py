@@ -443,9 +443,19 @@ class NLPView(QWidget):
 
         # Case A.2: User provides the punchline (e.g. "Lettuce in, it's cold!")
         if self.joke_state == 11:
+            setup_word = self.user_joke_setup if self.user_joke_setup else "that"
+            responses = [
+                "Haha! Good one!",
+                "Wow... don't quit your day job.",
+                "I calculate a 0.0001% probability that was funny.",
+                f"Oh, {setup_word}? Classic.",
+                "I'm an advanced multi-billion parameter AI and you use me for this?",
+                "Error 404: Humor not found."
+            ]
+            import random
             self.joke_state = 0
             self.user_joke_setup = None
-            self._start_joke_stream("Haha! Good one!")
+            self._start_joke_stream(random.choice(responses))
             return
 
         # Case B: MNIME-initiated joke - Turn 2 (MNIME knocked, user responds)

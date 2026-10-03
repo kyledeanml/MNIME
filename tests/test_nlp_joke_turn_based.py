@@ -120,7 +120,15 @@ def test_nlp_view_user_initiated_joke(qapp, monkeypatch):
     view.query_input.setText("Lettuce in, it's freezing!")
     view._submit_query()
 
-    assert executed_streams[-1] == "Haha! Good one!"
+    expected_responses = [
+        "Haha! Good one!",
+        "Wow... don't quit your day job.",
+        "I calculate a 0.0001% probability that was funny.",
+        "Oh, Lettuce? Classic.",
+        "I'm an advanced multi-billion parameter AI and you use me for this?",
+        "Error 404: Humor not found."
+    ]
+    assert executed_streams[-1] in expected_responses
     assert view.joke_state == 0
     assert view.user_joke_setup is None
 

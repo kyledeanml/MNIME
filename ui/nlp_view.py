@@ -35,6 +35,7 @@ class ExpandedNLPDialog(QDialog):
         title.setStyleSheet("color: #00e5ff; font-size: 18px; font-weight: bold; border: none; background: transparent;")
         
         close_btn = QPushButton("CLOSE")
+        close_btn.setAutoDefault(False)
         close_btn.setStyleSheet("QPushButton { background-color: transparent; color: #00e5ff; font-weight: bold; border: none; font-size: 14px; } QPushButton:hover { color: #ffffff; }")
         close_btn.clicked.connect(self.close)
         

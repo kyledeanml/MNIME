@@ -22,7 +22,7 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
   </a>
 </p>
 
-> Click the cover or badge above to open the full **Specification Sheet & User Manual** — 14 sections covering all features, technical specs, architecture, NLP engine details, UI guide, installation, keyboard shortcuts, performance notes, dependency stack, error handling, and changelog.
+> **Specification Sheet & User Manual** — 14 sections covering all features, technical specs, architecture, NLP engine details, UI guide, installation, keyboard shortcuts, performance notes, dependency stack, error handling, and changelog.
 
 ---
 

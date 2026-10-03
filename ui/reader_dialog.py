@@ -501,12 +501,33 @@ class ReaderDialog(QDialog):
         except OSError:
             pass  # No handler registered for the 'print' verb
 
+        # Fallback 1: Google Chrome, which can print PDFs and images via Ctrl+P
+        import subprocess
+        local_app = os.environ.get("LOCALAPPDATA", "")
+        chrome_candidates = [
+            os.path.join(os.environ.get("ProgramFiles", ""), "Google", "Chrome", "Application", "chrome.exe"),
+            os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Google", "Chrome", "Application", "chrome.exe"),
+            os.path.join(local_app, "Google", "Chrome", "Application", "chrome.exe"),
+        ]
+        for chrome in chrome_candidates:
+            if os.path.isfile(chrome):
+                try:
+                    subprocess.Popen([chrome, path])
+                    QMessageBox.information(
+                        self, "Print",
+                        "The file was opened in Google Chrome. Press Ctrl+P there to print."
+                    )
+                    return
+                except OSError:
+                    break
+
+        # Fallback 2: default viewer
         try:
             os.startfile(path)
             QMessageBox.information(
                 self, "Print",
-                "No default print handler was found. The file was opened in your default "
-                "viewer; press Ctrl+P there to print."
+                "Google Chrome was not found. The file was opened in your default "
+                "viewer; use its Print option (Ctrl+P)."
             )
         except OSError as e:
             QMessageBox.warning(self, "Print Error", f"Could not hand the file to Windows: {e}")

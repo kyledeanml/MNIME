@@ -6,7 +6,7 @@ Handles file picking, OS drag-and-drop, worker threads, and file conversions.
 
 import os
 import subprocess
-from typing import List
+from typing import List, Optional
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
     QMessageBox, QApplication, QFrame, QPushButton, QSystemTrayIcon, QMenu
@@ -25,6 +25,7 @@ from .action_bar import ActionBar
 from .output_view import OutputView
 from .nlp_view import NLPView
 from .document_viewer import DocumentViewer
+from ui.cursor_fx import get_custom_cursor
 
 import sys
 if sys.platform == "win32":
@@ -105,9 +106,18 @@ class ReaderBezelWidget(QWidget):
             }
         """)
         
+        self.setCursor(get_custom_cursor())
+        self.reader_btn.setCursor(get_custom_cursor())
         layout.addStretch()
         layout.addWidget(self.reader_btn)
         layout.addStretch()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.reader_btn.click()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     def paintEvent(self, event):
         from PyQt6.QtGui import QPainter, QPainterPath, QColor, QLinearGradient, QPen
@@ -161,6 +171,7 @@ class MainWindow(QMainWindow):
         self.file_items: List[FileItem] = []
         self.worker: TaskWorker = None
         self._drag_pos: QPoint = None
+        self._active_reader = None
 
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -184,13 +195,17 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        if hasattr(self, 'bezel'):
+        if hasattr(self, 'bezel') and self.bezel:
             # Center horizontally, position at the top (extending above the container padding)
             self.bezel.move((self.width() - self.bezel.width()) // 2, 0)
+            self.bezel.raise_()
 
     def showEvent(self, event):
         """Register WM_DROPFILES AFTER Qt has finished its internal OLE DnD setup."""
         super().showEvent(event)
+        if hasattr(self, 'bezel') and self.bezel:
+            self.bezel.move((self.width() - self.bezel.width()) // 2, 0)
+            self.bezel.raise_()
         if not self._dnd_registered:
             # Defer by one event-loop cycle so RegisterDragDrop has fully completed
             from PyQt6.QtCore import QTimer
@@ -613,6 +628,7 @@ class MainWindow(QMainWindow):
         self.carousel.files_reordered.connect(self._on_files_reordered)
         self.carousel.upload_clicked.connect(self._open_file_dialog)
         self.carousel.clear_clicked.connect(self._clear_files)
+        self.carousel.card_double_clicked.connect(lambda item: self._open_reader(item.file_path))
         main_layout.addWidget(self.carousel, 1)
 
         # Output View (Hidden by default)
@@ -680,10 +696,61 @@ class MainWindow(QMainWindow):
         self._clear_files()
         self._add_files(paths)
 
-    def _open_reader(self):
+    def _open_reader(self, target_path: Optional[str] = None):
         from ui.reader_dialog import ReaderDialog
-        dialog = ReaderDialog(self.file_items, None, update_callback=self._on_reader_files_updated)
-        dialog.exec()
+
+        target_item = None
+        if target_path and os.path.exists(target_path):
+            abs_path = os.path.abspath(target_path)
+            existing = [item for item in self.file_items if os.path.abspath(item.file_path) == abs_path]
+            if existing:
+                target_item = existing[0]
+            else:
+                new_item = FileItem(abs_path)
+                self.file_items.append(new_item)
+                self.carousel.set_items(self.file_items)
+                self.action_bar.update_count(len(self.file_items))
+                target_item = new_item
+
+        initial_idx = 0
+        if target_item and target_item in self.file_items:
+            initial_idx = self.file_items.index(target_item)
+        elif self.file_items:
+            initial_idx = 0
+
+        # If reader is already open, update it and bring to front
+        if getattr(self, "_active_reader", None) is not None:
+            try:
+                self._active_reader.update_file_items(self.file_items, select_index=initial_idx)
+                self._active_reader.showNormal()
+                self._active_reader.activateWindow()
+                self._active_reader.raise_()
+                return
+            except Exception:
+                self._active_reader = None
+
+        dialog = ReaderDialog(
+            self.file_items, 
+            parent=None, 
+            update_callback=self._on_reader_files_updated,
+            initial_index=initial_idx
+        )
+        self._active_reader = dialog
+        dialog.finished.connect(lambda: setattr(self, "_active_reader", None))
+        dialog.show()
+        dialog.activateWindow()
+        dialog.raise_()
+
+    def handle_external_open(self, file_paths: List[str]):
+        """Handle opening files passed via CLI or IPC from an external process."""
+        valid_paths = [os.path.abspath(f) for f in file_paths if os.path.isfile(f)]
+        if valid_paths:
+            self._add_files(valid_paths)
+            self._open_reader(target_path=valid_paths[0])
+        else:
+            self.showNormal()
+            self.activateWindow()
+            self.raise_()
 
     def _check_startup_enabled(self) -> bool:
         import winreg
@@ -775,7 +842,14 @@ class MainWindow(QMainWindow):
         elif mode == ToolMode.NLP:
             self.action_bar.set_action_title("START NLP")
         elif mode == ToolMode.REFERENCE:
-            self.action_bar.set_action_title("OPEN VIEWER")
+            target = self.file_items[0].file_path if self.file_items else None
+            self._open_reader(target)
+            prev_mode = ToolMode.COMBINE_PDF
+            self.tabs_bar.current_mode = prev_mode
+            if prev_mode in self.tabs_bar._buttons:
+                self.tabs_bar._buttons[prev_mode].setChecked(True)
+            self._on_mode_changed(prev_mode)
+            return
         elif mode == ToolMode.BOOKMARK:
             self.action_bar.set_action_title("BOOKMARK")
         elif mode == ToolMode.STATS:
@@ -1009,6 +1083,9 @@ class MainWindow(QMainWindow):
     def _execute_action(self):
         """Execute the primary operation depending on active tab."""
         if not self.file_items:
+            if self.current_mode == ToolMode.REFERENCE:
+                self._open_reader()
+                return
             QMessageBox.warning(self, "No Files", "Please add at least one document before running this tool.")
             return
 
@@ -1080,8 +1157,8 @@ class MainWindow(QMainWindow):
             return
             
         if self.current_mode == ToolMode.REFERENCE:
-            viewer = DocumentViewer(self.file_items[0], self)
-            viewer.exec()
+            target = self.file_items[0].file_path if self.file_items else None
+            self._open_reader(target)
             return
 
         import tempfile

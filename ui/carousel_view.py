@@ -193,6 +193,7 @@ class CarouselView(QWidget):
     files_dropped = pyqtSignal(list)    # List[str]
     upload_clicked = pyqtSignal()
     clear_clicked = pyqtSignal()
+    card_double_clicked = pyqtSignal(object) # FileItem
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -449,6 +450,7 @@ class CarouselView(QWidget):
             card = FileCard(item, index)
             card.remove_requested.connect(self._on_card_removed)
             card.card_moved.connect(self._on_card_reordered)
+            card.card_double_clicked.connect(self.card_double_clicked.emit)
             self.cards.append(card)
 
         self.cards_area.set_cards(self.cards)

@@ -250,6 +250,26 @@ class MetalSplashScreen(QWidget):
         
         painter.end()
 
+import json
+from PyQt6.QtNetwork import QLocalSocket, QLocalServer
+
+IPC_PIPE_NAME = "MNIME_SingleInstance_IPC_Server"
+
+def send_to_existing_instance(file_paths: list) -> bool:
+    """Attempt to connect to an already running MNIME instance and send file paths."""
+    socket = QLocalSocket()
+    socket.connectToServer(IPC_PIPE_NAME)
+    if socket.waitForConnected(500):
+        payload = json.dumps({"action": "open", "files": file_paths}).encode("utf-8")
+        socket.write(payload)
+        socket.flush()
+        socket.waitForBytesWritten(1000)
+        # Wait up to 1 second for the running instance to acknowledge receipt
+        socket.waitForReadyRead(1000)
+        socket.disconnectFromServer()
+        return True
+    return False
+
 def main():
     # Enable high-DPI scaling
     QApplication.setHighDpiScaleFactorRoundingPolicy(
@@ -260,6 +280,18 @@ def main():
     app.setApplicationName("MNIME")
     app.setOrganizationName("MNIME")
 
+    # Extract target files from command line arguments (e.g. Windows file association / Open With)
+    raw_args = sys.argv[1:]
+    target_files = [
+        os.path.abspath(f) for f in raw_args 
+        if not f.startswith("-") and os.path.isfile(f)
+    ]
+
+    # Check for an existing running instance of MNIME
+    if send_to_existing_instance(target_files):
+        # Successfully forwarded document to running instance, exit second process immediately
+        sys.exit(0)
+
     # Set application icon for taskbar, quickbar, window titlebar, and system dialogs
     app_icon = get_app_icon()
     if not app_icon.isNull():
@@ -269,28 +301,62 @@ def main():
     app_font = QFont("Segoe UI", 10)
     app.setFont(app_font)
 
+    # Initialize Main Window
     app.main_window = MainWindow()
 
-    # 1. Show Splash Screen
-    splash = MetalSplashScreen()
-    splash.show()
+    # Start QLocalServer for single-instance IPC
+    ipc_server = QLocalServer()
+    QLocalServer.removeServer(IPC_PIPE_NAME)
+    if ipc_server.listen(IPC_PIPE_NAME):
+        def on_new_connection():
+            client_socket = ipc_server.nextPendingConnection()
+            if not client_socket:
+                return
 
-    # 3. Setup Fade Out Animation
-    animation = QPropertyAnimation(splash.opacity_effect, b"opacity")
-    animation.setDuration(1200)  # 1.2 second fade out
-    animation.setStartValue(1.0)
-    animation.setEndValue(0.0)
-    
-    def on_fade_finished():
-        splash.close()
-        # Always start minimized to the tray after splash
-        app.main_window.hide()
-        
-    animation.finished.connect(on_fade_finished)
-    
-    # Wait 3.5 seconds on desktop before triggering the fade
-    # (1.5s random shooting + 1.0s merging + 1.0s hold)
-    QTimer.singleShot(3500, animation.start)
+            def process_incoming():
+                try:
+                    raw = client_socket.readAll().data()
+                    if not raw:
+                        return
+                    client_socket.write(b"ACK\n")
+                    client_socket.flush()
+                    data = raw.decode("utf-8")
+                    msg = json.loads(data)
+                    files = msg.get("files", [])
+                    app.main_window.handle_external_open(files)
+                except Exception:
+                    app.main_window.showNormal()
+                    app.main_window.activateWindow()
+                    app.main_window.raise_()
+
+            client_socket.readyRead.connect(process_incoming)
+            if client_socket.bytesAvailable() > 0:
+                process_incoming()
+
+        ipc_server.newConnection.connect(on_new_connection)
+    app.ipc_server = ipc_server
+
+    # If launched with a document (e.g. user double-clicked a PDF):
+    if target_files:
+        # Go straight into the reader with the document loaded, bypassing splash delay
+        app.main_window.handle_external_open(target_files)
+    else:
+        # Standard launch: Show Splash Screen with particle effects and minimize to tray
+        splash = MetalSplashScreen()
+        splash.show()
+
+        animation = QPropertyAnimation(splash.opacity_effect, b"opacity")
+        animation.setDuration(1200)  # 1.2 second fade out
+        animation.setStartValue(1.0)
+        animation.setEndValue(0.0)
+
+        def on_fade_finished():
+            splash.close()
+            # Always start minimized to the tray after splash
+            app.main_window.hide()
+
+        animation.finished.connect(on_fade_finished)
+        QTimer.singleShot(3500, animation.start)
 
     sys.exit(app.exec())
 

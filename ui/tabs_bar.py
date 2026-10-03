@@ -96,6 +96,8 @@ class TabsBar(QWidget):
             btn.setIcon(get_icon(icon_map.get(mode, "document"), "#00e5ff"))
             if mode == ToolMode.STATS:
                 btn.setToolTip("Stats (Telemetry & Benchmark)")
+            elif mode == ToolMode.REFERENCE:
+                btn.setToolTip("Reader (Document & PDF Viewer)")
             else:
                 btn.setToolTip(mode.value)
             
@@ -267,6 +269,10 @@ class TabsBar(QWidget):
                 self._buttons[self.current_mode].setChecked(True)
             return
             
+        if mode in [ToolMode.REFERENCE, ToolMode.STATS]:
+            self.mode_changed.emit(mode)
+            return
+
         if self.current_mode != mode:
             self.current_mode = mode
             self.mode_changed.emit(mode)

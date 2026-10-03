@@ -90,7 +90,7 @@ class ReaderPageView(QGraphicsView):
             event.accept()
 
 class ReaderDialog(QDialog):
-    def __init__(self, file_items, parent=None, update_callback=None):
+    def __init__(self, file_items, parent=None, update_callback=None, initial_index: int = 0):
         super().__init__(parent)
         self.update_callback = update_callback
         self.file_items = file_items
@@ -131,8 +131,11 @@ class ReaderDialog(QDialog):
         
         self._setup_ui()
         if self.file_items:
-            self.file_combo.setCurrentIndex(0)
-            self._on_file_selected(0)
+            idx = min(max(0, initial_index), len(self.file_items) - 1)
+            self.file_combo.setCurrentIndex(idx)
+            self._on_file_selected(idx)
+        else:
+            self.page_label.setText("No document loaded. Click 'Add Files' to open a PDF or image.")
 
     def _setup_ui(self):
         from PyQt6.QtWidgets import QFrame, QGraphicsDropShadowEffect
@@ -319,6 +322,29 @@ class ReaderDialog(QDialog):
             return
         item = self.file_items[index]
         self._load_doc(item)
+
+    def update_file_items(self, file_items, select_index: int = 0):
+        """Update loaded file list dynamically without reopening the dialog."""
+        self.file_items = file_items
+        self.file_combo.blockSignals(True)
+        self.file_combo.clear()
+        for item in self.file_items:
+            self.file_combo.addItem(item.file_name, item)
+        self.file_combo.blockSignals(False)
+        if self.file_items:
+            idx = min(max(0, select_index), len(self.file_items) - 1)
+            self.file_combo.setCurrentIndex(idx)
+            self._on_file_selected(idx)
+        else:
+            if self.doc:
+                try:
+                    self.doc.close()
+                except Exception:
+                    pass
+                self.doc = None
+            self.scene.clear()
+            self.toc_tree.clear()
+            self.page_label.setText("No document loaded. Click 'Add Files' to open a PDF or image.")
 
     def _load_doc(self, file_item):
         if self.doc:

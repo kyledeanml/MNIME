@@ -23,6 +23,7 @@ class FileCard(QFrame):
 
     remove_requested = pyqtSignal(object)   # FileItem
     card_moved = pyqtSignal(int, int)        # from_index, to_index
+    card_double_clicked = pyqtSignal(object) # FileItem
 
     CARD_WIDTH = 115
     CARD_HEIGHT = 140
@@ -247,6 +248,13 @@ class FileCard(QFrame):
             self._dragging = False
         self._drag_start_pos = QPoint()
         super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.card_double_clicked.emit(self.item)
+            event.accept()
+            return
+        super().mouseDoubleClickEvent(event)
 
     def _start_manual_drag(self, event):
         """Turn the mouse cursor into a blue file icon during the drag."""

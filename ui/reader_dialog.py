@@ -5,7 +5,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QRectF, QRect, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QImage
-from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+import os
+
 
 class ReaderPageView(QGraphicsView):
     prev_page_requested = pyqtSignal()
@@ -475,59 +476,40 @@ class ReaderDialog(QDialog):
             self._render_page()
 
     def _print_document(self):
+        """Print via the Windows shell instead of Qt's print pipeline.
+
+        Uses the file's registered 'print' verb (e.g. Adobe/Edge/Photos). If no
+        app handles that verb, the file is opened in its default viewer so the
+        user can print from there (Ctrl+P).
+        """
         index = self.file_combo.currentIndex()
         if index < 0:
             return
         file_item = self.file_items[index]
+        path = os.path.abspath(file_item.file_path)
 
-        printer = QPrinter(QPrinter.PrinterMode.HighResolution)
-        dialog = QPrintDialog(printer, self)
-        if dialog.exec() != QPrintDialog.DialogCode.Accepted:
+        if not os.path.isfile(path):
+            QMessageBox.warning(self, "Print Error", "The file could not be found on disk.")
             return
-
-        painter = QPainter()
-        if not painter.begin(printer):
-            QMessageBox.warning(self, "Print Error", "Could not start the print job on the selected printer.")
+        if file_item.extension not in (".pdf", ".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff", ".txt", ".docx"):
+            QMessageBox.information(self, "Print", "This file type cannot be printed from the reader.")
             return
-
-        def draw_fit(img: QImage, first: bool) -> None:
-            if not first:
-                printer.newPage()
-            # Printer page rectangle in device pixels (QRectF -> ints)
-            rect = printer.pageRect(QPrinter.Unit.DevicePixel)
-            pw, ph = max(int(rect.width()), 1), max(int(rect.height()), 1)
-            scaled_img = img.scaled(
-                pw, ph,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            x = (pw - scaled_img.width()) // 2
-            y = (ph - scaled_img.height()) // 2
-            painter.fillRect(0, 0, pw, ph, QColor("white"))
-            painter.drawImage(x, y, scaled_img)
 
         try:
-            if file_item.extension == ".pdf" and self.doc:
-                import pymupdf
-                # Render at ~200 DPI; copy() detaches QImage from the pymupdf buffer
-                mat = pymupdf.Matrix(200 / 72.0, 200 / 72.0)
-                for i in range(len(self.doc)):
-                    pix = self.doc[i].get_pixmap(matrix=mat, colorspace=pymupdf.csRGB, alpha=False)
-                    img = QImage(pix.samples, pix.width, pix.height, pix.stride,
-                                 QImage.Format.Format_RGB888).copy()
-                    draw_fit(img, i == 0)
-            elif file_item.extension in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:
-                img = QImage(file_item.file_path)
-                if img.isNull():
-                    QMessageBox.warning(self, "Print Error", "Could not load the image for printing.")
-                else:
-                    draw_fit(img, True)
-            else:
-                QMessageBox.information(self, "Print", "This file type cannot be printed from the reader.")
-        except Exception as e:
-            QMessageBox.warning(self, "Print Error", f"Printing failed: {e}")
-        finally:
-            painter.end()
+            os.startfile(path, "print")
+            return
+        except OSError:
+            pass  # No handler registered for the 'print' verb
+
+        try:
+            os.startfile(path)
+            QMessageBox.information(
+                self, "Print",
+                "No default print handler was found. The file was opened in your default "
+                "viewer; press Ctrl+P there to print."
+            )
+        except OSError as e:
+            QMessageBox.warning(self, "Print Error", f"Could not hand the file to Windows: {e}")
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

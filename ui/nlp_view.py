@@ -90,6 +90,11 @@ class ExpandedNLPDialog(QDialog):
         if enabled:
             self.query_input.setFocus()
 
+    def accept(self):
+        # Override accept to prevent the QDialog from automatically closing 
+        # when the user presses Enter in the query_input.
+        pass
+
 class IndexWorker(QThread):
     progress = pyqtSignal(int, str)
     finished = pyqtSignal(object)
@@ -121,6 +126,8 @@ class IndexWorker(QThread):
 class NLPQueryWorker(QThread):
     finished = pyqtSignal(str)
     chunk_received = pyqtSignal(str)
+    point_generated = pyqtSignal(float, float, str)
+    stats_updated = pyqtSignal(dict)
 
     def __init__(self, query: str, context_docs: list):
         super().__init__()
@@ -128,12 +135,45 @@ class NLPQueryWorker(QThread):
         self.context_docs = context_docs
 
     def run(self):
+        import time
+        from ui.nerds import get_process_memory_mb
         try:
             generator = NLPEngine.get_instance().generate_response_stream(self.query, self.context_docs)
             full_response = ""
+            t_start_eval = time.time()
+            t_first_token = None
+            tokens_received = 0
+            token_timestamps = []
+
             for chunk in generator:
+                now = time.time()
+                if t_first_token is None:
+                    t_first_token = now - t_start_eval
+
                 full_response += chunk
                 self.chunk_received.emit(chunk)
+
+                tokens_received += 1
+                token_timestamps.append(now)
+
+                elapsed = now - t_start_eval
+                window = 6
+                if len(token_timestamps) > window:
+                    inst_throughput = window / max(token_timestamps[-1] - token_timestamps[-window - 1], 0.001)
+                else:
+                    inst_throughput = tokens_received / max(elapsed, 0.001)
+
+                cur_ram = get_process_memory_mb()
+                self.point_generated.emit(elapsed, inst_throughput, "tok_sec")
+                self.point_generated.emit(elapsed, cur_ram, "ram_mb")
+
+                self.stats_updated.emit({
+                    "throughput": inst_throughput,
+                    "ttft": t_first_token * 1000 if t_first_token else 0.0,
+                    "ram_mb": cur_ram,
+                    "tokens": tokens_received
+                })
+
             self.finished.emit(full_response)
         except Exception as e:
             self.finished.emit(f"Error: {e}")
@@ -300,6 +340,16 @@ class NLPView(QWidget):
         self.query_worker = NLPQueryWorker(query, context_docs)
         self.query_worker.chunk_received.connect(self._on_query_chunk)
         self.query_worker.finished.connect(self._on_query_response)
+        
+        main_win = self.window()
+        if hasattr(main_win, '_stats_dialog'):
+            if main_win._stats_dialog is None:
+                from ui.nerds import StatsForNerdsDialog
+                main_win._stats_dialog = StatsForNerdsDialog(main_win)
+            self.query_worker.point_generated.connect(main_win._stats_dialog._on_point_generated)
+            self.query_worker.stats_updated.connect(main_win._stats_dialog._on_stats_updated)
+            main_win._stats_dialog.chart.clear()
+
         self.query_worker.start()
 
     def _on_query_chunk(self, chunk: str):

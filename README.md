@@ -150,46 +150,46 @@ The script will:
 
 ```
 MNIME/
-├── core/                  # Core processing engine & system integration
+├── core/                  # Core processing engine
 │   ├── __init__.py
-│   ├── app_icon.py        # Windows AppUserModelID, ICO generator, & shortcuts
-│   ├── file_item.py       # Data model, metadata reader & thumbnail generator
-│   ├── nlp_engine.py      # Bundled GGUF model integration (llama-cpp-python)
-│   ├── pdf_engine.py      # PDF merge, convert, compress, & DOCX export logic
-│   ├── search_engine.py   # FAISS-backed semantic search engine
-│   └── worker.py          # Asynchronous QThread background worker
-├── models/                # Bundled NLP model (shipped with the app)
+│   ├── app_icon.py        # Win32 icons & properties
+│   ├── file_item.py       # Data model & thumbnails
+│   ├── nlp_engine.py      # GGUF model integration
+│   ├── pdf_engine.py      # PDF logic & conversion
+│   ├── search_engine.py   # FAISS semantic search
+│   └── worker.py          # Async background worker
+├── models/                # Bundled NLP model
 │   └── MNIME-Core-1.5B-Q4_K_M.gguf
-├── ui/                    # Desktop GUI components (PyQt6)
+├── ui/                    # Desktop GUI (PyQt6)
 │   ├── __init__.py
-│   ├── action_bar.py      # Primary execution button and progress indicator
-│   ├── carousel_view.py   # Reorderable horizontal file card carousel & dropzone
+│   ├── action_bar.py      # Action buttons & progress
+│   ├── carousel_view.py   # Horizontal file gallery
 │   ├── cursor_fx.py       # Custom cursor effects
-│   ├── document_viewer.py # Document visualizer for REFERENCE tasks
-│   ├── file_card.py       # Individual file cards with status, progress, & drag-and-drop
-│   ├── file_dialog.py     # Custom native-feeling dark-mode file explorer
-│   ├── icons.py           # Resolution-independent vector SVG icons
+│   ├── document_viewer.py # Document visualizer
+│   ├── file_card.py       # Interactive file cards
+│   ├── file_dialog.py     # Dark-mode file explorer
+│   ├── icons.py           # Vector SVG icons
 │   ├── image_editor.py    # Image editor UI
-│   ├── main_window.py     # Free-floating dark metallic window coordinator
-│   ├── merge_particles.py # Physics-based particle simulation for transitions
-│   ├── minimize_animation.py # Custom minimize animations
-│   ├── nlp_view.py        # NLP/RAG conversational interface
-│   ├── output_view.py     # Processing log / output view
+│   ├── main_window.py     # Main window coordinator
+│   ├── merge_particles.py # Physics transitions
+│   ├── minimize_animation.py # Minimize animations
+│   ├── nlp_view.py        # RAG interface
+│   ├── output_view.py     # Processing log output
 │   ├── pdf_editor.py      # PDF editor UI
-│   ├── reader_dialog.py   # Independent frameless document reader window
-│   └── tabs_bar.py        # Mode switcher (Merge, Images→PDF, PDF→Images, Compress, Bookmark, DOCX, NLP)
-├── MN.ico                 # Multi-resolution native Windows icon
-├── MNIME.py               # Main application entry point
-├── custom_installer.py    # Animated PyQt6 installer source
-├── MNIME.iss              # Inno Setup compiler script
-├── MNIME.spec             # PyInstaller spec (app)
-├── MNIME_installer.spec   # PyInstaller spec (animated installer)
-├── build_app.bat          # Full build pipeline (venv → PyInstaller → Inno Setup → animated installer)
-├── create_shortcut.bat    # 1-click Desktop / Taskbar shortcut generator
+│   ├── reader_dialog.py   # Frameless document reader
+│   └── tabs_bar.py        # App mode switcher
+├── MN.ico                 # Multi-res native icon
+├── MNIME.py               # Application entry point
+├── custom_installer.py    # PyQt6 installer UI
+├── MNIME.iss              # Inno Setup script
+├── MNIME.spec             # PyInstaller spec
+├── MNIME_installer.spec   # Animated installer spec
+├── benchmark.py           # NLP empirical benchmark
+├── build_app.bat          # Full build pipeline
 ├── install_mnime.bat      # 1-click local installer
 ├── run.bat                # 1-click Windows runner
-├── setup.bat              # 1-click Python venv setup
-├── pyproject.toml         # Build & package configuration
+├── setup.bat              # Python venv setup
+├── pyproject.toml         # Build configuration
 ├── requirements.txt       # Python dependencies
 ├── LICENSE                # Open source license
 └── README.md              # Project documentation

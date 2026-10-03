@@ -778,6 +778,16 @@ class MainWindow(QMainWindow):
             self.action_bar.set_action_title("OPEN VIEWER")
         elif mode == ToolMode.BOOKMARK:
             self.action_bar.set_action_title("BOOKMARK")
+        elif mode == ToolMode.STATS:
+            from ui.stats_for_nerds import StatsForNerdsDialog
+            dialog = StatsForNerdsDialog(self)
+            dialog.exec()
+            prev_mode = ToolMode.COMBINE_PDF
+            self.tabs_bar.current_mode = prev_mode
+            if prev_mode in self.tabs_bar._buttons:
+                self.tabs_bar._buttons[prev_mode].setChecked(True)
+            self._on_mode_changed(prev_mode)
+            return
 
         self.action_bar.update_count(len(self.file_items))
 

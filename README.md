@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</p>
+<p align="center"><em><font face="Brush Script MT, Segoe Script, cursive" color="#00e5ff" size="4">pronounced &ldquo;nigh-mh&rdquo; &bull; /naɪm/</font></em></p>
 
 A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
 
@@ -12,7 +13,7 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
 
 <p align="center">
   <a href="MNIME_Spec_Manual.pdf">
-    <img src="docs/spec_cover.png?v=2" alt="MNIME Specification Sheet & User Manual" width="480">
+    <img src="docs/spec_cover.png?v=3" alt="MNIME Specification Sheet & User Manual" width="480">
   </a>
 </p>
 
@@ -252,18 +253,19 @@ MNIME offers two powerful ways to generate document outlines and table of conten
 - **Heuristic Mode**: Rapidly analyzes PDF typography, font sizes, and structural layout to instantly build an accurate nested bookmark tree using native heuristics.
 - **NLP Mode**: Leverages the bundled MNIME-Core model to contextually understand headers, generating highly descriptive, semantic chapter summaries for each outline entry.
 
-### Empirical Benchmarking & External Validation
-MNIME bundles a standalone graphical benchmarking utility (`benchmark.py`) designed for users and researchers to independently validate on-device model throughput, latency, and hardware metrics:
-- **Interactive Performance GUI**: Launch via `.venv\Scripts\python.exe benchmark.py` to open a dedicated hardware performance console.
-- **Empirical Telemetry**: Empirically measures prompt ingestion speed, first-token latency, and sustained token generation throughput (tokens/second) against the bundled `MNIME-Core-1.5B-Q4_K_M.gguf` model.
-- **External Replication**: Allows users to ground and replicate the empirical benchmarks reported in Section 5 of the research paper directly on their own local machine without external dependencies.
+### Stats & Empirical Benchmarking
+MNIME bundles a dedicated, high-performance telemetry dashboard and benchmarking suite (**Stats** / `benchmark.py`) designed for users and researchers to independently validate on-device model throughput, latency, and hardware metrics:
+- **Sleek Translucent HUD**: Accessible directly within MNIME via the `STATS` pulse tab or launched standalone via `.venv\Scripts\python.exe benchmark.py`. Built with the same obsidian glassmorphism aesthetic as the expanded NLP interface.
+- **Dynamic 60 FPS Line Charting**: Features hardware-accelerated real-time vector line charts with glowing neon curves and vertical gradient area fills, plotting instantaneous and rolling token throughput (tokens/sec), inter-token latency (ms), and process RAM working set (MB).
+- **Multi-Engine Empirical Telemetry**: Measures prompt ingestion speed (prefill eval), time-to-first-token (TTFT), sustained token generation throughput against `MNIME-Core-1.5B-Q4_K_M.gguf`, C-accelerated PDF rasterization speed (pages/sec), and FAISS similarity retrieval latency.
+- **External Replication & JSON Export**: Allows users to ground and replicate the empirical benchmarks reported in Section 5 of the research paper directly on their own local machine with full JSON export capabilities.
 
 ---
 
 
 <p align="center">
   <a href="MNIME_paper.pdf">
-    <img src="docs/paper_cover.png?v=3" alt="MNIME Research Paper" width="480">
+    <img src="docs/paper_cover.png?v=4" alt="MNIME Research Paper" width="480">
   </a>
 </p>
 

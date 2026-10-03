@@ -22,6 +22,7 @@ class ToolMode(Enum):
     PDF_TO_DOCX = "PDF → DOCX"
     NLP = "NLP"
     RELOAD_NLP = "RELOAD NLP"
+    STATS = "STATS"
 
 class TabsBar(QWidget):
     """Free-floating dark metallic tab navigation bar with dark neon blue highlights."""
@@ -56,6 +57,7 @@ class TabsBar(QWidget):
         right_tabs = [
             ToolMode.NLP,
             ToolMode.RELOAD_NLP,
+            ToolMode.STATS,
         ]
 
         def _add_tab(mode):
@@ -75,13 +77,14 @@ class TabsBar(QWidget):
                 ToolMode.REFERENCE: "book",
                 ToolMode.NLP: "message",
                 ToolMode.RELOAD_NLP: "refresh",
+                ToolMode.STATS: "stats",
             }
             
             btn = QPushButton()
             btn.setCheckable(True)
             btn.setCursor(get_custom_cursor())
             
-            if mode in [ToolMode.NLP, ToolMode.RELOAD_NLP]:
+            if mode in [ToolMode.NLP, ToolMode.RELOAD_NLP, ToolMode.STATS]:
                 btn.setFixedHeight(21)
                 btn.setFixedWidth(30)
                 btn.setIconSize(QSize(12, 12))
@@ -91,7 +94,10 @@ class TabsBar(QWidget):
                 btn.setIconSize(QSize(16, 16))
             
             btn.setIcon(get_icon(icon_map.get(mode, "document"), "#00e5ff"))
-            btn.setToolTip(mode.value)
+            if mode == ToolMode.STATS:
+                btn.setToolTip("Stats for Nerds (Telemetry & Benchmark)")
+            else:
+                btn.setToolTip(mode.value)
             
             btn.setStyleSheet("""
                 QToolTip {

@@ -286,15 +286,20 @@ class CoverPage(Flowable):
         c.setFont("Helvetica", 8.5)
         c.drawCentredString(cx, h * 0.465, "MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION")
 
+        # Phonetic pronunciation in elegant cursive/oblique
+        c.setFillColor(NEON_GREEN)
+        c.setFont("Helvetica-Oblique", 8)
+        c.drawCentredString(cx, h * 0.450, 'pronounced "nigh-mh" • /naɪm/')
+
         # Divider
         c.setStrokeColor(ACCENT_CYAN)
         c.setLineWidth(0.6)
-        c.line(cx - 80, h * 0.448, cx + 80, h * 0.448)
+        c.line(cx - 80, h * 0.435, cx + 80, h * 0.435)
 
         # Tagline
         c.setFillColor(TEXT_SECONDARY)
         c.setFont("Helvetica", 9)
-        c.drawCentredString(cx, h * 0.42, "Full Specification Sheet & User Manual")
+        c.drawCentredString(cx, h * 0.412, "Full Specification Sheet & User Manual")
 
         # Version pill
         pill_w, pill_h = 80, 16
@@ -939,6 +944,7 @@ def build_body(styles):
         ["NLP (checkbox)", "NLP",      "Master toggle — uncheck to unload model instantly"],
         ["NLP (button)", "NLP Chat",  "Open the conversational NLP interface"],
         ["RELOAD NLP",  "Reload NLP",  "Load / reload the GGUF model into memory. Glows cyan when model is unloaded."],
+        ["STATS",       "Stats",       "Open Stats for Nerds telemetry dashboard with live dynamic line charts."],
     ]
     tabs_col_w = [CONTENT_W * 0.22, CONTENT_W * 0.20, CONTENT_W * 0.58]
     tabs_flowables = [

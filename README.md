@@ -160,6 +160,7 @@ MNIME/
 │   ├── search_engine.py   # FAISS vector indexing & RAG retrieval
 │   ├── text_safety.py     # Prompt parsing & text sanitization
 │   ├── version.py         # Application version constants
+│   ├── windows_integration.py # Windows taskbar & OS integrations
 │   └── worker.py          # Asynchronous QThread background worker
 ├── models/                # Local GGUF model directory
 │   └── MNIME-Core-1.5B-Q4_K_M.gguf
@@ -189,15 +190,22 @@ MNIME/
 ├── paper/                 # Research paper LaTeX source & PDF
 │   ├── MNIME_paper.pdf    # Compiled research paper
 │   ├── MNIME_paper.tex    # LaTeX manuscript source
-│   └── mnime_refs.bib     # Citation database
+│   ├── acl.sty            # ACL formatting style sheet
+│   ├── acl_natbib.bst     # ACL bibliography style sheet
+│   ├── mnime_refs.bib     # Citation database
+│   └── template_ref.tex   # Reference template
 ├── scripts/               # Utility & PDF generation scripts
+│   ├── fetch_models.py           # Automated model downloader
 │   ├── generate_changelog_pdf.py # Dynamic Change Log PDF & cover generator
 │   └── generate_mnime_pdf.py     # Specification manual PDF generator
 ├── tests/                 # Automated test suite
 │   ├── test_ipc_parse.py
+│   ├── test_nlp_indexing.py
 │   ├── test_nlp_sanitize.py
 │   ├── test_pdf_engine.py
-│   └── test_print_engine.py
+│   ├── test_print_engine.py
+│   ├── test_stats_telemetry.py
+│   └── test_windows_integration.py
 ├── CHANGE_LOG.txt         # Comprehensive forensic build & session change log
 ├── MNIME_Change_Log.pdf   # Interactive compiled change log & build history
 ├── MNIME_paper.pdf        # Research paper PDF
@@ -213,8 +221,10 @@ MNIME/
 ├── run.bat                # Launch application script
 ├── run_tests.bat          # Test runner script
 ├── setup.bat              # Virtual environment initialization script
+├── update_changelog.bat   # Script to update changelog
 ├── pyproject.toml         # Build system configuration
 ├── requirements.txt       # Python dependency specifications
+├── version_info.txt       # Version build details
 ├── LICENSE                # MIT Open Source License
 └── README.md              # Project documentation
 ```

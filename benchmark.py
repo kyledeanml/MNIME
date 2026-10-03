@@ -1,5 +1,5 @@
 """
-MNIME Empirical Benchmark Utility & Stats for Nerds Console.
+MNIME Empirical Benchmark Utility & Stats Console.
 Standalone graphical runner for on-device performance telemetry,
 interactive benchmarking, and dynamic line chart generation.
 """

@@ -1,5 +1,5 @@
 """
-Stats for Nerds — Empirical Telemetry, Performance Benchmarking & Dynamic Visualization UI.
+Stats — Empirical Telemetry, Performance Benchmarking & Dynamic Visualization UI.
 Designed for the MNIME desktop ecosystem. Matches the frameless translucent dark metallic
 and neon cyan aesthetic of the NLP interface.
 """
@@ -569,21 +569,21 @@ class StatsBenchmarkWorker(QThread):
         self._run_nlp_benchmark()
 
 
-# ─── Stats for Nerds Dialog UI ──────────────────────────────────────────────
+# ─── Stats Dialog UI ─────────────────────────────────────────────────────────
 
 class StatsForNerdsDialog(QDialog):
     """
-    Sleek, obsidian and neon-cyan Stats for Nerds telemetry dashboard.
+    Sleek, obsidian and neon-cyan Stats telemetry dashboard.
     Matches the expanded NLP interface aesthetic with real-time dynamic
-    line chart generation, KPI badges, and interactive benchmarking.
+    line chart generation, KPI badges, system resource breakdown, and interactive benchmarking.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("MNIME — Stats for Nerds")
+        self.setWindowTitle("MNIME — Stats")
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.resize(920, 680)
+        self.resize(960, 740)
 
         self._drag_pos = QPoint()
         self._worker: Optional[StatsBenchmarkWorker] = None
@@ -615,7 +615,7 @@ class StatsForNerdsDialog(QDialog):
 
         frame_layout = QVBoxLayout(self.frame)
         frame_layout.setContentsMargins(22, 18, 22, 20)
-        frame_layout.setSpacing(14)
+        frame_layout.setSpacing(12)
 
         # ─── Header Bar ───────────────────────────────────────────────────────
         header = QHBoxLayout()
@@ -633,10 +633,10 @@ class StatsForNerdsDialog(QDialog):
         icon_lbl.setStyleSheet("border: none; background: transparent;")
         title_row.addWidget(icon_lbl)
 
-        main_title = QLabel("STATS FOR NERDS")
+        main_title = QLabel("STATS")
         main_title.setStyleSheet("""
             color: #00e5ff;
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 900;
             letter-spacing: 2px;
             border: none;
@@ -658,12 +658,12 @@ class StatsForNerdsDialog(QDialog):
         title_vbox.addWidget(subtitle)
 
         # Elegant Cursive Pronunciation
-        phonetic = QLabel("pronounced “nigh-mh” • /naɪm/")
+        phonetic = QLabel("nigh.mh")
         phonetic.setStyleSheet("""
-            color: #39ff14;
+            color: #00e5ff;
             font-family: "Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive;
             font-style: italic;
-            font-size: 13px;
+            font-size: 13.5px;
             border: none;
             background: transparent;
             margin-top: 1px;
@@ -711,6 +711,62 @@ class StatsForNerdsDialog(QDialog):
         kpi_layout.addWidget(self.kpi_ram)
         kpi_layout.addWidget(self.kpi_tokens)
         frame_layout.addLayout(kpi_layout)
+
+        # ─── System Resource Consumption Telemetry Panel ───────────────────────
+        self.res_panel = QFrame()
+        self.res_panel.setStyleSheet("""
+            QFrame {
+                background-color: rgba(13, 19, 32, 220);
+                border: 1px solid #1e293b;
+                border-left: 3px solid #00e5ff;
+                border-radius: 8px;
+            }
+        """)
+        res_vbox = QVBoxLayout(self.res_panel)
+        res_vbox.setContentsMargins(14, 8, 14, 8)
+        res_vbox.setSpacing(6)
+
+        # Header row with title and active mode indicator badge
+        res_header = QHBoxLayout()
+        res_title = QLabel("SYSTEM RESOURCE CONSUMPTION BREAKDOWN")
+        res_title.setStyleSheet("color: #00e5ff; font-size: 10px; font-weight: 900; letter-spacing: 1.2px; border: none;")
+        res_header.addWidget(res_title)
+        res_header.addStretch()
+
+        self.mode_badge = QLabel("MODE: LIGHTWEIGHT (~1.0 GB RAM)")
+        self.mode_badge.setStyleSheet("""
+            color: #38bdf8;
+            background-color: rgba(14, 165, 233, 0.12);
+            border: 1px solid #0284c7;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+        """)
+        res_header.addWidget(self.mode_badge)
+        res_vbox.addLayout(res_header)
+
+        # Telemetry columns: Total RAM, Base Runtime, Model Weights, Vector Index, Raster Buffer, Compute
+        res_grid = QHBoxLayout()
+        res_grid.setSpacing(10)
+
+        self.sub_total_ram = self._create_res_item("TOTAL WORKING SET", "1,024 MB (1.00 GB)", "#ffffff")
+        self.sub_base_ram = self._create_res_item("BASE FRAMEWORK", "~1.00 GB (PyQt6 + C-Engine)", "#94a3b8")
+        self.sub_model_ram = self._create_res_item("NLP MODEL & KV", "0 MB (Unloaded)", "#64748b")
+        self.sub_vector_ram = self._create_res_item("VECTOR / FAISS", "~25 MB (Dense L2)", "#94a3b8")
+        self.sub_render_ram = self._create_res_item("DOC RENDERING", "~15–40 MB (Page Pixmaps)", "#94a3b8")
+        self.sub_compute = self._create_res_item("HARDWARE ACCEL", "Auto GPU (-1) / AVX2", "#39ff14")
+
+        res_grid.addLayout(self.sub_total_ram)
+        res_grid.addLayout(self.sub_base_ram)
+        res_grid.addLayout(self.sub_model_ram)
+        res_grid.addLayout(self.sub_vector_ram)
+        res_grid.addLayout(self.sub_render_ram)
+        res_grid.addLayout(self.sub_compute)
+
+        res_vbox.addLayout(res_grid)
+        frame_layout.addWidget(self.res_panel)
 
         # ─── Dynamic Line Chart & Control Deck ────────────────────────────────
         chart_deck = QHBoxLayout()
@@ -901,8 +957,27 @@ class StatsForNerdsDialog(QDialog):
         root_layout.addWidget(self.frame)
 
         # Initial Welcome Message in Terminal
-        self._append_log("MNIME Stats for Nerds & Performance Telemetry Console ready.", "INFO")
+        self._append_log("MNIME Stats & Performance Telemetry Console ready.", "INFO")
         self._append_log("Bundled Model: MNIME-Core-1.5B-Q4_K_M.gguf | GPU Layer Offloading: Auto (-1)", "INFO")
+
+    def _create_res_item(self, header: str, value: str, val_color: str) -> QVBoxLayout:
+        vbox = QVBoxLayout()
+        vbox.setSpacing(2)
+        hdr = QLabel(header)
+        hdr.setStyleSheet("color: #64748b; font-size: 8px; font-weight: 800; letter-spacing: 0.8px; border: none;")
+        val = QLabel(value)
+        val.setObjectName("res_value")
+        val.setStyleSheet(f"color: {val_color}; font-size: 10.5px; font-weight: 700; font-family: 'Consolas', monospace; border: none;")
+        vbox.addWidget(hdr)
+        vbox.addWidget(val)
+        return vbox
+
+    def _set_res_val(self, layout: QVBoxLayout, value: str, color_hex: Optional[str] = None):
+        lbl = layout.itemAt(1).widget()
+        if isinstance(lbl, QLabel):
+            lbl.setText(value)
+            if color_hex:
+                lbl.setStyleSheet(f"color: {color_hex}; font-size: 10.5px; font-weight: 700; font-family: 'Consolas', monospace; border: none;")
 
     def _create_kpi_card(self, title: str, val: str, unit: str, color_hex: str) -> QFrame:
         card = QFrame()
@@ -1000,8 +1075,40 @@ class StatsForNerdsDialog(QDialog):
         self._sys_timer.start(1000)
 
     def _sample_system_telemetry(self):
-        ram = get_process_memory_mb()
-        self._update_kpi(self.kpi_ram, f"{ram:.1f}")
+        ram_mb = get_process_memory_mb()
+        self._update_kpi(self.kpi_ram, f"{ram_mb:.1f}")
+
+        # Update detailed resource breakdown
+        ram_gb = ram_mb / 1024.0
+        self._set_res_val(self.sub_total_ram, f"{ram_mb:.0f} MB ({ram_gb:.2f} GB)")
+
+        # Differentiate Lightweight baseline (~1.0 GB) vs Active NLP (~1.8–1.9 GB)
+        if ram_mb >= 1400.0:
+            self.mode_badge.setText("MODE: NLP ACTIVE (~1.8–1.9 GB RAM)")
+            self.mode_badge.setStyleSheet("""
+                color: #39ff14;
+                background-color: rgba(57, 255, 20, 0.12);
+                border: 1px solid #22c55e;
+                border-radius: 4px;
+                padding: 2px 8px;
+                font-size: 9.5px;
+                font-weight: 800;
+                letter-spacing: 0.8px;
+            """)
+            self._set_res_val(self.sub_model_ram, "~850 MB (Active Q4_K_M)", "#39ff14")
+        else:
+            self.mode_badge.setText("MODE: LIGHTWEIGHT (~1.0 GB RAM)")
+            self.mode_badge.setStyleSheet("""
+                color: #38bdf8;
+                background-color: rgba(14, 165, 233, 0.12);
+                border: 1px solid #0284c7;
+                border-radius: 4px;
+                padding: 2px 8px;
+                font-size: 9.5px;
+                font-weight: 800;
+                letter-spacing: 0.8px;
+            """)
+            self._set_res_val(self.sub_model_ram, "0 MB (Unloaded / Standby)", "#64748b")
 
     def _append_log(self, text: str, tag: str = "INFO"):
         tag_colors = {
@@ -1097,15 +1204,22 @@ class StatsForNerdsWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MNIME — Stats for Nerds Telemetry")
+        self.setWindowTitle("MNIME — Stats Telemetry")
         self.dialog = StatsForNerdsDialog(self)
         self.setCentralWidget(self.dialog.frame)
-        self.resize(920, 680)
+        self.resize(960, 740)
         self.setStyleSheet("QMainWindow { background-color: #0b0f19; }")
 
 
-def show_stats_for_nerds(parent=None) -> StatsForNerdsDialog:
-    """Helper to open the Stats for Nerds dialog modal/floating."""
+StatsWindow = StatsForNerdsWindow
+StatsDialog = StatsForNerdsDialog
+
+
+def show_stats(parent=None) -> StatsForNerdsDialog:
+    """Helper to open the Stats dialog modal/floating."""
     dialog = StatsForNerdsDialog(parent)
     dialog.exec()
     return dialog
+
+
+show_stats_for_nerds = show_stats

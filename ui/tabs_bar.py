@@ -95,7 +95,7 @@ class TabsBar(QWidget):
             
             btn.setIcon(get_icon(icon_map.get(mode, "document"), "#00e5ff"))
             if mode == ToolMode.STATS:
-                btn.setToolTip("Stats for Nerds (Telemetry & Benchmark)")
+                btn.setToolTip("Stats (Telemetry & Benchmark)")
             else:
                 btn.setToolTip(mode.value)
             

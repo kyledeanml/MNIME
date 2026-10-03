@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</p>
-<p align="center"><em><font face="Brush Script MT, Segoe Script, cursive" color="#00e5ff" size="4">pronounced &ldquo;nigh-mh&rdquo; &bull; /naɪm/</font></em></p>
+<p align="center"><em><font face="Brush Script MT, Segoe Script, cursive" color="#00e5ff" size="4">nigh.mh</font></em></p>
 
 A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
 

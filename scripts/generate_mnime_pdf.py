@@ -288,8 +288,8 @@ class CoverPage(Flowable):
 
         # Phonetic pronunciation in elegant cursive/oblique
         c.setFillColor(NEON_GREEN)
-        c.setFont("Helvetica-Oblique", 8)
-        c.drawCentredString(cx, h * 0.450, 'pronounced "nigh-mh" • /naɪm/')
+        c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cx, h * 0.450, "nigh.mh")
 
         # Divider
         c.setStrokeColor(ACCENT_CYAN)
@@ -655,8 +655,8 @@ def build_body(styles):
         ["Recommended OS",      "Windows 11 64-bit"],
         ["Python Version",      "3.12 or higher"],
         ["CPU",                 "Any modern x86-64 processor (multi-core recommended)"],
-        ["RAM — Lightweight Mode", "~200 MB (NLP disabled)"],
-        ["RAM — NLP Active",    "~1.5–2.5 GB (model loaded in VRAM or system RAM)"],
+        ["RAM — Lightweight Mode", "~1.0 GB (NLP disabled, base runtime)"],
+        ["RAM — NLP Active",    "~1.8–1.9 GB (model weights loaded in VRAM/RAM)"],
         ["GPU (Optional)",      "NVIDIA CUDA-capable GPU for NLP layer offloading"],
         ["GPU VRAM (Optional)", "4 GB+ recommended for full GGUF layer offload"],
         ["Disk Space",          "~2 GB (application + bundled model)"],
@@ -944,7 +944,7 @@ def build_body(styles):
         ["NLP (checkbox)", "NLP",      "Master toggle — uncheck to unload model instantly"],
         ["NLP (button)", "NLP Chat",  "Open the conversational NLP interface"],
         ["RELOAD NLP",  "Reload NLP",  "Load / reload the GGUF model into memory. Glows cyan when model is unloaded."],
-        ["STATS",       "Stats",       "Open Stats for Nerds telemetry dashboard with live dynamic line charts."],
+        ["STATS",       "Stats",       "Open Stats telemetry dashboard with live dynamic line charts."],
     ]
     tabs_col_w = [CONTENT_W * 0.22, CONTENT_W * 0.20, CONTENT_W * 0.58]
     tabs_flowables = [

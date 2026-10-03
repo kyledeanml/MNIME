@@ -160,7 +160,6 @@ class PDFEngine:
         # 1. Primary Engine: PyMuPDF
         try:
             import pymupdf
-            import concurrent.futures
 
             def convert_image(item):
                 try:
@@ -170,19 +169,14 @@ class PDFEngine:
                     return pdf_bytes
                 except Exception:
                     return None
-            
-            pdf_bytes_list = [None] * total
-            completed = 0
-            
-            with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-                futures = {executor.submit(convert_image, item): idx for idx, item in enumerate(image_items)}
-                for future in concurrent.futures.as_completed(futures):
-                    idx = futures[future]
-                    pdf_bytes_list[idx] = future.result()
-                    completed += 1
-                    if progress_callback:
-                        pct = int((completed / total) * 80)
-                        progress_callback(pct, f"Converted {completed}/{total} images using {os.cpu_count()} cores...")
+
+            # NOTE: MuPDF is not thread-safe; convert sequentially.
+            pdf_bytes_list = []
+            for idx, item in enumerate(image_items):
+                pdf_bytes_list.append(convert_image(item))
+                if progress_callback:
+                    pct = int(((idx + 1) / total) * 80)
+                    progress_callback(pct, f"Converted {idx + 1}/{total} images...")
 
             pdf_doc = pymupdf.open()
             open_docs = []
@@ -270,42 +264,42 @@ class PDFEngine:
             total_pages = len(doc)
             doc.close()
 
-            def process_page(page_num):
-                try:
-                    local_doc = pymupdf.open(pdf_item.file_path)
-                    page = local_doc[page_num]
-                    fallback_name = f"{base_name}_page_{page_num + 1:03d}"
-                    final_name = fallback_name
+            import re
 
-                    if is_nlp_active:
-                        page_text = page.get_text("text").strip()
-                        smart_name = nlp_engine.generate_smart_filename(page_text, fallback_name)
-                        # Append page number to guarantee uniqueness
-                        if smart_name != fallback_name:
-                            final_name = f"{smart_name}_p{page_num + 1:03d}"
-                            
-                    new_doc = pymupdf.open()
-                    new_doc.insert_pdf(local_doc, from_page=page_num, to_page=page_num)
-                    out_path = os.path.join(output_dir, f"{final_name}.pdf")
-                    new_doc.save(out_path, garbage=3, deflate=True)
-                    new_doc.close()
-                    local_doc.close()
-                    return out_path
-                except Exception as e:
-                    print(f"Error splitting page {page_num}: {e}")
-                    return None
+            def safe_name(name: str) -> str:
+                # Strip path separators / illegal Windows filename characters
+                name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name).strip(" .")
+                return name[:120] or "page"
 
-            completed = 0
-            with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-                futures = {executor.submit(process_page, i): i for i in range(total_pages)}
-                for future in concurrent.futures.as_completed(futures):
-                    out_path = future.result()
-                    if out_path:
+            # NOTE: MuPDF is not thread-safe; split sequentially.
+            local_doc = pymupdf.open(pdf_item.file_path)
+            try:
+                for page_num in range(total_pages):
+                    try:
+                        page = local_doc[page_num]
+                        fallback_name = f"{base_name}_page_{page_num + 1:03d}"
+                        final_name = fallback_name
+
+                        if is_nlp_active:
+                            page_text = page.get_text("text").strip()
+                            smart_name = nlp_engine.generate_smart_filename(page_text, fallback_name)
+                            # Append page number to guarantee uniqueness
+                            if smart_name != fallback_name:
+                                final_name = f"{safe_name(smart_name)}_p{page_num + 1:03d}"
+
+                        new_doc = pymupdf.open()
+                        new_doc.insert_pdf(local_doc, from_page=page_num, to_page=page_num)
+                        out_path = os.path.join(output_dir, f"{final_name}.pdf")
+                        new_doc.save(out_path, garbage=3, deflate=True)
+                        new_doc.close()
                         output_files.append(out_path)
-                    completed += 1
+                    except Exception as e:
+                        print(f"Error splitting page {page_num}: {e}")
                     if progress_callback:
-                        pct = int((completed / total_pages) * 95)
-                        progress_callback(pct, f"Split {completed}/{total_pages} pages...")
+                        pct = int(((page_num + 1) / total_pages) * 95)
+                        progress_callback(pct, f"Split {page_num + 1}/{total_pages} pages...")
+            finally:
+                local_doc.close()
 
             output_files.sort()
 
@@ -340,33 +334,21 @@ class PDFEngine:
             total_pages = len(doc)
             doc.close()
 
-            def render_page(page_num):
-                try:
-                    local_doc = pymupdf.open(pdf_item.file_path)
-                    page = local_doc[page_num]
-                    zoom = dpi / 72.0
-                    matrix = pymupdf.Matrix(zoom, zoom)
-                    pix = page.get_pixmap(matrix=matrix, alpha=False)
+            # NOTE: MuPDF is not thread-safe; render sequentially to avoid blank pages.
+            zoom = dpi / 72.0
+            matrix = pymupdf.Matrix(zoom, zoom)
+            with pymupdf.open(pdf_item.file_path) as render_doc:
+                for page_num in range(total_pages):
+                    pix = render_doc[page_num].get_pixmap(
+                        matrix=matrix, colorspace=pymupdf.csRGB, alpha=False
+                    )
                     out_path = os.path.join(output_dir, f"{base_name}_page_{page_num + 1:03d}.jpg")
                     pix.save(out_path)
-                    local_doc.close()
-                    return out_path
-                except Exception as e:
-                    print(f"Error rendering page {page_num}: {e}")
-                    return None
-
-            completed = 0
-            with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-                futures = {executor.submit(render_page, i): i for i in range(total_pages)}
-                for future in concurrent.futures.as_completed(futures):
-                    out_path = future.result()
-                    if out_path:
-                        output_files.append(out_path)
-                    completed += 1
+                    output_files.append(out_path)
                     if progress_callback:
-                        pct = int((completed / total_pages) * 95)
-                        progress_callback(pct, f"Rendered {completed}/{total_pages} pages using {os.cpu_count()} cores...")
-            
+                        pct = int(((page_num + 1) / total_pages) * 95)
+                        progress_callback(pct, f"Rendered {page_num + 1}/{total_pages} pages...")
+
             output_files.sort()
 
         except Exception as e:

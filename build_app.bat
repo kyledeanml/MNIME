@@ -56,9 +56,12 @@ if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC_PATH=%LOCALAP
         )
         
         if exist "MNIMECert.pfx" (
-            if defined SIGNTOOL_PATH (
+            if not defined MNIME_CERT_PASSWORD (
+                echo Warning: MNIME_CERT_PASSWORD environment variable not set. Building without signature.
+                "%ISCC_PATH%" "MNIME.iss"
+            ) else if defined SIGNTOOL_PATH (
                 echo Found MNIMECert.pfx and signtool.exe, configuring digital signature...
-                "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0MNIMECert.pfx$q /p $qMNIME123$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "MNIME.iss"
+                "%ISCC_PATH%" /DSignInstaller /S"MySignTool=$q%SIGNTOOL_PATH%$q sign /f $q%~dp0MNIMECert.pfx$q /p $q%MNIME_CERT_PASSWORD%$q /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f" "MNIME.iss"
             ) else (
                 echo Warning: signtool.exe not found in Windows Kits. Building without signature.
                 "%ISCC_PATH%" "MNIME.iss"
@@ -79,14 +82,14 @@ if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC_PATH=%LOCALAP
     echo.
     echo [5/5] Compiling Custom Animated Installer...
     if exist "custom_installer.py" (
-        "%PYINSTALLER_EXE%" --clean --noconfirm --onefile --windowed --hidden-import win32com.client --icon=MN.ico --add-data "dist\MNIME;app_files" --name "MNIME_v1" "custom_installer.py"
-        if exist "dist\MNIME_v1.exe" (
+        "%PYINSTALLER_EXE%" --clean --noconfirm "MNIME_installer.spec"
+        if exist "dist\MNIME_installer.exe" (
             if not exist "installer" mkdir "installer"
-            move /Y "dist\MNIME_v1.exe" "installer\" >nul
+            move /Y "dist\MNIME_installer.exe" "installer\" >nul
             echo.
             echo ========================================================
             echo Build complete! Your modern animated installer is ready at:
-            echo %~dp0installer\MNIME_v1.exe
+            echo %~dp0installer\MNIME_installer.exe
             echo ========================================================
         )
     )

@@ -10,10 +10,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Fix for "Could not find the Qt platform plugin 'windows'" and broken image formats
-venv_base = os.path.dirname(os.path.dirname(sys.executable))
-plugin_base = os.path.join(venv_base, "Lib", "site-packages", "PyQt6", "Qt6", "plugins")
-os.environ["QT_PLUGIN_PATH"] = plugin_base
-os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms")
+if not getattr(sys, "frozen", False):
+    venv_base = os.path.dirname(os.path.dirname(sys.executable))
+    plugin_base = os.path.join(venv_base, "Lib", "site-packages", "PyQt6", "Qt6", "plugins")
+    if os.path.isdir(plugin_base):
+        os.environ["QT_PLUGIN_PATH"] = plugin_base
+        os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(plugin_base, "platforms")
 
 # Configure Windows AppUserModelID early so taskbar/quickbar pinning groups correctly
 from core.app_icon import setup_app_user_model_id, get_app_icon

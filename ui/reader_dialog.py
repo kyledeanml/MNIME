@@ -476,46 +476,58 @@ class ReaderDialog(QDialog):
 
     def _print_document(self):
         index = self.file_combo.currentIndex()
-        if index < 0: return
+        if index < 0:
+            return
         file_item = self.file_items[index]
-        
+
         printer = QPrinter(QPrinter.PrinterMode.HighResolution)
         dialog = QPrintDialog(printer, self)
-        if dialog.exec() == QPrintDialog.DialogCode.Accepted:
-            # We must print the document
-            painter = QPainter()
-            painter.begin(printer)
-            try:
-                if file_item.extension == ".pdf" and self.doc:
-                    import pymupdf
-                    # Simple rendering of pages to the printer
-                    for i in range(len(self.doc)):
-                        if i > 0:
-                            printer.newPage()
-                        page = self.doc[i]
-                        # Render page to QImage
-                        mat = pymupdf.Matrix(2.0, 2.0)
-                        pix = page.get_pixmap(matrix=mat, alpha=False)
-                        img = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888)
-                        
-                        # Scale to fit printer page
-                        rect = printer.pageRect(QPrinter.Unit.DevicePixel)
-                        scaled_img = img.scaled(rect.width(), rect.height(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                        
-                        # Center on page
-                        x = int((rect.width() - scaled_img.width()) / 2)
-                        y = int((rect.height() - scaled_img.height()) / 2)
-                        
-                        painter.drawImage(x, y, scaled_img)
-                elif file_item.extension in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:
-                    img = QImage(file_item.file_path)
-                    rect = printer.pageRect(QPrinter.Unit.DevicePixel)
-                    scaled_img = img.scaled(rect.width(), rect.height(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                    x = int((rect.width() - scaled_img.width()) / 2)
-                    y = int((rect.height() - scaled_img.height()) / 2)
-                    painter.drawImage(x, y, scaled_img)
-            finally:
-                painter.end()
+        if dialog.exec() != QPrintDialog.DialogCode.Accepted:
+            return
+
+        painter = QPainter()
+        if not painter.begin(printer):
+            QMessageBox.warning(self, "Print Error", "Could not start the print job on the selected printer.")
+            return
+
+        def draw_fit(img: QImage, first: bool) -> None:
+            if not first:
+                printer.newPage()
+            # Printer page rectangle in device pixels (QRectF -> ints)
+            rect = printer.pageRect(QPrinter.Unit.DevicePixel)
+            pw, ph = max(int(rect.width()), 1), max(int(rect.height()), 1)
+            scaled_img = img.scaled(
+                pw, ph,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            x = (pw - scaled_img.width()) // 2
+            y = (ph - scaled_img.height()) // 2
+            painter.fillRect(0, 0, pw, ph, QColor("white"))
+            painter.drawImage(x, y, scaled_img)
+
+        try:
+            if file_item.extension == ".pdf" and self.doc:
+                import pymupdf
+                # Render at ~200 DPI; copy() detaches QImage from the pymupdf buffer
+                mat = pymupdf.Matrix(200 / 72.0, 200 / 72.0)
+                for i in range(len(self.doc)):
+                    pix = self.doc[i].get_pixmap(matrix=mat, colorspace=pymupdf.csRGB, alpha=False)
+                    img = QImage(pix.samples, pix.width, pix.height, pix.stride,
+                                 QImage.Format.Format_RGB888).copy()
+                    draw_fit(img, i == 0)
+            elif file_item.extension in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:
+                img = QImage(file_item.file_path)
+                if img.isNull():
+                    QMessageBox.warning(self, "Print Error", "Could not load the image for printing.")
+                else:
+                    draw_fit(img, True)
+            else:
+                QMessageBox.information(self, "Print", "This file type cannot be printed from the reader.")
+        except Exception as e:
+            QMessageBox.warning(self, "Print Error", f"Printing failed: {e}")
+        finally:
+            painter.end()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

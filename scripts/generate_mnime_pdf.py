@@ -635,7 +635,7 @@ def build_body(styles):
     story.append(Paragraph("Design Philosophy", S["h2"]))
     story.append(Paragraph(
         "MNIME is purpose-built around three pillars: <b>privacy</b> (nothing ever leaves the machine), "
-        "<b>performance</b> (C-accelerated document engines, multi-threaded workers, O(1) UI operations), "
+        "<b>performance</b> (C-accelerated document engines, background workers, O(1) UI operations), "
         "and <b>aesthetics</b> (a free-floating dark metallic interface with physics-based animations and "
         "a mathematically precise 5D Penteract projection logo). The application avoids all web service "
         "dependencies, making it suitable for air-gapped, regulated, or sensitive document environments.",
@@ -765,8 +765,8 @@ def build_body(styles):
         ("4.2", "JPG to PDF", "JPG → PDF", [
             ("Inputs", "JPG, JPEG, PNG, WEBP, BMP image files"),
             ("Output", "Single unified PDF document"),
-            ("Engine", "PyMuPDF parallel convert_to_pdf() → Pillow fallback"),
-            ("Parallelism", "ThreadPoolExecutor with os.cpu_count() workers"),
+            ("Engine", "PyMuPDF sequential convert_to_pdf() → Pillow fallback"),
+            ("Parallelism", "Sequential (MuPDF is not thread-safe); runs off the UI thread"),
             ("Save", "garbage=3, deflate=True optimization"),
         ]),
         ("4.3", "TXT to PDF", "TXT → PDF", [
@@ -779,8 +779,8 @@ def build_body(styles):
             ("Inputs", "Single PDF document"),
             ("Output", "One JPG image per page"),
             ("DPI", "200 DPI default (zoom = DPI / 72)"),
-            ("Engine", "PyMuPDF get_pixmap() parallel rendering"),
-            ("Parallelism", "ThreadPoolExecutor with os.cpu_count() workers"),
+            ("Engine", "PyMuPDF get_pixmap() sequential rendering"),
+            ("Parallelism", "Sequential (MuPDF is not thread-safe); runs off the UI thread"),
             ("Naming", "<basename>_page_<NNN>.jpg"),
         ]),
         ("4.5", "Split PDF", "SPLIT", [
@@ -788,7 +788,7 @@ def build_body(styles):
             ("Output", "One PDF file per page, saved to output directory"),
             ("NLP Smart Naming", "If NLP is loaded, each page's text is sent to MNIME-Core to generate a concise, context-aware filename (under 40 chars, underscored). Page number appended for uniqueness."),
             ("Fallback Naming", "<basename>_page_<NNN>.pdf"),
-            ("Parallelism", "ThreadPoolExecutor with os.cpu_count() workers; thread-safe NLP lock"),
+            ("Parallelism", "Sequential page loop (MuPDF is not thread-safe); NLP lock retained"),
         ]),
         ("4.6", "Compress PDF", "COMPRESS", [
             ("Inputs", "Single PDF document"),
@@ -870,7 +870,7 @@ def build_body(styles):
         ["Singleton Pattern","One global instance (NLPEngine.get_instance()), thread-locked"],
         ["Cleanup",          "atexit, SIGINT, SIGTERM, and crash handler all call unload_model()"],
         ["Smart Bookmark",   "max_tokens=25, stop on newline — fast constrained title generation"],
-        ["Smart Filename",   "max_tokens=20, thread-locked for parallel Split PDF safety"],
+        ["Smart Filename",   "max_tokens=20, thread-locked for safety"],
         ["Chat Response",    "max_tokens=1,024, stop on <|im_end|>"],
         ["Reference Brief",  "max_tokens=1,024, structured comparative analysis prompt"],
         ["HuggingFace",      "KyleDeanAI/MNIME-Core-1.5B-Q4_K_M"],
@@ -1052,7 +1052,7 @@ def build_body(styles):
     inst_data = [
         ["Installer", "Description", "Install Location"],
         ["MNIME_Setup.exe", "Classic Windows wizard built with Inno Setup 6. Creates Start Menu entries and optional desktop shortcut.", r"%LOCALAPPDATA%\Programs\MNIME"],
-        ["MNIME_v1.exe",    "Premium animated installer with custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation.", r"%LOCALAPPDATA%\Programs\MNIME"],
+        ["MNIME_installer.exe",    "Premium animated installer with custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation.", r"%LOCALAPPDATA%\Programs\MNIME"],
     ]
     inst_col_w = [CONTENT_W * 0.25, CONTENT_W * 0.48, CONTENT_W * 0.27]
     inst_flowables = [
@@ -1109,7 +1109,7 @@ def build_body(styles):
         ["1", "Create/update .venv and install all build dependencies"],
         ["2", "Compile main app with PyInstaller using MNIME.spec → dist/MNIME/"],
         ["3", "Package into installer/MNIME_Setup.exe via Inno Setup (supports optional code signing with MNIMECert.pfx)"],
-        ["4", "Build animated installer installer/MNIME_v1.exe via PyInstaller + custom_installer.py"],
+        ["4", "Build animated installer installer/MNIME_installer.exe via PyInstaller + custom_installer.py"],
     ]
     story.append(spec_table(build_data, [CONTENT_W * 0.08, CONTENT_W * 0.92]))
     story.append(PageBreak())
@@ -1138,7 +1138,7 @@ def build_body(styles):
     tips = [
         "Keep the <b>NLP checkbox unchecked</b> for ultra-lightweight operation when you only need PDF tools.",
         "For <b>Split PDF with Smart Naming</b>, load the NLP model first — the model generates meaningful filenames per page.",
-        "For large file batches, MNIME uses all CPU cores automatically via ThreadPoolExecutor.",
+        "For large file batches, MNIME runs document operations on a background worker so the UI stays responsive.",
         "The <b>Compress PDF</b> tool is most effective on PDFs with many embedded images or unoptimized streams.",
         "The <b>Reference Engine</b> works best when multiple documents are already queued in the carousel.",
         "Ctrl+Scroll zoom in the reader is continuous and smooth — there is no discrete zoom step limit.",
@@ -1162,8 +1162,8 @@ def build_body(styles):
         ["In-Memory Pixmap Caching",     "Card thumbnails and SVG icons rasterized and pre-scaled once; no CPU resampling during scroll or hover events"],
         ["Hardware-Accelerated Cards",   "Heavy drop shadow textures replaced with pure stylesheet hardware borders — UI scrolls smoothly with 5,000 files"],
         ["60 FPS Non-Blocking UI",       "All processing (PDF ops, NLP inference, indexing) runs in QThread workers; main thread never blocked"],
-        ["Parallel Image Conversion",    "JPG→PDF and PDF→JPG use ThreadPoolExecutor(max_workers=os.cpu_count()) for full CPU saturation"],
-        ["Parallel Split PDF",           "Each page processed in its own thread; NLP filename generation is thread-locked for safety"],
+        ["Image Conversion",    "JPG→PDF and PDF→JPG run sequentially on a background worker (MuPDF is not thread-safe)"],
+        ["Split PDF",           "Pages processed sequentially; filenames sanitized for Windows safety"],
         ["Flash Attention",              "Enabled by default for llama-cpp-python if build supports it; graceful fallback if not"],
         ["GPU Auto-Offload",             "n_gpu_layers=-1 tells llama.cpp to offload as many layers as will fit in VRAM automatically"],
     ]
@@ -1251,7 +1251,7 @@ def build_body(styles):
         ["Flash Attention unsupported", "TypeError caught; retried without flash_attn kwarg"],
         ["NumPy <2.0 on Python 3.13+", "Requirement pinned to numpy>=2.0.0 to prevent longdouble overflow crash"],
         ["FAISS index empty after smart sampling", "Automatic fallback to full indexing"],
-        ["Parallel thread exception in split/convert", "Per-thread try/except; failed pages logged, others continue"],
+        ["Per-page exception in split/convert", "Per-page try/except; failed pages logged, others continue"],
         ["Application crash", "sys.excepthook overridden to call unload_model() before propagating"],
         ["Process termination (SIGINT/SIGTERM)", "Signal handlers call unload_model() then sys.exit(0)"],
     ]
@@ -1268,7 +1268,7 @@ def build_body(styles):
             "Changed: The fine-tuned MNIME-Core-1.5B-Q4_K_M.gguf model is now bundled directly inside the application under models/. No external model download required.",
             "Removed: The Settings gear icon and NLP hardware configuration dialog have been removed. Hardware offloading is handled automatically at runtime.",
             "Removed: The finetuning workflow (training/) is no longer part of the repository. The model is shipped as a finished artifact.",
-            "Added: Two parallel installer formats — MNIME_Setup.exe (Inno Setup) and MNIME_v1.exe (custom animated PyQt6 installer).",
+            "Added: Two parallel installer formats — MNIME_Setup.exe (Inno Setup) and MNIME_installer.exe (custom animated PyQt6 installer).",
         ]),
         ("MNIME — UI & UX Complete Overhaul", [
             "Added: Procedurally generated 5D Penteract branding logo with true mathematical 3D depth-sorting and an independent orbiting neon file.",

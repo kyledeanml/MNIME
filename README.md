@@ -101,13 +101,13 @@ Double-click `run.bat`, or from a terminal:
 
 **3. Pin to Taskbar**
 
-Run `create_shortcut.bat` to generate a desktop shortcut, then right-click → **Pin to taskbar**.
+Launch MNIME, then right-click its taskbar icon and choose **Pin to taskbar**.
 
 ---
 
 ## Building the Application
 
-Run `build_app.bat` with Inno Setup 6 installed. 
+Run `build_app.bat` with Inno Setup 6 installed. To sign the Inno Setup installer, place `MNIMECert.pfx` in the project root and set the `MNIME_CERT_PASSWORD` environment variable first.
 
 **Note:** Ensure you have downloaded the `.gguf` model from Hugging Face into the `models/` folder first, otherwise it won't be packaged into your installers!
 
@@ -121,6 +121,13 @@ The script will:
 ---
 
 ## Changelog
+
+### Launch Hardening
+- **Fixed**: PDF to JPG, Split PDF and JPG to PDF produced blank pages. PyMuPDF is not thread-safe, so these operations now run sequentially on the background worker.
+- **Fixed**: Printing from the Reader produced blank pages (float page size crash, unchecked painter). Printing now renders at 200 DPI with error reporting.
+- **Fixed**: Qt plugin path override no longer applied in packaged builds.
+- **Security**: Code signing password is read from `MNIME_CERT_PASSWORD` instead of being hardcoded; smart filenames are sanitized.
+- **Consistency**: Custom installer is named `MNIME_installer.exe` everywhere; Inno Setup reports version 2.1.
 
 ### MNIME Final — Bundled NLP Model
 - **Changed**: The fine-tuned `MNIME-Core-1.5B-Q4_K_M.gguf` model is now bundled directly inside the application under `models/`. No external model download or Settings configuration is required.

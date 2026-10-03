@@ -160,11 +160,11 @@ class NLPQueryWorker(QThread):
 
                 if not is_joke_mode and not full_response:
                     buffer += chunk
-                    if "<KNOCK_KNOCK>" in buffer:
+                    if "KNOCK_KNOCK" in buffer:
                         is_joke_mode = True
                         break
                     
-                    if len(buffer) > 15:
+                    if len(buffer) > 35:
                         full_response += buffer
                         self.chunk_received.emit(buffer)
                         tokens_received += 1

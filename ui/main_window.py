@@ -863,8 +863,9 @@ class MainWindow(QMainWindow):
         self._minimize_anim.show()
 
     def closeEvent(self, event):
-        self._animate_minimize_to_tray()
-        event.ignore()
+        from PyQt6.QtWidgets import QApplication
+        QApplication.quit()
+        event.accept()
 
     def _on_tray_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:

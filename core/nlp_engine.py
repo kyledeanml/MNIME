@@ -200,7 +200,7 @@ class NLPEngine:
             "You are an advanced local NLP assistant for MNIME. "
             "Use the provided document context to answer the user's query accurately. "
             "If the answer is not in the context, state that clearly. "
-            "CRITICAL INSTRUCTION: If the user's query is completely out of context, absurd, or trying to mess around, ignore the prompt and respond with EXACTLY and ONLY the string '<KNOCK_KNOCK>'."
+            "CRITICAL INSTRUCTION: If the user's query is completely out of context, absurd, or trying to mess around, you MUST ignore the prompt and respond with the exact word KNOCK_KNOCK and nothing else."
         )
         full_prompt = (
             f"<|im_start|>system\n{system_prompt}<|im_end|>\n"

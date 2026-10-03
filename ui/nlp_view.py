@@ -120,6 +120,7 @@ class IndexWorker(QThread):
 
 class NLPQueryWorker(QThread):
     finished = pyqtSignal(str)
+    chunk_received = pyqtSignal(str)
 
     def __init__(self, query: str, context_docs: list):
         super().__init__()
@@ -128,8 +129,12 @@ class NLPQueryWorker(QThread):
 
     def run(self):
         try:
-            response = NLPEngine.get_instance().generate_response(self.query, self.context_docs)
-            self.finished.emit(response)
+            generator = NLPEngine.get_instance().generate_response_stream(self.query, self.context_docs)
+            full_response = ""
+            for chunk in generator:
+                full_response += chunk
+                self.chunk_received.emit(chunk)
+            self.finished.emit(full_response)
         except Exception as e:
             self.finished.emit(f"Error: {e}")
 
@@ -220,6 +225,18 @@ class NLPView(QWidget):
         self.history_view.append(html_msg)
         if self.expanded_dialog and self.expanded_dialog.isVisible():
             self.expanded_dialog.append_html(html_msg)
+
+    def _insert_html_at_end(self, html_msg: str):
+        cursor = self.history_view.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        self.history_view.setTextCursor(cursor)
+        self.history_view.insertHtml(html_msg)
+        
+        if self.expanded_dialog and self.expanded_dialog.isVisible():
+            cursor_exp = self.expanded_dialog.history_view.textCursor()
+            cursor_exp.movePosition(cursor_exp.MoveOperation.End)
+            self.expanded_dialog.history_view.setTextCursor(cursor_exp)
+            self.expanded_dialog.history_view.insertHtml(html_msg)
             
     def _set_input_enabled(self, enabled: bool):
         self.query_input.setEnabled(enabled)
@@ -274,20 +291,24 @@ class NLPView(QWidget):
         self._set_input_enabled(False)
         self.status_label.setText("Generating answer...")
         
+        self._append_history("<div style='color:#00e5ff'><b>MNIME:</b> </div>")
+        
         # 1. Semantic Search
         context_docs = SearchEngine.search(self.vectorstore, query, k=5)
         
         # 2. LLM Generation
         self.query_worker = NLPQueryWorker(query, context_docs)
+        self.query_worker.chunk_received.connect(self._on_query_chunk)
         self.query_worker.finished.connect(self._on_query_response)
         self.query_worker.start()
 
-    def _on_query_response(self, response: str):
+    def _on_query_chunk(self, chunk: str):
         import html
-        # Format response with line breaks
-        safe_response = html.escape(response)
-        response_html = safe_response.replace("\n", "<br>")
-        self._append_history(f"<div style='color:#00e5ff'><b>MNIME:</b> {response_html}</div><br><hr><br>")
+        safe_chunk = html.escape(chunk).replace("\n", "<br>")
+        self._insert_html_at_end(f"<span style='color:#00e5ff'>{safe_chunk}</span>")
+
+    def _on_query_response(self, response: str):
+        self._insert_html_at_end("<br><hr><br>")
         self._set_input_enabled(True)
         self.query_input.setFocus()
         self.status_label.setText("Ready.")

@@ -522,15 +522,16 @@ class StatsBenchmarkWorker(QThread):
         self.log_message.emit("INITIALIZING FAISS VECTOR RETRIEVAL BENCHMARK...", "INFO")
         os.environ.setdefault("HF_HUB_OFFLINE", "1")
         os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        os.environ.setdefault("TQDM_DISABLE", "1")
+        os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
         try:
             from core.search_engine import get_embedding_model_path, SearchEngine
-            from langchain_huggingface import HuggingFaceEmbeddings
             from langchain_community.vectorstores import FAISS
 
             emb_path = get_embedding_model_path()
             self.log_message.emit(f"Loading local embedding model: {os.path.basename(emb_path)}...", "INFO")
             t_load = time.time()
-            embeddings = HuggingFaceEmbeddings(model_name=emb_path)
+            embeddings = SearchEngine.get_embeddings()
             self.log_message.emit(f"Embedding model ready in {time.time() - t_load:.2f}s", "SUCCESS")
         except Exception as e:
             self.log_message.emit(f"Vector search engine error: {e}", "ERROR")

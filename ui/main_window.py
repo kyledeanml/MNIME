@@ -928,8 +928,9 @@ class MainWindow(QMainWindow):
         if mode == ToolMode.NLP:
             from core.nlp_engine import NLPEngine
             engine = NLPEngine.get_instance()
-            engine.check_model()
-            if not engine.is_loaded:
+            if not engine.is_loaded and not engine.is_loading:
+                engine.check_model(auto_load=True)
+            if not engine.is_loaded and not engine.is_loading:
                 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel
                 from PyQt6.QtCore import Qt
                 

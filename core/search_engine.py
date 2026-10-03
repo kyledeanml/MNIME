@@ -9,8 +9,15 @@ import shutil
 import time
 import stat
 import re
+import threading
 from collections import Counter
 from typing import List, Callable, Optional, Dict, Any
+
+# Ensure progress bars and telemetry are disabled globally to prevent GUI thread deadlocks
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+os.environ.setdefault("TQDM_DISABLE", "1")
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
 
 from .file_item import FileItem
 from .logging_setup import get_logger
@@ -122,9 +129,35 @@ class SearchEngine:
                 result = await engine.recognize_async(software_bitmap)
                 return result.text
                 
-            return asyncio.run(_recognize(pixmap.tobytes("png")))
+            return asyncio.run(asyncio.wait_for(_recognize(pixmap.tobytes("png")), timeout=10.0))
         except Exception:
             return ""
+
+    _embedding_model = None
+    _embedding_lock = threading.Lock()
+
+    @classmethod
+    def get_embeddings(cls):
+        """Thread-safe cached instance of HuggingFaceEmbeddings with disabled progress bars to prevent GUI thread deadlocks."""
+        if cls._embedding_model is None:
+            with cls._embedding_lock:
+                if cls._embedding_model is None:
+                    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+                    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+                    os.environ.setdefault("TQDM_DISABLE", "1")
+                    os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+                    try:
+                        import transformers.utils.logging as tul
+                        tul.disable_progress_bar()
+                    except Exception:
+                        pass
+                    from langchain_huggingface import HuggingFaceEmbeddings
+                    cls._embedding_model = HuggingFaceEmbeddings(
+                        model_name=get_embedding_model_path(),
+                        model_kwargs={"device": "cpu"},
+                        encode_kwargs={"normalize_embeddings": True},
+                    )
+        return cls._embedding_model
 
     @staticmethod
     def build_index(
@@ -139,7 +172,6 @@ class SearchEngine:
         import pandas as pd
         from langchain_community.vectorstores import FAISS
         from langchain_core.documents import Document
-        from langchain_huggingface import HuggingFaceEmbeddings
         from langchain_text_splitters import RecursiveCharacterTextSplitter
 
         if progress_callback:
@@ -152,14 +184,22 @@ class SearchEngine:
                     import pymupdf
                     with pymupdf.open(file_item.file_path) as doc:
                         parts = []
+                        total_doc_pages = max(1, len(doc))
                         for i, page in enumerate(doc):
                             if progress_callback:
-                                progress_callback(10, f"Reading PDF Page {i+1}/{len(doc)}...")
+                                read_pct = 10 + int(((i + 1) / total_doc_pages) * 28)
+                                progress_callback(read_pct, f"Reading PDF Page {i+1}/{total_doc_pages}...")
                             text = page.get_text()
                             if not text.strip():
                                 if progress_callback:
-                                    progress_callback(10, f"Running OCR on PDF Page {i+1}/{len(doc)}...")
-                                pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
+                                    progress_callback(read_pct, f"Running OCR on PDF Page {i+1}/{total_doc_pages}...")
+                                rect = page.rect
+                                zoom = 2.0
+                                if rect.width * zoom > 2400:
+                                    zoom = 2400 / max(1, rect.width)
+                                if rect.height * zoom > 2400:
+                                    zoom = min(zoom, 2400 / max(1, rect.height))
+                                pix = page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom))
                                 text = SearchEngine._extract_text_windows_ocr(pix)
                             parts.append(text)
                     content_str = "\n".join(parts)
@@ -194,10 +234,7 @@ class SearchEngine:
         if progress_callback:
             progress_callback(40, "Initializing Embedding Model...")
 
-        # Fully offline: load the bundled model from disk, never from the Hugging Face hub.
-        os.environ.setdefault("HF_HUB_OFFLINE", "1")
-        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-        emb = HuggingFaceEmbeddings(model_name=get_embedding_model_path())
+        emb = SearchEngine.get_embeddings()
         split = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
 
         if use_smart_sampling and len(df) > 0:

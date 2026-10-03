@@ -189,6 +189,41 @@ class NLPEngine:
             log.exception("generate_response failed")
             return f"Error generating response: {e}"
 
+    def generate_response_stream(self, prompt: str, context_docs: List[Dict[str, Any]]):
+        self.check_model(auto_load=True)
+        if not self.is_loaded:
+            yield f"Error: {self.error}"
+            return
+
+        context_text = self._format_context(context_docs)
+        system_prompt = (
+            "You are an advanced local NLP assistant for MNIME. "
+            "Use the provided document context to answer the user's query accurately. "
+            "If the answer is not in the context, state that clearly."
+        )
+        full_prompt = (
+            f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
+            f"<|im_start|>user\nCONTEXT:\n{context_text}\n\nQUERY: {sanitize_prompt_text(prompt, 4000)}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
+        try:
+            with self._lock:
+                if self.llm is None:
+                    raise RuntimeError(self.error or "Model not loaded.")
+                stream = self.llm(
+                    full_prompt,
+                    max_tokens=1024,
+                    stop=_STOP_TOKENS,
+                    echo=False,
+                    stream=True
+                )
+                for chunk in stream:
+                    yield chunk["choices"][0]["text"]
+        except Exception as e:
+            log.exception("generate_response_stream failed")
+            yield f"\n[Error generating response: {e}]"
+
+
     def synthesize_reference(self, source_text: str, context_docs: List[Dict[str, Any]]) -> str:
         self.check_model(auto_load=True)
         if not self.is_loaded:

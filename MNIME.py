@@ -6,6 +6,12 @@ Next-generation private, high-performance offline document suite.
 import os
 import sys
 
+# Disable console progress bars globally to avoid worker thread deadlocks with Qt
+os.environ.setdefault("TQDM_DISABLE", "1")
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 # Ensure the root project directory is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

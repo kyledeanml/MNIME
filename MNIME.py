@@ -44,7 +44,7 @@ class Particle:
         self.max_trail = random.randint(10, 25)
         self.size = random.uniform(0.5, 1.5)
         self.cx = cx
-        self.cy = cy - 40 # slightly above the text for the merge point
+        self.cy = cy - 30 # slightly above the text for the merge point
         self.phase = 1
         self.active = True
 
@@ -197,16 +197,16 @@ class MetalSplashScreen(QWidget):
                 self.file_pixmap
             )
         
-        # 1. Draw Massive 5D Penteract in Background
+        # 1. Draw 5D Penteract in Background (scaled elegantly behind the title)
         if self.logo_scale > 0:
             from core.app_icon import get_logo_pixmap
-            logo_size = int(600 * self.logo_scale)
+            logo_size = int(420 * self.logo_scale)
             pixmap = get_logo_pixmap(logo_size, self.rotation)
             
             painter.setOpacity(min(1.0, self.logo_scale))
             painter.drawPixmap(
                 int(cx - logo_size / 2),
-                int(cy - logo_size / 2 - 40),
+                int(cy - logo_size / 2 - 30),
                 pixmap
             )
             painter.setOpacity(1.0)

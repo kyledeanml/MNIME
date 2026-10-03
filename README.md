@@ -253,6 +253,12 @@ If you attempt to run a tool with the wrong file type or an empty queue, the app
 
 <p align="center">
   <a href="MNIME_paper.pdf">
+    <img src="docs/paper_cover.png" alt="MNIME Research Paper" width="480">
+  </a>
+</p>
+
+<p align="center">
+  <a href="MNIME_paper.pdf">
     <img src="https://img.shields.io/badge/Read%20the%20Research%20Paper-PDF-00e5ff?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="Read Research Paper PDF">
   </a>
 </p>

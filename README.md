@@ -247,6 +247,11 @@ MNIME includes a built-in high-resolution **Document Reader** and **Edit UI**.
 ### Error Handling & Validation
 If you attempt to run a tool with the wrong file type or an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
+### Semantic Bookmarks
+MNIME offers two powerful ways to generate document outlines and table of contents for unbookmarked PDFs:
+- **Heuristic Mode**: Rapidly analyzes PDF typography, font sizes, and structural layout to instantly build an accurate nested bookmark tree using native heuristics.
+- **NLP Mode**: Leverages the bundled MNIME-Core model to contextually understand headers, generating highly descriptive, semantic chapter summaries for each outline entry.
+
 ---
 
 ## Research Paper

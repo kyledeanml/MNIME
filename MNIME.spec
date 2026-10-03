@@ -18,6 +18,8 @@ hiddenimports = [
     'PyQt6.QtCore',
     'PyQt6.QtGui',
     'PyQt6.QtWidgets',
+    'PyQt6.QtNetwork',
+    'PyQt6.QtPrintSupport',
     'core',
     'core.app_icon',
     'core.file_item',
@@ -41,6 +43,7 @@ hiddenimports = [
     'ui.output_view',
     'ui.pdf_editor',
     'ui.reader_dialog',
+    'ui.stats_for_nerds',
     'ui.tabs_bar',
 ]
 

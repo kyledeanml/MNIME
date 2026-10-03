@@ -269,12 +269,16 @@ class TabsBar(QWidget):
                 self._buttons[self.current_mode].setChecked(True)
             return
             
-        if mode in [ToolMode.REFERENCE, ToolMode.STATS]:
+        if mode == ToolMode.STATS:
             self.mode_changed.emit(mode)
+            if self.current_mode in self._buttons:
+                self._buttons[self.current_mode].setChecked(True)
             return
 
         if self.current_mode != mode:
             self.current_mode = mode
+            self.mode_changed.emit(mode)
+        elif mode == ToolMode.REFERENCE:
             self.mode_changed.emit(mode)
 
     def set_mode(self, mode: ToolMode):

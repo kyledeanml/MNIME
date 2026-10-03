@@ -565,7 +565,7 @@ class MainWindow(QMainWindow):
         
         # Centered bezel extension for the READER button
         self.bezel = ReaderBezelWidget(central_widget)
-        self.bezel.reader_btn.clicked.connect(self._open_reader)
+        self.bezel.reader_btn.clicked.connect(lambda: self._open_reader())
         # Position initialization will be handled by resizeEvent, but let's set it safely here
         self.bezel.move((self.width() - self.bezel.width()) // 2, 0)
         self.bezel.show()
@@ -696,8 +696,31 @@ class MainWindow(QMainWindow):
         self._clear_files()
         self._add_files(paths)
 
+    def _bring_to_foreground(self, widget):
+        """Bring any widget or dialog to the absolute foreground on Windows 11."""
+        if not widget:
+            return
+        try:
+            widget.setWindowState(widget.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+            widget.show()
+            widget.raise_()
+            widget.activateWindow()
+            if sys.platform == "win32":
+                import ctypes
+                hwnd = int(widget.winId())
+                user32 = ctypes.windll.user32
+                user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+                user32.SetForegroundWindow(hwnd)
+                user32.BringWindowToTop(hwnd)
+        except Exception:
+            pass
+
     def _open_reader(self, target_path: Optional[str] = None):
         from ui.reader_dialog import ReaderDialog
+
+        # Normalize target_path in case a boolean or invalid arg was passed
+        if not isinstance(target_path, str) or not target_path:
+            target_path = self.file_items[0].file_path if self.file_items else None
 
         target_item = None
         if target_path and os.path.exists(target_path):
@@ -722,9 +745,7 @@ class MainWindow(QMainWindow):
         if getattr(self, "_active_reader", None) is not None:
             try:
                 self._active_reader.update_file_items(self.file_items, select_index=initial_idx)
-                self._active_reader.showNormal()
-                self._active_reader.activateWindow()
-                self._active_reader.raise_()
+                self._bring_to_foreground(self._active_reader)
                 return
             except Exception:
                 self._active_reader = None
@@ -737,20 +758,36 @@ class MainWindow(QMainWindow):
         )
         self._active_reader = dialog
         dialog.finished.connect(lambda: setattr(self, "_active_reader", None))
-        dialog.show()
-        dialog.activateWindow()
-        dialog.raise_()
+        self._bring_to_foreground(dialog)
 
     def handle_external_open(self, file_paths: List[str]):
         """Handle opening files passed via CLI or IPC from an external process."""
-        valid_paths = [os.path.abspath(f) for f in file_paths if os.path.isfile(f)]
-        if valid_paths:
-            self._add_files(valid_paths)
-            self._open_reader(target_path=valid_paths[0])
+        import urllib.parse
+        cleaned = []
+        for f in file_paths:
+            if not f or not isinstance(f, str):
+                continue
+            s = f.strip(' \t\r\n"\'')
+            if s.startswith("file:///"):
+                s = urllib.parse.unquote(s[8:])
+            elif s.startswith("file://"):
+                s = urllib.parse.unquote(s[7:])
+            s = os.path.normpath(s)
+            if os.path.isfile(s):
+                cleaned.append(os.path.abspath(s))
+
+        if cleaned:
+            # Synchronously register newly opened files into file_items
+            existing_abs = {os.path.abspath(item.file_path) for item in self.file_items}
+            for path in cleaned:
+                if path not in existing_abs:
+                    self.file_items.append(FileItem(path))
+                    existing_abs.add(path)
+            self.carousel.set_items(self.file_items)
+            self.action_bar.update_count(len(self.file_items))
+            self._open_reader(target_path=cleaned[0])
         else:
-            self.showNormal()
-            self.activateWindow()
-            self.raise_()
+            self._bring_to_foreground(self)
 
     def _check_startup_enabled(self) -> bool:
         import winreg
@@ -816,6 +853,10 @@ class MainWindow(QMainWindow):
         self._minimize_anim = MinimizeAnimationOverlay(self.geometry(), target_pt, None)
         self._minimize_anim.show()
 
+    def closeEvent(self, event):
+        self._animate_minimize_to_tray()
+        event.ignore()
+
     def _on_tray_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
             self._show_from_tray()
@@ -842,25 +883,17 @@ class MainWindow(QMainWindow):
         elif mode == ToolMode.NLP:
             self.action_bar.set_action_title("START NLP")
         elif mode == ToolMode.REFERENCE:
+            self.action_bar.set_action_title("OPEN READER")
             target = self.file_items[0].file_path if self.file_items else None
             self._open_reader(target)
-            prev_mode = ToolMode.COMBINE_PDF
-            self.tabs_bar.current_mode = prev_mode
-            if prev_mode in self.tabs_bar._buttons:
-                self.tabs_bar._buttons[prev_mode].setChecked(True)
-            self._on_mode_changed(prev_mode)
-            return
         elif mode == ToolMode.BOOKMARK:
             self.action_bar.set_action_title("BOOKMARK")
         elif mode == ToolMode.STATS:
             from ui.stats_for_nerds import StatsForNerdsDialog
             dialog = StatsForNerdsDialog(self)
             dialog.exec()
-            prev_mode = ToolMode.COMBINE_PDF
-            self.tabs_bar.current_mode = prev_mode
-            if prev_mode in self.tabs_bar._buttons:
-                self.tabs_bar._buttons[prev_mode].setChecked(True)
-            self._on_mode_changed(prev_mode)
+            if self.current_mode in self.tabs_bar._buttons:
+                self.tabs_bar._buttons[self.current_mode].setChecked(True)
             return
 
         self.action_bar.update_count(len(self.file_items))

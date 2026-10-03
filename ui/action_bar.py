@@ -23,7 +23,7 @@ class ActionBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.item_count = 0
-        self.action_title = "MERGE FILES"
+        self.action_title = "MERGE"
         self._setup_ui()
 
     def _setup_ui(self):
@@ -39,7 +39,7 @@ class ActionBar(QWidget):
         btn_row.setSpacing(14)
 
 
-        self.action_btn = QPushButton("  MERGE FILES")
+        self.action_btn = QPushButton("  MERGE")
         self.action_btn.setIcon(get_icon("download", "#ffffff"))
         self.action_btn.setCursor(get_custom_cursor())
         self.action_btn.setFixedHeight(24)
@@ -113,11 +113,13 @@ class ActionBar(QWidget):
     def set_action_title(self, title: str):
         self.action_title = title
         self.action_btn.setText(f"  {title}")
+        if title == "OPEN READER":
+            self.action_btn.setEnabled(True)
 
     def update_count(self, count: int):
         self.item_count = count
 
-        if count > 0:
+        if count > 0 or self.action_title == "OPEN READER":
             self.action_btn.setEnabled(True)
         else:
             self.action_btn.setEnabled(False)

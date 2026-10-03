@@ -277,15 +277,25 @@ def main():
     )
 
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
     app.setApplicationName("MNIME")
     app.setOrganizationName("MNIME")
 
     # Extract target files from command line arguments (e.g. Windows file association / Open With)
+    import urllib.parse
     raw_args = sys.argv[1:]
-    target_files = [
-        os.path.abspath(f) for f in raw_args 
-        if not f.startswith("-") and os.path.isfile(f)
-    ]
+    target_files = []
+    for arg in raw_args:
+        if not arg or arg.startswith("-"):
+            continue
+        cleaned = arg.strip(' \t\r\n"\'')
+        if cleaned.startswith("file:///"):
+            cleaned = urllib.parse.unquote(cleaned[8:])
+        elif cleaned.startswith("file://"):
+            cleaned = urllib.parse.unquote(cleaned[7:])
+        cleaned = os.path.normpath(cleaned)
+        if os.path.isfile(cleaned):
+            target_files.append(os.path.abspath(cleaned))
 
     # Check for an existing running instance of MNIME
     if send_to_existing_instance(target_files):
@@ -339,6 +349,7 @@ def main():
     # If launched with a document (e.g. user double-clicked a PDF):
     if target_files:
         # Go straight into the reader with the document loaded, bypassing splash delay
+        app.main_window.hide()
         app.main_window.handle_external_open(target_files)
     else:
         # Standard launch: Show Splash Screen with particle effects and minimize to tray

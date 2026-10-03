@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Model-MNIME--Core--1.5B--Q4__K__M-00e5ff.svg?style=flat-square" alt="Model">
 </p>
 
-A modern, private, ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, MNIME runs 100% locally and offline on your machine with zero cloud dependencies or data uploads, delivering conversational AI and document intelligence directly over your files.
+A modern, private, ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, MNIME runs 100% locally and offline on your machine with zero cloud dependencies or data uploads, delivering conversation and document intelligence directly over your files.
 
 ---
 

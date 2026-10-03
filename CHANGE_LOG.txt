@@ -37,7 +37,7 @@ Key Technologies:
   - Neural Engine: llama-cpp-python, sentence-transformers, FAISS vector search
   - Inter-Process Communication: Windows Named Pipes / Qt QLocalServer (single-
     instance IPC)
-  - Packaging: PyInstaller 6.10+ (spec-driven), Inno Setup 6 (ISCC.exe)
+  - Packaging: PyInstaller 6.10+ (spec-driven)
   - Custom Installer: Self-contained PyQt6 animated particle & 5D projection
     wizard
 
@@ -104,7 +104,7 @@ Phase 4: Local Neural Integration & Rebrand to MNIME (October 1 - October 2,
 
 Phase 5: Dual Installer Architecture & Script Hardening (October 2, 2026)
   - Developed a dual-installer packaging pipeline:
-      1. Standard Windows Inno Setup installer (MNIME_Setup.exe).
+      1. Standalone custom animated installer (MNIME_installer.exe).
       2. Custom Modern Animated Installer (custom_installer.py ->
          MNIME_installer.exe)
          featuring real-time particle generation, interactive 5D logo rendering,

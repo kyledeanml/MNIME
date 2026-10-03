@@ -671,7 +671,7 @@ def build_body(styles):
         ["Vector Index",        "FAISS (CPU), chunk size 1,500 / overlap 200"],
         ["Image Conversion DPI", "200 DPI default (PDF → JPG)"],
         ["UI Framerate Target", "60 FPS (QThread non-blocking)"],
-        ["Installer Format",    "Inno Setup (.exe) + Custom PyQt6 animated installer"],
+        ["Installer Format",    "Custom PyQt6 animated installer"],
         ["Install Location",    r"%LOCALAPPDATA%\Programs\MNIME"],
     ]
     story.append(spec_table(spec_data))
@@ -716,7 +716,6 @@ def build_body(styles):
         ["ui/cursor_fx.py",        "Custom cursor effect applied globally.", "PyQt6"],
         ["ui/icons.py",            "Resolution-independent SVG icon registry. Returns QIcon at any DPI.", "PyQt6"],
         ["custom_installer.py",    "Standalone animated PyQt6 installer with flying-file progress bar.", "PyQt6, PyInstaller"],
-        ["MNIME.iss",              "Inno Setup 6 compiler script for MNIME_Setup.exe.", "Inno Setup 6"],
         ["MNIME.spec",             "PyInstaller spec for main application bundle.", "PyInstaller"],
     ]
 
@@ -1051,7 +1050,6 @@ def build_body(styles):
 
     inst_data = [
         ["Installer", "Description", "Install Location"],
-        ["MNIME_Setup.exe", "Classic Windows wizard built with Inno Setup 6. Creates Start Menu entries and optional desktop shortcut.", r"%LOCALAPPDATA%\Programs\MNIME"],
         ["MNIME_installer.exe",    "Premium animated installer with custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation.", r"%LOCALAPPDATA%\Programs\MNIME"],
     ]
     inst_col_w = [CONTENT_W * 0.25, CONTENT_W * 0.48, CONTENT_W * 0.27]
@@ -1099,7 +1097,7 @@ def build_body(styles):
     story.append(Spacer(1, 3 * mm))
     story.append(Paragraph("8.3  Build Pipeline", S["h2"]))
     story.append(Paragraph(
-        "Run <b>build_app.bat</b> with <b>Inno Setup 6</b> installed. Ensure the .gguf model "
+        "Run <b>build_app.bat</b>. Ensure the .gguf model "
         "is in <font color='#39ff14'>models/</font> first — it is bundled into the installer.",
         S["body"]
     ))
@@ -1108,8 +1106,7 @@ def build_body(styles):
         ["Step", "Action"],
         ["1", "Create/update .venv and install all build dependencies"],
         ["2", "Compile main app with PyInstaller using MNIME.spec → dist/MNIME/"],
-        ["3", "Package into installer/MNIME_Setup.exe via Inno Setup (supports optional code signing with MNIMECert.pfx)"],
-        ["4", "Build animated installer installer/MNIME_installer.exe via PyInstaller + custom_installer.py"],
+        ["3", "Build animated installer installer/MNIME_installer.exe via PyInstaller + custom_installer.py"],
     ]
     story.append(spec_table(build_data, [CONTENT_W * 0.08, CONTENT_W * 0.92]))
     story.append(PageBreak())
@@ -1268,7 +1265,7 @@ def build_body(styles):
             "Changed: The fine-tuned MNIME-Core-1.5B-Q4_K_M.gguf model is now bundled directly inside the application under models/. No external model download required.",
             "Removed: The Settings gear icon and NLP hardware configuration dialog have been removed. Hardware offloading is handled automatically at runtime.",
             "Removed: The finetuning workflow (training/) is no longer part of the repository. The model is shipped as a finished artifact.",
-            "Added: Two parallel installer formats — MNIME_Setup.exe (Inno Setup) and MNIME_installer.exe (custom animated PyQt6 installer).",
+            "Added: Custom animated PyQt6 installer (MNIME_installer.exe).",
         ]),
         ("MNIME — UI & UX Complete Overhaul", [
             "Added: Procedurally generated 5D Penteract branding logo with true mathematical 3D depth-sorting and an independent orbiting neon file.",
@@ -1324,7 +1321,6 @@ def build_body(styles):
         ["BAAI/bge-small-en-v1.5",      "Beijing Academy of Artificial Intelligence"],
         ["PyQt6",                       "Riverbank Computing / The Qt Company"],
         ["pdf2docx",                    "Artifex / dothinking"],
-        ["Inno Setup",                  "Jordan Russell / Martijn Laan"],
     ]
     story.append(spec_table(attr_data))
     story.append(Spacer(1, 6 * mm))

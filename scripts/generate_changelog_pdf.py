@@ -256,7 +256,7 @@ class CoverPage(Flowable):
         meta_items = [
             ("Author & Lead:", "Kyle Bauer / kyledeanml (Bellevue College AISD)"),
             ("Primary Engine:", "PyQt6 / PyMuPDF / llama.cpp (MNIME-Core 1.5B GGUF)"),
-            ("Packaging:", "Inno Setup 6 (Enterprise) + PyInstaller (Modern Animated)"),
+            ("Packaging:", "PyInstaller (Modern Animated)"),
             ("Source Dataset:", "IDE Logs, Git Commits (040+), Transcripts & Pytest Suite"),
             ("Generation Source:", f"Dynamic Artifact generated from CHANGE_LOG.txt")
         ]
@@ -482,7 +482,7 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
             "1": "Project architecture, core technology stack, offline principles, and runtime specifications.",
             "2": "Chronological evolution from OmniMesh genesis through 5D vector math, NLP, and release hardening.",
             "3": "Detailed forensic log of 22 IDE conversation sessions, problem diagnosis, and technical remediations.",
-            "4": "End-to-end build commands, Inno Setup and custom animated installer compilation runbook.",
+            "4": "End-to-end build commands, and custom animated installer compilation runbook.",
             "5": "Deep-dives into native Win32 GDI printing, single-instance named pipes, and heuristic bookmarking.",
             "6": "Pytest validation, benchmark procedures, and Windows Add/Remove Programs clean uninstallation."
         }

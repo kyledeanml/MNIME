@@ -467,6 +467,13 @@ class InstallerUI(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    
+    try:
+        import pyi_splash
+        pyi_splash.close()
+    except Exception:
+        pass
+        
     win = InstallerUI()
     win.show()
     sys.exit(app.exec())

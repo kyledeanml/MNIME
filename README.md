@@ -88,8 +88,7 @@ Run one of the two pre-built Windows installers from the `installer/` directory:
 
 | Installer | Description |
 |---|---|
-| `MNIME_Setup.exe` | Classic Windows wizard installer created with Inno Setup. Configures Start Menu entries and optional desktop shortcuts. |
-| `MNIME_installer.exe` | Custom animated installer built with PyQt6 — features a branded dark window and progress bar. |
+| `MNIME_installer.exe` | Custom animated installer built with PyQt6 — features a branded dark window, splash screen, and progress bar. |
 
 Installers deploy MNIME to `%LOCALAPPDATA%\Programs\MNIME`.
 
@@ -127,19 +126,16 @@ run_tests.bat
 
 ## Building the Application
 
-Run `build_app.bat` (requires PyInstaller and Inno Setup 6):
+Run `build_app.bat` (requires PyInstaller):
 
 ```cmd
 build_app.bat
 ```
 
-To enable code signing for the Inno Setup binary, place `MNIMECert.pfx` in the project root and set the `MNIME_CERT_PASSWORD` environment variable prior to building.
-
 **Build Workflow:**
 1. Validates `.venv` environment and installs build packages.
 2. Compiles `MNIME.py` into a standalone binary payload (`dist/MNIME/`) via `MNIME.spec`.
-3. Packages `installer/MNIME_Setup.exe` via Inno Setup (`MNIME.iss`).
-4. Compiles custom installer `installer/MNIME_installer.exe` via `MNIME_installer.spec` and `custom_installer.py`.
+3. Compiles custom installer `installer/MNIME_installer.exe` via `MNIME_installer.spec` and `custom_installer.py`.
 
 ---
 
@@ -204,7 +200,6 @@ MNIME/
 ├── MN.ico                 # Multi-resolution application icon
 ├── MNIME.py               # Application entry point
 ├── custom_installer.py    # Standalone PyQt6 installer UI
-├── MNIME.iss              # Inno Setup compilation script
 ├── MNIME.spec             # Main application PyInstaller spec
 ├── MNIME_installer.spec   # Custom installer PyInstaller spec
 ├── benchmark.py           # Standalone empirical NLP benchmarking tool

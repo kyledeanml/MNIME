@@ -10,30 +10,69 @@ from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 class ReaderPageView(QGraphicsView):
     prev_page_requested = pyqtSignal()
     next_page_requested = pyqtSignal()
+    zoom_changed = pyqtSignal()  # emitted after a zoom so the dialog can re-render
+
+    # Base render DPI: 96 screen DPI * this factor = render resolution
+    BASE_DPI = 96.0
 
     def __init__(self, scene, parent=None):
         super().__init__(scene, parent)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-        self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
+        self.setRenderHints(
+            QPainter.RenderHint.Antialiasing
+            | QPainter.RenderHint.SmoothPixmapTransform
+            | QPainter.RenderHint.TextAntialiasing
+        )
         self.current_page = None
-        self.zoom_factor = 4.0
+        # _render_scale tracks the pymupdf matrix scale used for the current pixmap
+        self._render_scale = 1.0
         self.scale(1.0, 1.0)
 
-    def set_page(self, page, pixmap):
+    # ------------------------------------------------------------------
+    # Public helpers
+    # ------------------------------------------------------------------
+
+    def get_render_scale(self) -> float:
+        """Return the pymupdf render scale that will produce 1 rendered pixel
+        per screen pixel at the current view zoom level, clamped to a
+        sensible minimum so pages are never blurry."""
+        # m11() is the horizontal scale factor of the current view transform
+        view_scale = self.transform().m11()
+        # We need to cancel out any pre-existing render scale so the new
+        # pixmap sits at scene-coordinate size == PDF point size.
+        # render_scale controls how many pixels pymupdf produces per PDF point.
+        # A scale of 1.0 gives 72 DPI; multiply by view_scale to hit screen pixels.
+        scale = view_scale * (self.BASE_DPI / 72.0)
+        # Never render below 1x (72 DPI) — keeps text legible even when
+        # zoomed way out, and avoids re-renders for trivial zoom changes.
+        return max(scale, 1.0)
+
+    def set_page(self, page, pixmap, render_scale: float = 1.0):
+        """Display *pixmap* (rendered at *render_scale* px/pt) for *page*."""
         self.current_page = page
+        self._render_scale = render_scale
         self.scene().clear()
         self.pixmap_item = QGraphicsPixmapItem(pixmap)
         self.pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        # Scale the item so that 1 scene unit == 1 PDF point regardless of
+        # how many pixels pymupdf put in the bitmap.
+        inv = 1.0 / render_scale if render_scale > 0 else 1.0
+        self.pixmap_item.setScale(inv)
         self.scene().addItem(self.pixmap_item)
-        self.scene().setSceneRect(QRectF(pixmap.rect()))
-        
+        # Scene rect in PDF-point coordinates
+        self.scene().setSceneRect(
+            QRectF(0, 0, pixmap.width() * inv, pixmap.height() * inv)
+        )
+
         from PyQt6.QtCore import QTimer
         QTimer.singleShot(10, self._fit_to_view)
-        
+
     def _fit_to_view(self):
         if self.scene() and not self.scene().sceneRect().isEmpty():
             self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
             self.scale(0.95, 0.95)
+            # After fitting, request a re-render at the correct resolution
+            self.zoom_changed.emit()
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -42,6 +81,7 @@ class ReaderPageView(QGraphicsView):
             else:
                 factor = 1 / 1.15
             self.scale(factor, factor)
+            self.zoom_changed.emit()
         else:
             if event.angleDelta().y() > 0:
                 self.prev_page_requested.emit()
@@ -228,6 +268,7 @@ class ReaderDialog(QDialog):
         self.view.setStyleSheet("background-color: #0a0d14; border: 1px solid #1f2737;")
         self.view.prev_page_requested.connect(self._prev_page)
         self.view.next_page_requested.connect(self._next_page)
+        self.view.zoom_changed.connect(self._on_zoom_changed)
         right_layout.addWidget(self.view, 1)
         
         nav_layout = QHBoxLayout()
@@ -340,18 +381,62 @@ class ReaderDialog(QDialog):
             self.page_idx = page
             self._render_page()
 
-    def _render_page(self):
-        if not self.doc or self.page_idx < 0 or self.page_idx >= len(self.doc): return
+    def _render_page(self, render_scale: float | None = None):
+        """Render the current page at *render_scale* px/pt.
+
+        If *render_scale* is None the method picks a sensible default:
+        - On first call (before any fit-to-view has happened) we use the
+          view's physical pixel width divided by the PDF page width in points
+          so the initial bitmap exactly matches the available screen pixels.
+        - After fit-to-view the zoom_changed signal triggers a re-render with
+          the precise scale from get_render_scale().
+        """
+        if not self.doc or self.page_idx < 0 or self.page_idx >= len(self.doc):
+            return
         self.page_label.setText(f"Page {self.page_idx + 1} of {len(self.doc)}")
-        
+
         page = self.doc[self.page_idx]
         import pymupdf
-        mat = pymupdf.Matrix(self.view.zoom_factor, self.view.zoom_factor)
+
+        if render_scale is None:
+            # Choose a scale so the rendered bitmap fills the viewer at fit-zoom.
+            # PDF points -> screen pixels: viewer_width / page_width_in_points
+            page_rect = page.rect  # in PDF points
+            viewer_w = max(self.view.viewport().width(), 1)
+            viewer_h = max(self.view.viewport().height(), 1)
+            # Fit both dimensions (keep aspect ratio) and take the smaller
+            scale_w = viewer_w / max(page_rect.width, 1)
+            scale_h = viewer_h / max(page_rect.height, 1)
+            render_scale = max(min(scale_w, scale_h), 1.0)
+
+        mat = pymupdf.Matrix(render_scale, render_scale)
         pix = page.get_pixmap(matrix=mat, alpha=False)
-        
+
         img = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888)
         qpixmap = QPixmap.fromImage(img)
-        self.view.set_page(page, qpixmap)
+        self.view.set_page(page, qpixmap, render_scale=render_scale)
+
+    def _on_zoom_changed(self):
+        """Re-render the current page at the resolution matching the new zoom."""
+        if not self.doc:
+            return
+        new_scale = self.view.get_render_scale()
+        # Only re-render if the scale changed meaningfully (>5 % difference)
+        # to avoid unnecessary re-renders on tiny zoom steps.
+        if abs(new_scale - self.view._render_scale) / max(self.view._render_scale, 0.001) > 0.05:
+            # Preserve the current scroll position across the re-render
+            h_bar = self.view.horizontalScrollBar()
+            v_bar = self.view.verticalScrollBar()
+            h_ratio = h_bar.value() / max(h_bar.maximum(), 1)
+            v_ratio = v_bar.value() / max(v_bar.maximum(), 1)
+
+            self._render_page(render_scale=new_scale)
+
+            from PyQt6.QtCore import QTimer
+            def restore_scroll():
+                h_bar.setValue(int(h_ratio * h_bar.maximum()))
+                v_bar.setValue(int(v_ratio * v_bar.maximum()))
+            QTimer.singleShot(0, restore_scroll)
 
     def _prev_page(self):
         if self.page_idx > 0:

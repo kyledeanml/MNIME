@@ -1386,6 +1386,7 @@ class MainWindow(QMainWindow):
     def _start_over(self):
         self._clear_files()
         self.output_view.hide()
+        self.nlp_view.clear_index()
         self.nlp_view.hide()
         self.carousel.show()
         self.action_bar.show()

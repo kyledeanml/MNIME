@@ -124,12 +124,33 @@ class IndexWorker(QThread):
         self.progress.emit(pct, msg)
 
 
+class JokeStreamWorker(QThread):
+    finished = pyqtSignal(str)
+    chunk_received = pyqtSignal(str)
+    point_generated = pyqtSignal(float, float, str)
+    stats_updated = pyqtSignal(dict)
+
+    def __init__(self, text: str):
+        super().__init__()
+        self.text = text
+
+    def run(self):
+        import time
+        words = self.text.split(" ")
+        for i, word in enumerate(words):
+            chunk = word + (" " if i < len(words) - 1 else "")
+            self.chunk_received.emit(chunk)
+            time.sleep(0.06)
+        self.finished.emit(self.text)
+
+
 class NLPQueryWorker(QThread):
     finished = pyqtSignal(str)
     chunk_received = pyqtSignal(str)
     point_generated = pyqtSignal(float, float, str)
     stats_updated = pyqtSignal(dict)
     new_joke_state = pyqtSignal(int)
+    joke_selected = pyqtSignal(str, str)
 
     def __init__(self, query: str, context_docs: list, joke_state: int = 0):
         super().__init__()
@@ -160,7 +181,7 @@ class NLPQueryWorker(QThread):
 
                 if not is_joke_mode and not full_response:
                     buffer += chunk
-                    if "KNOCK_KNOCK" in buffer:
+                    if "KNOCK_KNOCK" in buffer.upper() or "KNOCK KNOCK" in buffer.upper():
                         is_joke_mode = True
                         break
                     
@@ -199,26 +220,18 @@ class NLPQueryWorker(QThread):
                 self.chunk_received.emit(buffer)
 
             if is_joke_mode:
-                if self.joke_state == 0:
-                    joke_text = "Knock, knock."
-                    self.new_joke_state.emit(1)
-                else:
-                    setup, punchline = random.choice(KNOCK_KNOCK_JOKES)
-                    joke_lines = [
-                        "Knock, knock.",
-                        "Who's there?",
-                        f"{setup}.",
-                        f"{setup} who?",
-                        f"{punchline}"
-                    ]
-                    joke_text = "\n".join(joke_lines)
+                setup, punchline = random.choice(KNOCK_KNOCK_JOKES)
+                self.joke_selected.emit(setup, punchline)
+                self.new_joke_state.emit(1)
+                joke_text = "Knock, knock."
                 
                 full_response = ""
-                for word in joke_text.split(" "):
-                    chunk = word + " "
+                words = joke_text.split(" ")
+                for i, word in enumerate(words):
+                    chunk = word + (" " if i < len(words) - 1 else "")
                     full_response += chunk
                     self.chunk_received.emit(chunk)
-                    time.sleep(0.1)
+                    time.sleep(0.08)
 
             self.finished.emit(full_response.strip())
         except Exception as e:
@@ -232,6 +245,10 @@ class NLPView(QWidget):
         super().__init__(parent)
         self.vectorstore = None
         self.expanded_dialog = None
+        self.joke_state = 0
+        self.current_joke = None
+        self.user_joke_setup = None
+        self.joke_worker = None
         self._setup_ui()
         
         import atexit, sys
@@ -250,6 +267,9 @@ class NLPView(QWidget):
             self.vectorstore = None
             import gc
             gc.collect()
+        self.joke_state = 0
+        self.current_joke = None
+        self.user_joke_setup = None
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -366,6 +386,23 @@ class NLPView(QWidget):
         safe_err = html.escape(str(err))
         self._append_history(f"<div style='color:#ff5555'><b>Error:</b> {safe_err}</div><br>")
 
+    def _start_joke_stream(self, text: str):
+        self.joke_worker = JokeStreamWorker(text)
+        self.joke_worker.chunk_received.connect(self._on_query_chunk)
+        self.joke_worker.finished.connect(self._on_query_response)
+        
+        main_win = self.window()
+        if hasattr(main_win, '_stats_dialog') and main_win._stats_dialog is not None:
+            main_win._stats_dialog.chart.clear()
+            
+        self.joke_worker.start()
+
+    def _set_joke_state(self, state: int):
+        self.joke_state = state
+
+    def _set_current_joke(self, setup: str, punchline: str):
+        self.current_joke = (setup, punchline)
+
     def _submit_query(self):
         import html
         query = self.query_input.text().strip()
@@ -379,14 +416,72 @@ class NLPView(QWidget):
         
         self._append_history("<div style='color:#00e5ff'><b>MNIME:</b> </div>")
         
-        if getattr(self, 'joke_state', 0) == 1:
-            self._insert_html_at_end("<span style='color:#00e5ff'>Not an answer to your out of scope question.</span><br><hr><br>")
-            self._set_input_enabled(True)
-            self.query_input.setFocus()
-            self.status_label.setText("Ready.")
-            self.joke_state = 2
+        lower_q = query.lower().strip()
+        clean_q = lower_q.replace(",", "").replace(".", "").replace("!", "").replace("?", "").strip()
+
+        # Cancellation check for any active joke state
+        if self.joke_state != 0 and clean_q in ["cancel", "stop", "exit", "quit", "nevermind", "never mind", "abort"]:
+            self.joke_state = 0
+            self.current_joke = None
+            self.user_joke_setup = None
+            self._start_joke_stream("Joke cancelled.")
             return
 
+        # Case A: User initiates a knock-knock joke
+        if self.joke_state == 0 and clean_q == "knock knock":
+            self.joke_state = 10
+            self._start_joke_stream("Who's there?")
+            return
+
+        # Case A.1: User provides the setup (e.g. "Lettuce")
+        if self.joke_state == 10:
+            setup = query.strip().rstrip(".!?")
+            self.user_joke_setup = setup
+            self.joke_state = 11
+            self._start_joke_stream(f"{setup} who?")
+            return
+
+        # Case A.2: User provides the punchline (e.g. "Lettuce in, it's cold!")
+        if self.joke_state == 11:
+            self.joke_state = 0
+            self.user_joke_setup = None
+            self._start_joke_stream("Haha! Good one!")
+            return
+
+        # Case B: MNIME-initiated joke - Turn 2 (MNIME knocked, user responds)
+        if self.joke_state == 1:
+            words = clean_q.split()
+            has_knock_cue = any(w in words for w in ["who", "whose", "whos", "there", "that", "it", "door", "knock", "dat", "dis"])
+            if len(words) > 5 and not has_knock_cue:
+                # Cancel joke and proceed to document query
+                self.joke_state = 0
+                self.current_joke = None
+            else:
+                if not self.current_joke:
+                    from core.jokes import KNOCK_KNOCK_JOKES
+                    import random
+                    self.current_joke = random.choice(KNOCK_KNOCK_JOKES)
+                
+                setup, punchline = self.current_joke
+                self.joke_state = 2
+                self._start_joke_stream(f"{setup}.")
+                return
+
+        # Case B: MNIME-initiated joke - Turn 3 (MNIME gave setup, user asks "setup who?")
+        if self.joke_state == 2:
+            words = clean_q.split()
+            if len(words) > 6 and "who" not in words:
+                # Cancel joke and proceed to document query
+                self.joke_state = 0
+                self.current_joke = None
+            else:
+                setup, punchline = self.current_joke if self.current_joke else ("Noah", "Noah good place to eat?")
+                self.joke_state = 0
+                self.current_joke = None
+                self._start_joke_stream(punchline)
+                return
+
+        # ── Normal Document Query Flow ──
         # 1. Semantic Search
         context_docs = SearchEngine.search(self.vectorstore, query, k=5)
         
@@ -395,6 +490,7 @@ class NLPView(QWidget):
         self.query_worker.chunk_received.connect(self._on_query_chunk)
         self.query_worker.finished.connect(self._on_query_response)
         self.query_worker.new_joke_state.connect(self._set_joke_state)
+        self.query_worker.joke_selected.connect(self._set_current_joke)
         
         main_win = self.window()
         if hasattr(main_win, '_stats_dialog'):
@@ -406,9 +502,6 @@ class NLPView(QWidget):
             main_win._stats_dialog.chart.clear()
 
         self.query_worker.start()
-
-    def _set_joke_state(self, state: int):
-        self.joke_state = state
 
     def _on_query_chunk(self, chunk: str):
         import html

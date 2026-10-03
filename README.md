@@ -254,7 +254,6 @@ MNIME offers two powerful ways to generate document outlines and table of conten
 
 ---
 
-## Research Paper
 
 <p align="center">
   <a href="MNIME_paper.pdf">
@@ -268,7 +267,7 @@ MNIME offers two powerful ways to generate document outlines and table of conten
   </a>
 </p>
 
-> Click the badge above to open the **MNIME Research Paper** — covering system architecture, the MNIME-Core fine-tuning methodology, NLP/RAG engine design, projected performance characteristics, and a discussion of privacy-first local document AI.
+> **MNIME Research Paper** — covering system architecture, the MNIME-Core fine-tuning methodology, NLP/RAG engine design, projected performance characteristics, and a discussion of privacy-first local document AI.
 
 ---
 

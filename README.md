@@ -182,19 +182,25 @@ MNIME/
 │   ├── stats_for_nerds.py # Real-time telemetry & performance HUD
 │   └── tabs_bar.py        # Application navigation bar
 ├── docs/                  # Media & cover artwork assets
-│   ├── paper_cover.png
-│   └── spec_cover.png
+│   ├── changelog_cover.png# Interactive change log preview cover
+│   ├── paper_cover.png    # Research paper preview cover
+│   └── spec_cover.png     # Specification sheet preview cover
 ├── paper/                 # Research paper LaTeX source & PDF
-│   ├── MNIME_paper.pdf
-│   ├── MNIME_paper.tex
-│   └── mnime_refs.bib
-├── scripts/               # Utility scripts
-│   └── generate_mnime_pdf.py
+│   ├── MNIME_paper.pdf    # Compiled research paper
+│   ├── MNIME_paper.tex    # LaTeX manuscript source
+│   └── mnime_refs.bib     # Citation database
+├── scripts/               # Utility & PDF generation scripts
+│   ├── generate_changelog_pdf.py # Dynamic Change Log PDF & cover generator
+│   └── generate_mnime_pdf.py     # Specification manual PDF generator
 ├── tests/                 # Automated test suite
 │   ├── test_ipc_parse.py
 │   ├── test_nlp_sanitize.py
 │   ├── test_pdf_engine.py
 │   └── test_print_engine.py
+├── CHANGE_LOG.txt         # Comprehensive forensic build & session change log
+├── MNIME_Change_Log.pdf   # Interactive compiled change log & build history
+├── MNIME_paper.pdf        # Research paper PDF
+├── MNIME_Spec_Manual.pdf  # Specification & user manual PDF
 ├── MN.ico                 # Multi-resolution application icon
 ├── MNIME.py               # Application entry point
 ├── custom_installer.py    # Standalone PyQt6 installer UI
@@ -241,6 +247,24 @@ MNIME includes a telemetry dashboard and benchmarking suite (`ui/stats_for_nerds
 </p>
 
 > **MNIME Research Paper** — Details the system architecture, model fine-tuning methodology, RAG search engine implementation, empirical performance benchmarks, and privacy-first design principles.
+
+---
+
+## Build Process & Change Log
+
+<p align="center">
+  <a href="MNIME_Change_Log.pdf">
+    <img src="docs/changelog_cover.png?v=1" alt="MNIME Build Process & Change Log" width="480">
+  </a>
+</p>
+
+<p align="center">
+  <a href="MNIME_Change_Log.pdf">
+    <img src="https://img.shields.io/badge/View%20Full%20Change%20Log-PDF-00e5ff?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="View Change Log PDF">
+  </a>
+</p>
+
+> **MNIME Build Process & Change Log** — Interactive document outlining the complete engineering lifecycle from initial repository genesis through 5D vector mathematics, local neural engine integration, dual-installer packaging, and 21 forensic IDE conversation sessions. Dynamically compiled directly from [`CHANGE_LOG.txt`](CHANGE_LOG.txt) via `scripts/generate_changelog_pdf.py`.
 
 ---
 

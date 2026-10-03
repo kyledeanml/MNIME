@@ -23,11 +23,15 @@ set "PYTHON_EXE=.venv\Scripts\python.exe"
 set "PIP_EXE=.venv\Scripts\pip.exe"
 set "PYINSTALLER_EXE=.venv\Scripts\pyinstaller.exe"
 
-echo [2/3] Installing build dependencies and generating App Icon...
+echo [2/3] Installing build dependencies, generating App Icon and Changelog PDF...
 "%PYTHON_EXE%" -m pip install --upgrade pip
 "%PIP_EXE%" install -r requirements.txt
-"%PIP_EXE%" install pyinstaller pillow pymupdf pypdf pdf2docx
+"%PIP_EXE%" install pyinstaller pillow pymupdf pypdf pdf2docx reportlab
 "%PYTHON_EXE%" -c "from core.app_icon import ensure_ico_file; ensure_ico_file()"
+if exist "scripts\generate_changelog_pdf.py" (
+    echo Generating interactive Change Log PDF from CHANGE_LOG.txt...
+    "%PYTHON_EXE%" scripts\generate_changelog_pdf.py
+)
 
 echo [3/4] Compiling Executable...
 if exist "build" rmdir /s /q "build"
@@ -41,6 +45,8 @@ if %errorlevel% neq 0 (
 )
 if exist "MN.ico" copy /Y "MN.ico" "dist\MNIME\" >nul
 if exist "MNIME_reimagined_alpha.png" copy /Y "MNIME_reimagined_alpha.png" "dist\MNIME\" >nul
+if exist "MNIME_Change_Log.pdf" copy /Y "MNIME_Change_Log.pdf" "dist\MNIME\" >nul
+if exist "CHANGE_LOG.txt" copy /Y "CHANGE_LOG.txt" "dist\MNIME\" >nul
 
 echo [4/4] Building Standalone Installer...
 set ISCC_PATH=

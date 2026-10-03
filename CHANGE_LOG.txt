@@ -1,0 +1,579 @@
+================================================================================
+MNIME - COMPLETE BUILD PROCESS AND DEVELOPMENT CHANGE LOG
+================================================================================
+Document:           CHANGE_LOG.txt
+Workspace:          b:\Desktop\BASSD\BELCO\AAS-T_AISD\zFAL26\MNIME
+Product Name:       MNIME (Multimodal Neural Interface Machine Extension)
+Current Version:    2.1 (Production Release Ready)
+Target OS:          Windows 11 (x64)
+Author:             Kyle Bauer / kyledeanml (Bellevue College)
+Created:            October 3, 2026
+Source Data:        IDE Session Logs, Git History, Architecture Records, Transcripts
+================================================================================
+
+
+1. EXECUTIVE SUMMARY & WORKSPACE FOUNDATION
+--------------------------------------------------------------------------------
+This document provides an exhaustive, forensic-grade record of the entire build, 
+architecture, and engineering lifecycle of the MNIME workspace from its inception 
+to its final release-hardened state. 
+
+MNIME is a high-performance, privacy-first Windows desktop application that combines 
+multimodal document processing (PDF merging, splitting, OCR, heuristic bookmarking, 
+high-resolution image editing, and native raster printing) with an embedded, 
+quantized local neural language model (MNIME-Core 1.5B via llama.cpp/GGUF) for 
+offline semantic search, summarization, and query extraction.
+
+Key Technologies:
+  - Runtime: Python 3.12.8 (64-bit on Windows 11)
+  - Graphical Interface: PyQt6 (v6.7+) with custom OpenGL-like QPainter vector engines
+  - Document Engine: PyMuPDF (fitz 1.24+), pypdf, pdf2docx, Pillow (PIL)
+  - Native Print Engine: Windows Win32 GDI API (ctypes, PrintDlgW, StretchDIBits)
+  - Neural Engine: llama-cpp-python, sentence-transformers, FAISS vector search
+  - Inter-Process Communication: Windows Named Pipes / Qt QLocalServer (single-instance IPC)
+  - Packaging: PyInstaller 6.10+ (spec-driven), Inno Setup 6 (ISCC.exe)
+  - Custom Installer: Self-contained PyQt6 animated particle & 5D projection wizard
+
+
+2. CHRONOLOGICAL MILESTONES & REPOSITORY EVOLUTION
+--------------------------------------------------------------------------------
+Phase 1: Genesis & OmniMesh Foundation (Late September 2026)
+  - Initial repository scaffolding created from an exploratory script directory.
+  - Project named "OmniMesh" with a focus on fast desktop PDF manipulation (merging, 
+    splitting, reordering, and document page previewing).
+  - Initial packaging implemented via PyInstaller directory mode and Inno Setup 6 
+    scripting (OmniMesh.iss -> build_app.bat).
+  - Silent startup and background tray persistence implemented to allow instantaneous 
+    file handling without occupying primary screen space.
+
+Phase 2: Functional Augmentation (September 30, 2026)
+  - Heuristic Bookmarking: Added intelligent outline/bookmark generation based on 
+    font size hierarchy, bold font flags, and layout positioning in PyMuPDF.
+  - Carousel Image Editor: Introduced an interactive high-resolution crop, rotate, 
+    and aspect-ratio manipulation tool directly within the file carousel (the "EDIT" button).
+  - Integrated Document Reader: Embedded a lightweight, high-performance document 
+    viewer featuring a collapsible side-pane outline, instant page jumping, and 
+    a custom styled print configuration dialog.
+
+Phase 3: Visual Identity & Mathematical Projection (October 1, 2026)
+  - Rebranding to OMNIME (v0.99 -> v1.0).
+  - Architectural transition of application branding from static 2D icons to 
+    dynamically computed higher-dimensional geometric projections:
+      * Initial 2D Hexagonal lattice.
+      * Upgraded to 4D Hypercube (Tesseract) orthographic projection.
+      * Upgraded to full 5D Penteract (5-cube) projection with 32 vertices and 
+        80 edges computed continuously via trigonometric rotation matrices.
+      * Added an independently orbiting 3D file icon featuring perspective depth 
+        scaling, Z-sorting, and internal body text lines.
+  - Automated dynamic ICO generation: Created core/app_icon.py to procedurally 
+    render multi-resolution Windows icons (16x16 up to 256x256) on demand.
+  - Generated animated branded banner GIF with harmonic orbital speeds to prevent 
+    visual stuttering or boundary clipping.
+
+Phase 4: Local Neural Integration & Rebrand to MNIME (October 1 - October 2, 2026)
+  - Transitioned project identity from OMNIME to MNIME (Multimodal Neural Interface 
+    Machine Extension).
+  - Integrated an offline neural language model (MNIME-Core 1.5B Q4_K_M GGUF):
+      * Built core/nlp_engine.py with hardware-aware offloading.
+      * Implemented Flash Attention, KV-cache quantization, and memory locking (mlock) 
+        to pin weights in system RAM.
+      * Configured Git LFS tracking for binary model distributions while establishing 
+        strict exclusions for ephemeral training checkpoints (unsloth_compiled_cache/).
+  - Dynamic Render Scale: Overhauled Reader zooming from static rasterization to 
+    dynamic DPI scaling, ensuring pristine typography at arbitrary zoom factors.
+
+Phase 5: Dual Installer Architecture & Script Hardening (October 2, 2026)
+  - Developed a dual-installer packaging pipeline:
+      1. Standard Windows Inno Setup installer (MNIME_Setup.exe).
+      2. Custom Modern Animated Installer (custom_installer.py -> MNIME_installer.exe) 
+         featuring real-time particle generation, interactive 5D logo rendering, 
+         and direct file deployment.
+  - Repaired CRLF formatting and batch script parsing in setup.bat and build_app.bat, 
+    replacing fragile chained IF/ELSE constructs with deterministic GOTO labels.
+
+Phase 6: Academic Research & Product Specification (October 2, 2026)
+  - Authored a formal EACL-compliant research paper (MNIME_paper.pdf) titled 
+    "MNIME: Multimodal Neural Interface Machine Extension" documenting architecture, 
+    token throughput, latency benchmarks, and local embedding performance.
+  - Generated product specification manual (MNIME_Spec_Manual.pdf) via a custom 
+    ReportLab Python pipeline (scripts/generate_mnime_pdf.py).
+  - Resolved LaTeX column overflow and table bleed-over issues.
+
+Phase 7: Real-Time Telemetry & Empirical Benchmarking (October 2, 2026)
+  - Built "Stats for Nerds" telemetry dashboard (ui/stats_for_nerds.py):
+      * Dynamic real-time plotting of CPU load, physical RAM, GPU VRAM, and 
+        token generation throughput.
+      * Added phonetic pronunciation guide ("EM-neem") in the UI header.
+  - Created standalone benchmark utility (benchmark.py) to empirically measure 
+    PDF merge, split, OCR, and neural inference metrics across real hardware.
+
+Phase 8: Production Launch Hardening & Senior SWE Audit (October 2 - October 3, 2026)
+  - Fixed Native Blank Print Bug: Replaced unreliable Qt printing abstractions 
+    with a direct Windows GDI Win32 API implementation (core/print_engine.py).
+  - Single-Instance IPC: Implemented robust QLocalServer / QLocalSocket IPC 
+    (core/ipc.py) allowing secondary instances or file explorer associations to pass 
+    arguments to the primary running instance without starting redundant heavy models.
+  - Security & Text Safety: Created core/text_safety.py with ChatML prompt injection 
+    stripping and Windows filesystem reserved name sanitization.
+  - Comprehensive Unit Test Suite: Added pytest suite in tests/ covering IPC message 
+    parsing, prompt safety, PDF engine operations, and print engine memory limits.
+  - Code Hygiene: Removed all bare except statements across core/ and ui/, 
+    replacing them with structured Python logging (core/logging_setup.py).
+
+Phase 9: Shortcut Resolution, Windows Uninstaller, & IDE Alignment (October 3, 2026)
+  - Resolved COM dispatch failure in PyInstaller standalone custom installer by 
+    implementing a PowerShell WScript.Shell fallback.
+  - Registered full Windows Add or Remove Programs uninstallation registry entries 
+    (HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME) with detached cleanup.
+  - Resolved cross-drive (B:\ vs C:\) VS Code Python interpreter analysis in 
+    .vscode/settings.json.
+
+
+3. DETAILED IDE SESSIONS LOG & ROOT CAUSE ANALYSES
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+SESSION ID:    bb0a01ec-4278-4604-9649-ef3fe3e914f5
+TIMESTAMP:     2026-09-30 11:47:35
+USER GOAL:     Verify completion of the first Inno Setup standalone installer.
+INVESTIGATION: The initial build script executed successfully, producing an installer 
+               in the output directory. Evaluated installer payload and file manifest.
+ROOT CAUSE:    N/A (Milestone verification).
+SOLUTION:      Confirmed proper directory structure for distribution.
+FILES TOUCHED: build_app.bat, OmniMesh.iss
+
+--------------------------------------------------------------------------------
+SESSION ID:    0220d16a-5008-4e18-b019-cd923f48ca42
+TIMESTAMP:     2026-09-30 11:53:37
+USER GOAL:     Configure application to launch minimized to system tray by default.
+INVESTIGATION: When launched at startup, opening the full window obstructed the user's 
+               desktop. The application needed a passive background mode.
+ROOT CAUSE:    show() was being called unconditionally during startup sequence.
+SOLUTION:      Modified startup logic to check for startup flags or default minimized 
+               mode, registering a system tray icon with context actions.
+FILES TOUCHED: OmniMesh.py, ui/main_window.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    6963d812-6063-4787-a47d-eadf4fb078c2
+TIMESTAMP:     2026-09-30 12:25:40
+USER GOAL:     Validate build_app.bat functionality after renaming root folder from 
+               "New folder" to "OmniMesh".
+INVESTIGATION: Hardcoded relative paths in batch scripts can break when directory 
+               names containing spaces or special characters change.
+ROOT CAUSE:    Incomplete quoting around %~dp0 and target destination directories.
+SOLUTION:      Audited build_app.bat; ensured all file copy and compilation paths 
+               used cd /d "%~dp0" and quoted system parameters.
+FILES TOUCHED: build_app.bat
+
+--------------------------------------------------------------------------------
+SESSION ID:    bbdf406a-c1d6-4230-b453-e2c835114aba
+TIMESTAMP:     2026-09-30 12:41:15
+USER GOAL:     Prepare clean repository structure for publishing to GitHub.
+INVESTIGATION: Workspace contained massive temporary directories (dist/, build/, 
+               .venv/, __pycache__/) that would pollute version control.
+ROOT CAUSE:    Missing comprehensive .gitignore configuration.
+SOLUTION:      Created production .gitignore targeting virtual environments, 
+               PyInstaller build artifacts, compiled bytecode, and temporary logs. 
+               Organized essential source code and build automation scripts.
+FILES TOUCHED: .gitignore, README.md
+
+--------------------------------------------------------------------------------
+SESSION ID:    c0a1c593-06a3-42ec-869f-56c44828c692
+TIMESTAMP:     2026-09-30 13:53:05
+USER GOAL:     Implement content-based smart bookmarking for PDF files.
+INVESTIGATION: Users merging disparate documents lacked automatic outlines/tables of 
+               contents. Manually adding bookmarks is tedious.
+ROOT CAUSE:    PyMuPDF text extraction had not been leveraged to inspect font sizing.
+SOLUTION:      Engineered heuristic algorithm in core/pdf_engine.py that extracts 
+               text spans, groups fonts by size and weight, identifies header-level 
+               candidates, and injects structural bookmarks into the document outline.
+FILES TOUCHED: core/pdf_engine.py, ui/action_bar.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    c4805a44-2f67-4775-8e7f-0926f31267d3 & 432af79a-632d-4b8d-b207-4147fd3eff18
+TIMESTAMP:     2026-09-30 14:48:56 - 14:56:50
+USER GOAL:     Resolve issue where newly compiled installer did not contain recent updates.
+INVESTIGATION: Running build_app.bat followed by the installer still resulted in the 
+               older binary running on the host system.
+ROOT CAUSE:    1. PyInstaller reused cached build/ and __pycache__ artifacts.
+               2. Inno Setup pulled from dist\ without purging existing outputs.
+               3. The installed application in %LOCALAPPDATA% was not being overwritten 
+                  if running background instances locked the executable files.
+SOLUTION:      1. Added aggressive rmdir /s /q "build" and "dist" commands to build_app.bat.
+               2. Added --clean flag to PyInstaller execution.
+               3. Added process termination before installation deployment.
+FILES TOUCHED: build_app.bat, OmniMesh.iss
+
+--------------------------------------------------------------------------------
+SESSION ID:    033ac97a-00f6-4331-9187-321f8f09d6fd & f232a207-189f-431a-9fce-26ce3070144b
+TIMESTAMP:     2026-09-30 15:08:49 - 15:11:15
+USER GOAL:     Ensure bookmarking feature is bundled properly in standalone installer.
+INVESTIGATION: Bookmarking libraries (pypdf/pymupdf) rely on dynamic C-extensions and 
+               metadata modules that standard PyInstaller analysis can miss.
+ROOT CAUSE:    Missing hiddenimports and collect_all declarations in the spec file.
+SOLUTION:      Added collect_all hooks for pymupdf, pypdf, and PIL into the PyInstaller 
+               spec file, ensuring all fonts and dynamic dependencies are packaged.
+FILES TOUCHED: OmniMesh.spec, build_app.bat
+
+--------------------------------------------------------------------------------
+SESSION ID:    bc888b18-03ca-41c5-94fd-45569669687c
+TIMESTAMP:     2026-09-30 15:22:06
+USER GOAL:     Update uninstaller to cleanly remove lingering files from the system.
+INVESTIGATION: Reinstallation failed or loaded stale files because the target directory 
+               contained orphaned .pyd files and cached configurations.
+ROOT CAUSE:    Standard Inno Setup uninstall did not purge dynamically created cache 
+               folders or subdirectories created after install.
+SOLUTION:      Added [UninstallDelete] section with Type: filesandordirs in the installer 
+               definition, guaranteeing pristine deletion of {app}.
+FILES TOUCHED: OmniMesh.iss
+
+--------------------------------------------------------------------------------
+SESSION ID:    c2d8d889-884b-4da0-b9ec-e441730987e1 & 75db56c2-b6d2-4f4b-8768-6836ec0d2e3d
+TIMESTAMP:     2026-09-30 17:06:43 - 20:02:51
+USER GOAL:     Add an interactive "EDIT" button to rotate and crop images in the carousel.
+INVESTIGATION: Users converting scanned JPG/PNG images to PDF frequently needed to 
+               straighten orientations or trim margins prior to merging.
+ROOT CAUSE:    Feature did not exist; files had to be externally edited.
+SOLUTION:      Built ui/image_editor.py featuring interactive rubber-band cropping, 
+               90-degree lossless rotation, zoom controls, and direct non-destructive 
+               commit back to the active carousel pipeline. Added ribbon action button.
+FILES TOUCHED: ui/image_editor.py, ui/action_bar.py, ui/main_window.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    4eaf1a37-ba02-44ea-a19b-f9eab3d002ed
+TIMESTAMP:     2026-09-30 23:58:47
+USER GOAL:     Add slim "READER" button at top of UI with sidebar bookmark viewer and 
+               integrated print dialogue.
+INVESTIGATION: Users required an in-app document viewing solution without launching 
+               heavy third-party PDF viewers like Adobe Acrobat.
+ROOT CAUSE:    Architecture lacked a dedicated document viewport.
+SOLUTION:      Engineered ui/reader_dialog.py containing a dual-pane reader: left side 
+               QTreeView for hierarchical bookmarks, right side high-DPI QGraphicsView 
+               for rendering PDF pages. Added custom styled print setup dialog.
+FILES TOUCHED: ui/reader_dialog.py, ui/tabs_bar.py, ui/main_window.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    11028ac6-ab8b-4254-9987-c1b5f6832349 & b4a6271
+TIMESTAMP:     2026-10-01 03:48:33
+USER GOAL:     Rebrand project from OmniMesh to OMNIME.
+INVESTIGATION: Project evolution expanded beyond simple mesh conversion into an all-in-one 
+               document intelligence suite.
+ROOT CAUSE:    Branding consistency across code, documentation, and assets.
+SOLUTION:      Updated repository root identifiers, strings, executable targets, and 
+               spec files from OmniMesh to OMNIME.
+FILES TOUCHED: OMNIME.py, OMNIME.iss, OMNIME.spec, README.md
+
+--------------------------------------------------------------------------------
+SESSION ID:    beee36a3-c7b3-45c3-8a27-bc950a977591
+TIMESTAMP:     2026-10-01 18:36:30
+USER GOAL:     Resolve IDE dependency conflicts and unresolved imports in main script.
+INVESTIGATION: IDE linter flagged missing modules and circular imports in OMNIME.py.
+ROOT CAUSE:    Transitive dependencies from sentence_transformers and torch were being 
+               imported unconditionally at top-level before UI initialization.
+SOLUTION:      Restructured imports; deferred heavy ML imports to background worker 
+               threads, cleaned up unused imports, and updated PyInstaller spec.
+FILES TOUCHED: OMNIME.py, OMNIME.spec
+
+--------------------------------------------------------------------------------
+SESSION ID:    Logo Engineering (Commits 6a3ba5f -> 511a1ea -> 4e23290 -> 3fe91ef)
+TIMESTAMP:     2026-10-01 20:00 - 23:30
+USER GOAL:     Develop high-tech geometric branding reflecting multidimensional computing.
+INVESTIGATION: Standard static icons looked dated and generic.
+ROOT CAUSE:    Visual assets lacked dynamic motion and technological sophistication.
+SOLUTION:      1. Mathematical Projection: Coded an orthographic 5D Penteract projection 
+                  with 5 axes of rotation (XY, XZ, XW, YV, ZV).
+               2. 3D Orbital Particle: Implemented a floating neon-green file icon 
+                  orbiting the hypercube with true 3D Z-sorting (rendered behind the 
+                  hypercube when Z < 0 and in front when Z > 0) with perspective scale.
+               3. High-Res Windows Icon: Built core/app_icon.py to procedurally draw 
+                  the hypercube to a multi-frame ICO file (MN.ico).
+FILES TOUCHED: core/app_icon.py, ui/main_window.py, OMNIME.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    779628bf-ff24-44fe-a3ae-e7b38e11a909 & 50a0fe9b-d168-433f-80d8-4030dfa03114
+TIMESTAMP:     2026-10-02 00:53:47 - 01:11:49
+USER GOAL:     Fix training script import errors (train_mnime.py).
+INVESTIGATION: The fine-tuning script failed due to recent deprecations in the HuggingFace 
+               TRL library.
+ROOT CAUSE:    TRL deprecated passing training parameters directly into SFTTrainer in favor 
+               of the dedicated SFTConfig class.
+SOLUTION:      Migrated fine-tuning code to use SFTConfig; excluded local unsloth caches 
+               and training data from the Git repository.
+FILES TOUCHED: train_mnime.py, .gitignore
+
+--------------------------------------------------------------------------------
+SESSION ID:    c9de1722-050f-47b4-bc1a-0cd110894696 & 891710b6-b72b-448d-baf6-b0baa51165ed
+TIMESTAMP:     2026-10-02 01:34:52 - 02:21:22
+USER GOAL:     Clarify why two installers exist and resolve installer compilation failure.
+INVESTIGATION: User noted both MNIME_Setup.exe and MNIME_installer.exe in output folder. 
+               The build crashed during PyInstaller execution.
+ROOT CAUSE:    1. Dual Architecture: Inno Setup produces enterprise-standard installers; 
+                  custom_installer.py produces a branded, animated particle wizard.
+               2. Spec file referenced the old OMN.ico name instead of MN.ico.
+               3. UTF-8 BOM encoding in build scripts caused batch syntax errors.
+SOLUTION:      Fixed spec file asset references, stripped UTF-8 BOM, and documented 
+               the dual-installer purpose in README.md.
+FILES TOUCHED: MNIME.spec, MNIME_installer.spec, build_app.bat
+
+--------------------------------------------------------------------------------
+SESSION ID:    0599d6cf-025b-4aa4-89c3-64eb9492a54a & f00e7ade-f26a-488c-9c57-b780402c1859
+TIMESTAMP:     2026-10-02 07:39:38 - 08:02:33
+USER GOAL:     Fix issue where NLP active indicator does not illuminate when reloading model, 
+               and fix installer installing outdated binaries.
+INVESTIGATION: 1. When toggling the local neural model, memory usage increased to 3 GB, 
+                  proving the model loaded, but the UI indicator remained gray.
+               2. Running install_mnime.bat failed to recompile when source code changed.
+ROOT CAUSE:    1. Signal emission in background thread was blocked or not connected to 
+                  the main UI thread slot.
+               2. install_mnime.bat lacked a build-staleness check against dist\MNIME.exe.
+SOLUTION:      1. Connected worker signals properly via Qt thread-safe queued connections.
+               2. Added automated PowerShell timestamp comparison to install_mnime.bat to 
+                  automatically invoke build_app.bat if any source file is newer than the exe.
+FILES TOUCHED: core/worker.py, ui/tabs_bar.py, install_mnime.bat
+
+--------------------------------------------------------------------------------
+SESSION ID:    b33cdd23-35af-4658-8a1d-1e5249b05a74 & 6fd57d47-9abd-4f9b-be49-c324d6897065
+TIMESTAMP:     2026-10-02 19:57:21 - 22:41:21
+USER GOAL:     Generate formal academic LaTeX research paper and product specification manual.
+INVESTIGATION: User required conference-grade documentation for Bellevue College AISD capstone.
+ROOT CAUSE:    Formatting constraints of two-column EACL style caused Table 1 to bleed 
+               across columns.
+SOLUTION:      1. Authored complete LaTeX paper in paper/ and compiled MNIME_paper.pdf.
+               2. Fixed table width using tabularx with adjusted column margins.
+               3. Developed scripts/generate_mnime_pdf.py using ReportLab to build 
+                  the 12-page MNIME_Spec_Manual.pdf with vector graphics.
+FILES TOUCHED: paper/mnime_paper.tex, MNIME_paper.pdf, scripts/generate_mnime_pdf.py, MNIME_Spec_Manual.pdf
+
+--------------------------------------------------------------------------------
+SESSION ID:    Telemetry & Benchmarking (fe75c3e -> ab71487 -> bc44046)
+TIMESTAMP:     2026-10-02 22:05:10 - 22:30:00
+USER GOAL:     Add "Stats for Nerds" telemetry overlay and automated empirical benchmarking.
+INVESTIGATION: Users and evaluators needed visibility into local system resource utilization 
+               and real-world throughput.
+ROOT CAUSE:    Lack of instrumentation and performance metrics.
+SOLUTION:      1. Created ui/stats_for_nerds.py: real-time CPU, RAM, and VRAM monitoring 
+                  using psutil and Windows performance APIs with dynamic plotting.
+               2. Created benchmark.py: measures PDF merge latency, OCR recognition speed, 
+                  and token generation rates across real hardware (Ryzen 9 7950X, RTX 3060).
+FILES TOUCHED: ui/stats_for_nerds.py, benchmark.py, README.md
+
+--------------------------------------------------------------------------------
+SESSION ID:    098cb770-dcbd-4049-9bcd-29bfa6593faa
+TIMESTAMP:     2026-10-03 00:05:09
+USER GOAL:     Senior SWE audit for product launch: resolve blank print issue, fix UI links, 
+               harden against vulnerabilities, and tighten project consistency.
+INVESTIGATION: 1. Print Engine Failure: When printing from the Reader, the printer produced 
+                  blank white sheets. Qt's QPrinter/QPainter pipeline failed to transfer 
+                  rasterized PDF bitmaps through the Windows print spooler.
+               2. Single-Instance & IPC: Launching MNIME while an instance was running 
+                  spawned duplicate heavy processes rather than opening files in the active window.
+               3. Error Handling: Numerous bare except: statements masked system exceptions.
+ROOT CAUSE:    1. Qt PrintSupport on Windows requires high-DPI coordinate transformation that 
+                  silently clipped bitmap rasters when rendering PyMuPDF pixmaps.
+               2. Lack of local named pipe or socket single-instance arbitration.
+               3. Defensive programming lacked structured logging and strict error catching.
+SOLUTION:      1. Built core/print_engine.py: Native Win32 GDI printing bypasses Qt 
+                  entirely using PrintDlgW, StartDocW, and StretchDIBits directly to the 
+                  device context (hDC).
+               2. Built core/ipc.py: Windows local socket IPC with validated JSON payload 
+                  parsing, payload size caps (256 KB), and path length limits (4096 chars).
+               3. Built core/text_safety.py: Prompt injection protection (stripping ChatML 
+                  tokens) and filesystem filename sanitization.
+               4. Created comprehensive unit test suite in tests/ (15 tests, all passing).
+               5. Replaced bare exceptions across core/ and ui/ with logging in core/logging_setup.py.
+FILES TOUCHED: core/print_engine.py, core/ipc.py, core/text_safety.py, core/logging_setup.py, 
+               tests/test_ipc_parse.py, tests/test_nlp_sanitize.py, tests/test_pdf_engine.py, 
+               tests/test_print_engine.py, ui/reader_dialog.py, ui/main_window.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    158d0670-9091-4bb2-b561-5b7964904f39
+TIMESTAMP:     2026-10-03 00:51:01
+USER GOAL:     Check and resolve all IDE problems, type warnings, and code smells.
+INVESTIGATION: IDE reported minor diagnostics across core and UI modules after the 
+               security refactor.
+ROOT CAUSE:    Type annotations and unused imports in modified modules.
+SOLUTION:      Audited and cleaned core/file_item.py, core/nlp_engine.py, ui/output_view.py, 
+               and ui/main_window.py.
+FILES TOUCHED: core/file_item.py, core/nlp_engine.py, ui/output_view.py, ui/main_window.py
+
+--------------------------------------------------------------------------------
+SESSION ID:    f569ad18-ba2b-4b07-93d4-183b0ccc9494
+TIMESTAMP:     2026-10-03 01:32:45
+USER GOAL:     Troubleshoot installer: application files installed to AppData, but no 
+               shortcuts were created, and application did not automatically load.
+INVESTIGATION: Examined target directory: C:\Users\kyled\AppData\Local\Programs\MNIME 
+               contained all binaries (MNIME.exe, MN.ico, _internal). However, no 
+               shortcuts were present on Desktop or Start Menu, and no uninstallation 
+               entry was visible in Windows Settings (Add or Remove Programs).
+ROOT CAUSE:    1. In custom_installer.py, the shortcut creation logic relied on 
+                  import win32com.client which failed inside the single-binary PyInstaller 
+                  bundle because COM dispatch typelibs are not unpacked in memory.
+               2. No fallback shortcut generation was implemented.
+               3. The installer exited immediately upon file extraction without launching 
+                  the application executable.
+               4. Windows registry uninstallation keys (HKCU\Software\Microsoft\Windows\
+                  CurrentVersion\Uninstall\MNIME) were missing from custom_installer.py.
+               5. In the IDE, cross-drive path resolution (B:\ repository vs C:\ Python) 
+                  caused Pylance import resolution squiggles.
+SOLUTION:      1. Added robust PowerShell COM fallback script to custom_installer.py 
+                  that executes via subprocess if win32com.client fails.
+               2. Added automatic detached process launch of MNIME.exe upon installation.
+               3. Implemented full Windows Registry uninstaller registration in 
+                  custom_installer.py and install_mnime.bat, adding DisplayName, 
+                  DisplayVersion, Publisher, InstallLocation, DisplayIcon, and UninstallString.
+               4. Generated an automated, self-deleting uninstaller batch script (uninstall.bat) 
+                  that terminates running processes, removes shortcuts, deletes registry keys, 
+                  and cleans the install folder.
+               5. Updated .vscode/settings.json with extraPaths pointing to both the 
+                  workspace virtual environment and system Python site-packages.
+FILES TOUCHED: custom_installer.py, install_mnime.bat, .vscode/settings.json
+
+
+4. COMPLETE BUILD SYSTEM SPECIFICATIONS & STEP-BY-STEP PROCESS
+--------------------------------------------------------------------------------
+The MNIME build system consists of a multi-tiered pipeline designed to produce 
+standalone, portable, and production-ready Windows binaries.
+
+Prerequisites on Windows 11:
+  - Python 3.12 (64-bit) with venv and pip.
+  - Inno Setup 6 (installed to C:\Program Files (x86)\Inno Setup 6\ISCC.exe).
+  - (Optional) Windows 10/11 SDK with signtool.exe for digital code signing.
+
+Pipeline Architecture:
+  Source Code (.py) 
+    --> Icon Generator (core/app_icon.py) 
+    --> PyInstaller Bundle (MNIME.spec) 
+    --> Output Directory (dist\MNIME\) 
+    --> Dual Installer Builders:
+          1. Inno Setup Compiler (MNIME.iss) -> installer\MNIME_Setup.exe
+          2. PyInstaller Custom Installer (MNIME_installer.spec) -> installer\MNIME_installer.exe
+
+Detailed Step-by-Step Execution:
+
+Step 1: Environment Initialization
+  The script build_app.bat verifies or creates a Python virtual environment (.venv) 
+  in the workspace root:
+    python -m venv .venv
+    .venv\Scripts\python.exe -m pip install --upgrade pip
+    .venv\Scripts\pip.exe install -r requirements.txt
+    .venv\Scripts\pip.exe install pyinstaller pillow pymupdf pypdf pdf2docx
+
+Step 2: Procedural Icon Generation
+  Prior to compiling, the script invokes:
+    .venv\Scripts\python.exe -c "from core.app_icon import ensure_ico_file; ensure_ico_file()"
+  This dynamically calculates the multi-dimensional projection and writes MN.ico 
+  containing multi-resolution frames (16x16, 32x32, 48x48, 64x64, 128x128, 256x256).
+
+Step 3: Core Application Compilation (PyInstaller Directory Mode)
+  The build script purges stale artifacts and executes PyInstaller:
+    rmdir /s /q "build"
+    rmdir /s /q "dist"
+    .venv\Scripts\pyinstaller.exe --clean --noconfirm "MNIME.spec"
+  
+  MNIME.spec configuration:
+    - Entry Point: MNIME.py
+    - Mode: Directory mode (COLLECT) for fast startup and reliable dynamic DLL loading.
+    - Hidden Imports: Collects all submodules for pymupdf, pypdf, PIL, PyQt6, core, 
+      ui, llama_cpp, faiss, and sentence_transformers.
+    - Excludes: Unnecessary heavyweight libraries (matplotlib, tensorflow, spacy).
+    - Output Target: dist\MNIME\ containing MNIME.exe and _internal\ runtime.
+
+Step 4: Standard Inno Setup Installer Generation
+  If Inno Setup 6 is detected, ISCC.exe is invoked against MNIME.iss:
+    "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" MNIME.iss
+  - Packages the entire contents of dist\MNIME\* into an ultra64 LZMA2 compressed 
+    installer at installer\MNIME_Setup.exe.
+  - Registers shortcuts and Windows Add or Remove Programs metadata.
+
+Step 5: Modern Animated Custom Installer Generation
+  The script compiles custom_installer.py using MNIME_installer.spec:
+    .venv\Scripts\pyinstaller.exe --clean --noconfirm "MNIME_installer.spec"
+  - Mode: Single-file executable (EXE) embedding dist\MNIME as internal datas.
+  - Generates installer\MNIME_installer.exe.
+  - On execution, this installer displays a GPU-rendered dark glassmorphic window 
+    with flying document particles, real-time extraction progress, PowerShell-backed 
+    shortcut creation, and Windows uninstallation registry registration.
+
+Step 6: Automated Local Deployment & Stale-Build Check (install_mnime.bat)
+  Developers or users can execute install_mnime.bat for instant local installation:
+  - Compares timestamps of core/ and ui/ source files against dist\MNIME\MNIME.exe.
+  - If source files are newer, automatically triggers build_app.bat first.
+  - Gracefully terminates running MNIME.exe processes.
+  - Copies binaries to %LOCALAPPDATA%\Programs\MNIME.
+  - Creates Desktop and Start Menu shortcuts.
+  - Registers uninstaller in Windows Registry (HKCU).
+
+
+5. ARCHITECTURAL DEEP-DIVE INTO KEY SUBSYSTEMS
+--------------------------------------------------------------------------------
+
+A. Native Windows GDI Print Engine (core/print_engine.py)
+  - Problem: Standard Qt QPrinter output produced completely blank pages on Windows 
+    due to DPI coordinate mapping flaws when rasterizing PyMuPDF page pixmaps.
+  - Solution: Replaced Qt print pipeline with native Win32 GDI calls via ctypes:
+      * PrintDlgW: Native Windows printer selection and page range configuration dialog.
+      * StartDocW / StartPage: Initiates Windows print spooler job.
+      * StretchDIBits: Streams raw 32-bit BGRA bitmap scanlines directly to the 
+        printer's device context (hDC).
+      * Memory Cap: Enforced MAX_RASTER_PIXELS (60,000,000 pixels / ~240 MB) and 
+        MAX_DPI (300 DPI) to prevent out-of-memory crashes on billboard printers.
+
+B. Single-Instance IPC Architecture (core/ipc.py & ui/main_window.py)
+  - Problem: Users opening multiple documents or clicking file associations spawned 
+    multiple memory-heavy instances, duplicating local model allocations.
+  - Solution: Local named pipe single-instance manager using QLocalServer:
+      * Server Name: "MNIME_SingleInstance_IPC_Server"
+      * When a secondary instance starts, it detects the active server, packages CLI 
+        arguments via build_open_request(), transmits the payload over the local socket, 
+        and terminates immediately.
+      * The primary instance receives the socket signal, parses and validates the payload 
+        via parse_open_request() (capping payload size at 256 KB and paths at 4096 chars), 
+        restores/unminimizes the window, and opens the requested documents.
+
+C. 5D Penteract Projection Engine (ui/main_window.py & custom_installer.py)
+  - Architecture: Renders a 5-dimensional hypercube (penteract) projected onto a 
+    2D canvas via 5D rotation matrices.
+  - Vertices: 32 vertices with coordinates (+-1, +-1, +-1, +-1, +-1).
+  - Edges: 80 connecting edges where coordinates differ by exactly one component.
+  - Rotation: Rotates across multiple planes (XY, XZ, XW, YV, ZV) with trigonometric 
+    transformation applied per animation frame.
+  - Z-Sorting: The orbiting document file tracks 3D camera depth, scaling dynamically 
+    and rendering either under or over the wireframe to provide true depth illusion.
+
+D. Content-Based Heuristic Bookmarking (core/pdf_engine.py)
+  - Inspects all text spans on each PDF page via PyMuPDF.
+  - Computes statistical font size distribution across the document.
+  - Identifies headings (text spans with font size > 1.2x body text or bold styling).
+  - Constructs a nested outline tree and inserts PDF bookmarks (TOC) into the document 
+    without modifying underlying text.
+
+
+6. VERIFICATION, TESTING & OPERATIONAL RUNBOOK
+--------------------------------------------------------------------------------
+
+A. Running the Test Suite:
+   Execute using Windows 11 PowerShell or Command Prompt:
+     C:\Users\kyled\AppData\Local\Programs\Python\Python312\python.exe -m pytest tests/
+   Output: 15 passed in ~1.2s
+     - tests\test_ipc_parse.py: Validates JSON structure, size caps, and error states.
+     - tests\test_nlp_sanitize.py: Validates prompt injection stripping and filename safety.
+     - tests\test_pdf_engine.py: Validates PDF merge, extraction, and bookmark insertion.
+     - tests\test_print_engine.py: Validates GDI buffer limits and print cancel exceptions.
+
+B. Running the Hardware Benchmark:
+   Execute:
+     python benchmark.py
+   Measures real-world operations across active hardware (CPU, RAM, GPU VRAM, 
+   token generation rate, and page rendering throughput).
+
+C. Clean Uninstallation:
+   MNIME can be removed cleanly either via:
+     1. Windows Settings -> Apps -> Installed apps -> MNIME -> Uninstall.
+     2. Running %LOCALAPPDATA%\Programs\MNIME\uninstall.bat directly.
+   The uninstaller terminates running instances, deletes Desktop/Start Menu shortcuts, 
+   removes the HKCU registry key, and launches a detached background process to 
+   delete the program directory.
+
+================================================================================
+END OF CHANGE LOG - MNIME v2.1 RELEASE BUILD
+================================================================================

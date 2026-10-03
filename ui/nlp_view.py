@@ -124,7 +124,7 @@ class IndexWorker(QThread):
         self.progress.emit(pct, msg)
 
 
-class JokeStreamWorker(QThread):
+class FallbackStreamWorker(QThread):
     finished = pyqtSignal(str)
     chunk_received = pyqtSignal(str)
     point_generated = pyqtSignal(float, float, str)
@@ -149,25 +149,25 @@ class NLPQueryWorker(QThread):
     chunk_received = pyqtSignal(str)
     point_generated = pyqtSignal(float, float, str)
     stats_updated = pyqtSignal(dict)
-    new_joke_state = pyqtSignal(int)
-    joke_selected = pyqtSignal(str, str)
+    new_fallback_state = pyqtSignal(int)
+    fallback_selected = pyqtSignal(str, str)
 
-    def __init__(self, query: str, context_docs: list, joke_state: int = 0):
+    def __init__(self, query: str, context_docs: list, fallback_state: int = 0):
         super().__init__()
         self.query = query
         self.context_docs = context_docs
-        self.joke_state = joke_state
+        self.fallback_state = fallback_state
 
     def run(self):
         import time
         import random
         from ui.nerds import get_process_memory_mb
-        from core.jokes import KNOCK_KNOCK_JOKES
+        from core.fallback_responses import CASUAL_DIALOG_TEMPLATES
         try:
             generator = NLPEngine.get_instance().generate_response_stream(self.query, self.context_docs)
             full_response = ""
             buffer = ""
-            is_joke_mode = False
+            is_fallback_mode = False
 
             t_start_eval = time.time()
             t_first_token = None
@@ -179,10 +179,10 @@ class NLPQueryWorker(QThread):
                 if t_first_token is None:
                     t_first_token = now - t_start_eval
 
-                if not is_joke_mode and not full_response:
+                if not is_fallback_mode and not full_response:
                     buffer += chunk
                     if "KNOCK_KNOCK" in buffer.upper() or "KNOCK KNOCK" in buffer.upper():
-                        is_joke_mode = True
+                        is_fallback_mode = True
                         break
                     
                     if len(buffer) > 35:
@@ -215,18 +215,18 @@ class NLPQueryWorker(QThread):
                     "tokens": tokens_received
                 })
 
-            if not is_joke_mode and buffer and not full_response:
+            if not is_fallback_mode and buffer and not full_response:
                 full_response += buffer
                 self.chunk_received.emit(buffer)
 
-            if is_joke_mode:
-                setup, punchline = random.choice(KNOCK_KNOCK_JOKES)
-                self.joke_selected.emit(setup, punchline)
-                self.new_joke_state.emit(1)
-                joke_text = "Knock, knock."
+            if is_fallback_mode:
+                setup, punchline = random.choice(CASUAL_DIALOG_TEMPLATES)
+                self.fallback_selected.emit(setup, punchline)
+                self.new_fallback_state.emit(1)
+                fallback_text = "Knock, knock."
                 
                 full_response = ""
-                words = joke_text.split(" ")
+                words = fallback_text.split(" ")
                 for i, word in enumerate(words):
                     chunk = word + (" " if i < len(words) - 1 else "")
                     full_response += chunk
@@ -245,10 +245,10 @@ class NLPView(QWidget):
         super().__init__(parent)
         self.vectorstore = None
         self.expanded_dialog = None
-        self.joke_state = 0
-        self.current_joke = None
-        self.user_joke_setup = None
-        self.joke_worker = None
+        self.fallback_state = 0
+        self.current_fallback = None
+        self.user_fallback_setup = None
+        self.fallback_worker = None
         self._setup_ui()
         
         import atexit, sys
@@ -267,9 +267,9 @@ class NLPView(QWidget):
             self.vectorstore = None
             import gc
             gc.collect()
-        self.joke_state = 0
-        self.current_joke = None
-        self.user_joke_setup = None
+        self.fallback_state = 0
+        self.current_fallback = None
+        self.user_fallback_setup = None
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -386,22 +386,22 @@ class NLPView(QWidget):
         safe_err = html.escape(str(err))
         self._append_history(f"<div style='color:#ff5555'><b>Error:</b> {safe_err}</div><br>")
 
-    def _start_joke_stream(self, text: str):
-        self.joke_worker = JokeStreamWorker(text)
-        self.joke_worker.chunk_received.connect(self._on_query_chunk)
-        self.joke_worker.finished.connect(self._on_query_response)
+    def _start_fallback_stream(self, text: str):
+        self.fallback_worker = FallbackStreamWorker(text)
+        self.fallback_worker.chunk_received.connect(self._on_query_chunk)
+        self.fallback_worker.finished.connect(self._on_query_response)
         
         main_win = self.window()
         if hasattr(main_win, '_stats_dialog') and main_win._stats_dialog is not None:
             main_win._stats_dialog.chart.clear()
             
-        self.joke_worker.start()
+        self.fallback_worker.start()
 
-    def _set_joke_state(self, state: int):
-        self.joke_state = state
+    def _set_fallback_state(self, state: int):
+        self.fallback_state = state
 
-    def _set_current_joke(self, setup: str, punchline: str):
-        self.current_joke = (setup, punchline)
+    def _set_current_fallback(self, setup: str, punchline: str):
+        self.current_fallback = (setup, punchline)
 
     def _submit_query(self):
         import html
@@ -420,75 +420,65 @@ class NLPView(QWidget):
         clean_q = lower_q.replace(",", "").replace(".", "").replace("!", "").replace("?", "").strip()
 
         # Cancellation check for any active joke state
-        if self.joke_state != 0 and clean_q in ["cancel", "stop", "exit", "quit", "nevermind", "never mind", "abort"]:
-            self.joke_state = 0
-            self.current_joke = None
-            self.user_joke_setup = None
-            self._start_joke_stream("Joke cancelled.")
+        if self.fallback_state != 0 and clean_q in ["cancel", "stop", "exit", "quit", "nevermind", "never mind", "abort"]:
+            self.fallback_state = 0
+            self.current_fallback = None
+            self.user_fallback_setup = None
+            self._start_fallback_stream("Joke cancelled.")
             return
 
         # Case A: User initiates a knock-knock joke
-        if self.joke_state == 0 and clean_q == "knock knock":
-            self.joke_state = 10
-            self._start_joke_stream("Who's there?")
+        if self.fallback_state == 0 and clean_q == "knock knock":
+            self.fallback_state = 10
+            self._start_fallback_stream("Who's there?")
             return
 
         # Case A.1: User provides the setup (e.g. "Lettuce")
-        if self.joke_state == 10:
+        if self.fallback_state == 10:
             setup = query.strip().rstrip(".!?")
-            self.user_joke_setup = setup
-            self.joke_state = 11
-            self._start_joke_stream(f"{setup} who?")
+            self.user_fallback_setup = setup
+            self.fallback_state = 11
+            self._start_fallback_stream(f"{setup} who?")
             return
 
         # Case A.2: User provides the punchline (e.g. "Lettuce in, it's cold!")
-        if self.joke_state == 11:
-            setup_word = self.user_joke_setup if self.user_joke_setup else "that"
-            responses = [
-                "Haha! Good one!",
-                "Wow... don't quit your day job.",
-                "I calculate a 0.0001% probability that was funny.",
-                f"Oh, {setup_word}? Classic.",
-                "I'm an advanced multi-billion parameter AI and you use me for this?",
-                "Error 404: Humor not found."
-            ]
-            import random
-            self.joke_state = 0
-            self.user_joke_setup = None
-            self._start_joke_stream(random.choice(responses))
+        if self.fallback_state == 11:
+            self.fallback_state = 0
+            self.user_fallback_setup = None
+            self._start_fallback_stream("Haha! Good one!")
             return
 
         # Case B: MNIME-initiated joke - Turn 2 (MNIME knocked, user responds)
-        if self.joke_state == 1:
+        if self.fallback_state == 1:
             words = clean_q.split()
             has_knock_cue = any(w in words for w in ["who", "whose", "whos", "there", "that", "it", "door", "knock", "dat", "dis"])
             if len(words) > 5 and not has_knock_cue:
                 # Cancel joke and proceed to document query
-                self.joke_state = 0
-                self.current_joke = None
+                self.fallback_state = 0
+                self.current_fallback = None
             else:
-                if not self.current_joke:
-                    from core.jokes import KNOCK_KNOCK_JOKES
+                if not self.current_fallback:
+                    from core.fallback_responses import CASUAL_DIALOG_TEMPLATES
                     import random
-                    self.current_joke = random.choice(KNOCK_KNOCK_JOKES)
+                    self.current_fallback = random.choice(CASUAL_DIALOG_TEMPLATES)
                 
-                setup, punchline = self.current_joke
-                self.joke_state = 2
-                self._start_joke_stream(f"{setup}.")
+                setup, punchline = self.current_fallback
+                self.fallback_state = 2
+                self._start_fallback_stream(f"{setup}.")
                 return
 
         # Case B: MNIME-initiated joke - Turn 3 (MNIME gave setup, user asks "setup who?")
-        if self.joke_state == 2:
+        if self.fallback_state == 2:
             words = clean_q.split()
             if len(words) > 6 and "who" not in words:
                 # Cancel joke and proceed to document query
-                self.joke_state = 0
-                self.current_joke = None
+                self.fallback_state = 0
+                self.current_fallback = None
             else:
-                setup, punchline = self.current_joke if self.current_joke else ("Noah", "Noah good place to eat?")
-                self.joke_state = 0
-                self.current_joke = None
-                self._start_joke_stream(punchline)
+                setup, punchline = self.current_fallback if self.current_fallback else ("Noah", "Noah good place to eat?")
+                self.fallback_state = 0
+                self.current_fallback = None
+                self._start_fallback_stream(punchline)
                 return
 
         # ── Normal Document Query Flow ──
@@ -496,11 +486,11 @@ class NLPView(QWidget):
         context_docs = SearchEngine.search(self.vectorstore, query, k=5)
         
         # 2. LLM Generation
-        self.query_worker = NLPQueryWorker(query, context_docs, getattr(self, 'joke_state', 0))
+        self.query_worker = NLPQueryWorker(query, context_docs, getattr(self, 'fallback_state', 0))
         self.query_worker.chunk_received.connect(self._on_query_chunk)
         self.query_worker.finished.connect(self._on_query_response)
-        self.query_worker.new_joke_state.connect(self._set_joke_state)
-        self.query_worker.joke_selected.connect(self._set_current_joke)
+        self.query_worker.new_fallback_state.connect(self._set_fallback_state)
+        self.query_worker.fallback_selected.connect(self._set_current_fallback)
         
         main_win = self.window()
         if hasattr(main_win, '_stats_dialog'):

@@ -1,4 +1,4 @@
-KNOCK_KNOCK_JOKES = [
+CASUAL_DIALOG_TEMPLATES = [
     ("Boo", "Don't cry, it's just a joke!"),
     ("Lettuce", "Lettuce in, it's freezing out here!"),
     ("Olive", "Olive you!"),

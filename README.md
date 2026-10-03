@@ -200,8 +200,8 @@ MNIME/
 │   └── generate_mnime_pdf.py     # Specification manual PDF generator
 ├── tests/                 # Automated test suite
 │   ├── test_ipc_parse.py
+│   ├── test_nlp_conversational_fallback.py
 │   ├── test_nlp_indexing.py
-│   ├── test_nlp_joke_turn_based.py
 │   ├── test_nlp_sanitize.py
 │   ├── test_pdf_engine.py
 │   ├── test_print_engine.py

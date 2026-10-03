@@ -293,6 +293,16 @@ class CoverPage(Flowable):
 
 # ─── Style Definitions ────────────────────────────────────────────────────────
 
+def sanitize_xml(txt: Any) -> str:
+    """Safely escapes text for ReportLab Paragraph XML parsing without double-escaping."""
+    if txt is None:
+        return ""
+    s = str(txt)
+    # First unescape if already partially escaped
+    s = s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"')
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
 def build_styles() -> Dict[str, ParagraphStyle]:
     s = {}
     s["title"] = ParagraphStyle(
@@ -471,7 +481,7 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
         desc_map = {
             "1": "Project architecture, core technology stack, offline principles, and runtime specifications.",
             "2": "Chronological evolution from OmniMesh genesis through 5D vector math, NLP, and release hardening.",
-            "3": "Detailed forensic log of 20+ IDE conversation sessions, problem diagnosis, and technical remediations.",
+            "3": "Detailed forensic log of 22 IDE conversation sessions, problem diagnosis, and technical remediations.",
             "4": "End-to-end build commands, Inno Setup and custom animated installer compilation runbook.",
             "5": "Deep-dives into native Win32 GDI printing, single-instance named pipes, and heuristic bookmarking.",
             "6": "Pytest validation, benchmark procedures, and Windows Add/Remove Programs clean uninstallation."
@@ -536,14 +546,22 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
             story.append(Spacer(1, 3 * mm))
 
             for sess in s["sessions"]:
-                header_text = f'<b>SESSION ID:</b> <font color="#00e5ff">{sess["id"]}</font>   |   <b>TIMESTAMP:</b> {sess["timestamp"]}'
+                s_id = sanitize_xml(sess["id"])
+                s_time = sanitize_xml(sess["timestamp"])
+                s_goal = sanitize_xml(sess["user_goal"])
+                s_inv = sanitize_xml(sess["investigation"])
+                s_rc = sanitize_xml(sess["root_cause"])
+                s_sol = sanitize_xml(sess["solution"])
+                s_files = sanitize_xml(sess["files"])
+
+                header_text = f'<b>SESSION ID:</b> <font color="#00e5ff">{s_id}</font>   |   <b>TIMESTAMP:</b> {s_time}'
                 card_data = [
                     [Paragraph(header_text, styles["body_bold"])],
-                    [Paragraph(f'<b>User Goal:</b> <font color="#e8eaf6">{sess["user_goal"]}</font>', styles["body"])],
-                    [Paragraph(f'<b>Technical Diagnosis:</b> {sess["investigation"]}', styles["body_small"])],
-                    [Paragraph(f'<b>Root Cause:</b> <font color="#ffd700">{sess["root_cause"]}</font>', styles["body_small"])],
-                    [Paragraph(f'<b>Remediation / Solution:</b> {sess["solution"]}', styles["body_small"])],
-                    [Paragraph(f'<b>Files Modified:</b> <font color="#39ff14">{sess["files"]}</font>', styles["mono"])]
+                    [Paragraph(f'<b>User Goal:</b> <font color="#e8eaf6">{s_goal}</font>', styles["body"])],
+                    [Paragraph(f'<b>Technical Diagnosis:</b> {s_inv}', styles["body_small"])],
+                    [Paragraph(f'<b>Root Cause:</b> <font color="#ffd700">{s_rc}</font>', styles["body_small"])],
+                    [Paragraph(f'<b>Remediation / Solution:</b> {s_sol}', styles["body_small"])],
+                    [Paragraph(f'<b>Files Modified:</b> <font color="#39ff14">{s_files}</font>', styles["mono"])]
                 ]
                 
                 t = Table(card_data, colWidths=[CONTENT_W])
@@ -565,12 +583,25 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
             in_code_block = False
             code_lines = []
 
+            def create_code_box(clist):
+                code_txt = "<br/>".join(clist)
+                p_code = Paragraph(code_txt, styles["mono"])
+                box = Table([[p_code]], colWidths=[CONTENT_W])
+                box.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), BG_CARD),
+                    ('BOX', (0, 0), (-1, -1), 0.6, BORDER_COLOR),
+                    ('TOPPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ]))
+                return box
+
             for line in lines:
                 stripped = line.strip()
                 if not stripped:
                     if in_code_block and code_lines:
-                        code_txt = "<br/>".join(code_lines)
-                        story.append(Paragraph(code_txt, styles["mono"]))
+                        story.append(create_code_box(code_lines))
                         story.append(Spacer(1, 2 * mm))
                         code_lines = []
                         in_code_block = False
@@ -578,8 +609,7 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
 
                 if stripped.startswith("Phase ") or stripped.startswith("Step ") or (len(stripped) > 2 and stripped[1] == "." and stripped[0].isalpha()):
                     if in_code_block and code_lines:
-                        code_txt = "<br/>".join(code_lines)
-                        story.append(Paragraph(code_txt, styles["mono"]))
+                        story.append(create_code_box(code_lines))
                         code_lines = []
                         in_code_block = False
                     
@@ -587,28 +617,29 @@ def generate_pdf(changelog_path: str, output_pdf_path: str, cover_png_path: str 
                     story.append(Paragraph(f'<b>{stripped}</b>', styles["h2"]))
                     continue
 
-                if line.startswith("    python") or line.startswith("    .venv") or line.startswith("    git ") or line.startswith("    rmdir") or line.startswith("     "):
+                if line.startswith("    python") or line.startswith("    .venv") or line.startswith("    git ") or line.startswith("    rmdir") or line.startswith("     ") or line.startswith("  Source Code") or line.startswith("    -->") or line.startswith("          1.") or line.startswith("          2."):
                     in_code_block = True
-                    code_lines.append(stripped.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                    code_lines.append(sanitize_xml(stripped))
                     continue
                 else:
                     if in_code_block and code_lines:
-                        code_txt = "<br/>".join(code_lines)
-                        story.append(Paragraph(code_txt, styles["mono"]))
+                        story.append(create_code_box(code_lines))
                         story.append(Spacer(1, 2 * mm))
                         code_lines = []
                         in_code_block = False
 
-                if stripped.startswith("- ") or stripped.startswith("* "):
-                    bullet_text = stripped[2:].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                if stripped.startswith("* "):
+                    sub_text = sanitize_xml(stripped[2:])
+                    story.append(Paragraph(f'&nbsp;&nbsp;&nbsp;&nbsp;<font color="#90a4ae">&#9658;</font>  {sub_text}', styles["body_small"]))
+                elif stripped.startswith("- "):
+                    bullet_text = sanitize_xml(stripped[2:])
                     story.append(Paragraph(f'<font color="#00e5ff">&#8226;</font>  {bullet_text}', styles["body"]))
                 else:
-                    clean_text = stripped.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    clean_text = sanitize_xml(stripped)
                     story.append(Paragraph(clean_text, styles["body"]))
 
             if in_code_block and code_lines:
-                code_txt = "<br/>".join(code_lines)
-                story.append(Paragraph(code_txt, styles["mono"]))
+                story.append(create_code_box(code_lines))
                 story.append(Spacer(1, 2 * mm))
 
     # Build PDF with ReportLab

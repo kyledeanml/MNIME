@@ -264,10 +264,14 @@ MNIME includes a telemetry dashboard and benchmarking suite (`ui/stats_for_nerds
   </a>
 </p>
 
-> **MNIME Build Process & Change Log** — Interactive document outlining the complete engineering lifecycle from initial repository genesis through 5D vector mathematics, local neural engine integration, dual-installer packaging, and 21 forensic IDE conversation sessions. Dynamically compiled directly from [`CHANGE_LOG.txt`](CHANGE_LOG.txt) via `scripts/generate_changelog_pdf.py`.
+> **MNIME Build Process & Change Log** — Interactive document outlining the complete engineering lifecycle from initial repository genesis through 5D vector mathematics, local neural engine integration, dual-installer packaging, and 22 forensic IDE conversation sessions. Dynamically compiled directly from [`CHANGE_LOG.txt`](CHANGE_LOG.txt) via `scripts/generate_changelog_pdf.py`.
 
 ---
 
 ## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for complete licensing terms.
+
+---
+
+*Special thanks to the AntiGravity team at Google*

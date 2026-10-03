@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=MNIME
-AppVersion=Final
+AppVersion=2.1.0
 AppPublisher=MNIME
 AppPublisherURL=https://MNIME.app
 DefaultDirName={localappdata}\Programs\MNIME

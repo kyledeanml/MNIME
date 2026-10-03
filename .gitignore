@@ -11,22 +11,23 @@ dist/
 installer/
 *.exe
 *.spec
-!OMNIME.spec
+!MNIME.spec
+!MNIME_v1.spec
 
 # IDEs
 .idea/
 .vscode/
 *.code-workspace
-!OMNIME.code-workspace
+!MNIME.code-workspace
 
 # Logs and temp files
 *.log
 *.tmp
 *.tmp.pdf
 *.pfx
-OMNIMECert.pfx
+MNIMECert.pfx
 build_log.txt
-OMNIME Builder and Installer.txt
+MNIME Builder and Installer.txt
 
 # Documents and Test files
 *.pdf
@@ -39,7 +40,7 @@ paper/
 *.jpg
 *.jpeg
 *.png
-!OMNIME_reimagined_alpha.png
+!MNIME_reimagined_alpha.png
 !docs/*.png
 *_bookmarked.pdf
 *_compressed.pdf

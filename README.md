@@ -74,23 +74,28 @@ A modern, private, ultra-fast desktop interface with a fine-tuned local NLP engi
 
 `MNIME-Core-1.5B-Q4_K_M.gguf` is a fine-tuned version of `Qwen2.5-1.5B-Instruct`, quantized to Q4_K_M, specialized for high-density document synthesis, extraction, and cross-referencing.
 
-- **Standalone Run**: Download the model from [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) and place it inside the `models/` directory.
-- **Pre-built Installer**: Shipped directly inside the installer bundle.
+- **Model Download**: Download the model from [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) and place it inside the `models/` directory.
 - **Hardware Acceleration**: Automatically offloads layers to available GPU VRAM (NVIDIA CUDA / Vulkan / Metal) via `llama-cpp-python`.
 
 ---
 
 ## Setup & Installation
 
-### Option A — Pre-Built Standalone Installers (Recommended)
+### Option A — One-Click Automated Local Installer (Recommended)
 
-Run one of the two pre-built Windows installers from the `installer/` directory:
+Run `install_mnime.bat` directly from the repository root:
 
-| Installer | Description |
-|---|---|
-| `MNIME_installer.exe` | Custom animated installer built with PyQt6 — features a branded dark window, splash screen, and progress bar. |
+```cmd
+install_mnime.bat
+```
 
-Installers deploy MNIME to `%LOCALAPPDATA%\Programs\MNIME`.
+**How it works:**
+1. **Automated Stale-Build Check**: Compares source file timestamps (`core/` and `ui/`) against existing compiled binaries.
+2. **Auto-Compilation**: Automatically invokes `build_app.bat` to compile PyInstaller binaries and the custom PyQt6 installer if source files have updated or binaries are missing.
+3. **Application Deployment**: Copies application files to `%LOCALAPPDATA%\Programs\MNIME`.
+4. **Windows System Integration**: Creates Desktop and Start Menu shortcuts (`MNIME.lnk`), configures PDF document file associations, and registers an entry in Windows Add/Remove Programs with a clean uninstaller (`uninstall.bat`).
+
+*(Note: Pre-compiled binary executables are git-ignored and built locally on your machine via `install_mnime.bat` or `build_app.bat`.)*
 
 ### Option B — Run from Source
 

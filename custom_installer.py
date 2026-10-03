@@ -5,6 +5,13 @@ import math
 import random
 import time
 import subprocess
+import argparse
+
+# Parse arguments
+parser = argparse.ArgumentParser(description="MNIME Installer")
+parser.add_argument("--dry-run", action="store_true", help="Run the installer UI sequence without modifying any files or registry")
+args, unknown = parser.parse_known_args()
+DRY_RUN = args.dry_run
 
 # Ensure PyQt6 path during development (skip if compiled)
 if not getattr(sys, 'frozen', False):
@@ -35,227 +42,242 @@ class InstallWorker(QThread):
         self.progress.emit(2, "Initializing installer UI...")
         time.sleep(1.0)
         
-        if os.path.exists(source_dir):
-            if os.path.exists(install_dir):
-                self.progress.emit(5, "Removing old version...")
-                try:
-                    shutil.rmtree(install_dir)
-                except Exception:
-                    pass
-            
-            os.makedirs(install_dir, exist_ok=True)
-            
-            all_files = []
-            total_size_bytes = 0
-            for root, dirs, files in os.walk(source_dir):
-                for file in files:
-                    full_p = os.path.join(root, file)
-                    all_files.append(full_p)
+        if not DRY_RUN:
+            if os.path.exists(source_dir):
+                if os.path.exists(install_dir):
+                    self.progress.emit(5, "Removing old version...")
                     try:
-                        total_size_bytes += os.path.getsize(full_p)
+                        shutil.rmtree(install_dir)
                     except Exception:
                         pass
-                    
-            total_files = len(all_files)
-            if total_files > 0:
-                for i, file_path in enumerate(all_files):
-                    rel_path = os.path.relpath(file_path, source_dir)
-                    dest_path = os.path.join(install_dir, rel_path)
-                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                
+                os.makedirs(install_dir, exist_ok=True)
+                
+                all_files = []
+                total_size_bytes = 0
+                for root, dirs, files in os.walk(source_dir):
+                    for file in files:
+                        full_p = os.path.join(root, file)
+                        all_files.append(full_p)
+                        try:
+                            total_size_bytes += os.path.getsize(full_p)
+                        except Exception:
+                            pass
+                        
+                total_files = len(all_files)
+                if total_files > 0:
+                    for i, file_path in enumerate(all_files):
+                        rel_path = os.path.relpath(file_path, source_dir)
+                        dest_path = os.path.join(install_dir, rel_path)
+                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                        try:
+                            shutil.copy2(file_path, dest_path)
+                        except Exception:
+                            pass
+                        
+                        if i % max(1, (total_files // 100)) == 0:
+                            pct = 5 + int((i / total_files) * 80)
+                            self.progress.emit(pct, f"Installing: {os.path.basename(file_path)}")
+                            time.sleep(0.01)
+                
+                # Create icon explicitly if it didn't copy
+                if not os.path.exists(os.path.join(install_dir, "MN.ico")):
                     try:
-                        shutil.copy2(file_path, dest_path)
-                    except Exception:
-                        pass
-                    
-                    if i % max(1, (total_files // 100)) == 0:
-                        pct = 5 + int((i / total_files) * 80)
-                        self.progress.emit(pct, f"Installing: {os.path.basename(file_path)}")
-                        time.sleep(0.01)
-            
-            # Create icon explicitly if it didn't copy
-            if not os.path.exists(os.path.join(install_dir, "MN.ico")):
-                try:
-                    shutil.copy2("MN.ico", os.path.join(install_dir, "MN.ico"))
-                except Exception: pass
+                        shutil.copy2("MN.ico", os.path.join(install_dir, "MN.ico"))
+                    except Exception: pass
+            else:
+                self.progress.emit(0, "Error: Application build files not found (dist/MNIME). Please build before running installer.")
+                time.sleep(2.0)
+                self.finished.emit()
+                return
         else:
-            self.progress.emit(0, "Error: Application build files not found (dist/MNIME). Please build before running installer.")
-            time.sleep(2.0)
-            self.finished.emit()
-            return
+            # Simulate installation progress
+            self.progress.emit(5, "Simulating installation (Dry Run)...")
+            time.sleep(1)
+            for i in range(5, 86):
+                self.progress.emit(i, f"Simulating file copy: fake_file_{i}.dll")
+                time.sleep(0.02)
                 
         self.progress.emit(88, "Registering uninstaller in Windows...")
         
-        # Uninstaller and Registry Registration
-        desktop = os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop', 'MNIME.lnk')
-        start_menu = os.path.join(os.environ.get('APPDATA', ''), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'MNIME.lnk')
-        target = os.path.join(install_dir, 'MNIME.exe')
-        icon = os.path.join(install_dir, 'MN.ico')
-        display_icon = icon if os.path.exists(icon) else f"{target},0"
-        uninst_bat = os.path.join(install_dir, 'uninstall.bat')
-        
-        # Write uninstaller script into install directory
-        localapp = os.environ.get('LOCALAPPDATA', '')
-        uninstaller_content = (
-            "@echo off\r\n"
-            "title Uninstall MNIME\r\n"
-            "echo ========================================================\r\n"
-            "echo Uninstalling MNIME...\r\n"
-            "echo ========================================================\r\n"
-            "\r\n"
-            ":: Terminate running MNIME instances\r\n"
-            "taskkill /F /IM MNIME.exe /T >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove Add/Remove Programs registry entry\r\n"
-            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\MNIME\" /f >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove application settings\r\n"
-            "reg delete \"HKCU\\Software\\MNIME\" /f >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove application class registrations\r\n"
-            "reg delete \"HKCU\\Software\\Classes\\Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
-            "reg delete \"HKCU\\Software\\Classes\\MNIME.Document\" /f >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove startup autorun entry\r\n"
-            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"MNIME\" /f >nul 2>&1\r\n"
-            "\r\n"
-            ":: Clean Explorer PDF file association entries\r\n"
-            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
-            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"MNIME.Document\" /f >nul 2>&1\r\n"
-            "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$owl='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithList'; if(Test-Path $owl){$p=Get-ItemProperty $owl;$mru=$p.MRUList;foreach($prop in ($p.psobject.Properties|Where-Object{$_.Value -eq 'MNIME.exe'})){Remove-ItemProperty -Path $owl -Name $prop.Name -ErrorAction SilentlyContinue;if($mru){$mru=$mru.Replace($prop.Name,'')}};if($mru){Set-ItemProperty -Path $owl -Name 'MRUList' -Value $mru -ErrorAction SilentlyContinue}}; $uc='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\UserChoice'; if(Test-Path $uc){$prog=(Get-ItemProperty $uc -ErrorAction SilentlyContinue).ProgId;if($prog -like '*MNIME*'){Remove-Item -Path $uc -Recurse -Force -ErrorAction SilentlyContinue}}\" >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove shortcuts\r\n"
-            f"if exist \"{desktop}\" del /f /q \"{desktop}\" >nul 2>&1\r\n"
-            f"if exist \"{start_menu}\" del /f /q \"{start_menu}\" >nul 2>&1\r\n"
-            "\r\n"
-            ":: Remove application logs\r\n"
-            f"if exist \"{localapp}\\MNIME\" rmdir /s /q \"{localapp}\\MNIME\" >nul 2>&1\r\n"
-            "\r\n"
-            ":: Refresh Windows Explorer icon cache\r\n"
-            "ie4uinit.exe -show >nul 2>&1\r\n"
-            "\r\n"
-            ":: Clean up application files via detached background cleanup\r\n"
-            f"set \"TARGET_DIR={install_dir}\"\r\n"
-            "set \"TEMP_CLEANUP=%TEMP%\\mnime_uninstall_%RANDOM%.bat\"\r\n"
-            "(\r\n"
-            "    echo @echo off\r\n"
-            "    echo :wait_loop\r\n"
-            "    echo timeout /t 1 /nobreak ^>nul\r\n"
-            "    echo rmdir /s /q \"%TARGET_DIR%\" ^>nul 2^^>^^&1\r\n"
-            "    echo if exist \"%TARGET_DIR%\" goto wait_loop\r\n"
-            "    echo del \"%%~f0\" ^>nul 2^^>^^&1\r\n"
-            ") > \"%TEMP_CLEANUP%\"\r\n"
-            "\r\n"
-            "start \"\" /b cmd /c \"%TEMP_CLEANUP%\"\r\n"
-            "echo MNIME has been successfully uninstalled.\r\n"
-            "timeout /t 2 /nobreak >nul\r\n"
-        )
-        try:
-            with open(uninst_bat, "w", encoding="utf-8") as f:
-                f.write(uninstaller_content)
-        except Exception:
-            pass
+        if not DRY_RUN:
+            # Uninstaller and Registry Registration
+            desktop = os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop', 'MNIME.lnk')
+            start_menu = os.path.join(os.environ.get('APPDATA', ''), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'MNIME.lnk')
+            target = os.path.join(install_dir, 'MNIME.exe')
+            icon = os.path.join(install_dir, 'MN.ico')
+            display_icon = icon if os.path.exists(icon) else f"{target},0"
+            uninst_bat = os.path.join(install_dir, 'uninstall.bat')
             
-        # Register in Windows Add or Remove Programs (HKCU)
-        key_path = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME"
-        try:
-            import winreg
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as key:
-                winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ, "MNIME")
-                winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, "2.1")
-                winreg.SetValueEx(key, "Publisher", 0, winreg.REG_SZ, "MNIME")
-                winreg.SetValueEx(key, "InstallLocation", 0, winreg.REG_SZ, install_dir)
-                winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, f"{display_icon},0" if display_icon.endswith('.ico') else display_icon)
-                winreg.SetValueEx(key, "UninstallString", 0, winreg.REG_SZ, f'"{uninst_bat}"')
-                winreg.SetValueEx(key, "QuietUninstallString", 0, winreg.REG_SZ, f'"{uninst_bat}"')
-                winreg.SetValueEx(key, "EstimatedSize", 0, winreg.REG_DWORD, max(1, total_size_bytes // 1024))
-                winreg.SetValueEx(key, "InstallDate", 0, winreg.REG_SZ, time.strftime("%Y%m%d"))
-                winreg.SetValueEx(key, "NoModify", 0, winreg.REG_DWORD, 1)
-                winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
-                winreg.SetValueEx(key, "URLInfoAbout", 0, winreg.REG_SZ, "https://MNIME.app")
-                winreg.SetValueEx(key, "HelpLink", 0, winreg.REG_SZ, "https://MNIME.app")
-
-            # Register PDF document page preview presentation so Explorer displays document previews
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe") as app_key:
-                winreg.SetValueEx(app_key, "FriendlyAppName", 0, winreg.REG_SZ, "MNIME")
-                winreg.SetValueEx(app_key, "Treatment", 0, winreg.REG_DWORD, 2)
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\DefaultIcon") as icon_key:
-                winreg.SetValueEx(icon_key, "", 0, winreg.REG_EXPAND_SZ, r"%SystemRoot%\System32\imageres.dll,-102")
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\SupportedTypes") as types_key:
-                winreg.SetValueEx(types_key, ".pdf", 0, winreg.REG_SZ, "")
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\shell\open\command") as cmd_key:
-                winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{target}" "%1"')
-            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\ShellEx\{8895b1c6-b41f-4c1c-a562-0d564250836f}") as sx_key:
-                winreg.SetValueEx(sx_key, "", 0, winreg.REG_SZ, "{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}")
-        except Exception:
+            # Write uninstaller script into install directory
+            localapp = os.environ.get('LOCALAPPDATA', '')
+            uninstaller_content = (
+                "@echo off\r\n"
+                "title Uninstall MNIME\r\n"
+                "echo ========================================================\r\n"
+                "echo Uninstalling MNIME...\r\n"
+                "echo ========================================================\r\n"
+                "\r\n"
+                ":: Terminate running MNIME instances\r\n"
+                "taskkill /F /IM MNIME.exe /T >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove Add/Remove Programs registry entry\r\n"
+                "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\MNIME\" /f >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove application settings\r\n"
+                "reg delete \"HKCU\\Software\\MNIME\" /f >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove application class registrations\r\n"
+                "reg delete \"HKCU\\Software\\Classes\\Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
+                "reg delete \"HKCU\\Software\\Classes\\MNIME.Document\" /f >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove startup autorun entry\r\n"
+                "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"MNIME\" /f >nul 2>&1\r\n"
+                "\r\n"
+                ":: Clean Explorer PDF file association entries\r\n"
+                "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
+                "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"MNIME.Document\" /f >nul 2>&1\r\n"
+                "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$owl='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithList'; if(Test-Path $owl){$p=Get-ItemProperty $owl;$mru=$p.MRUList;foreach($prop in ($p.psobject.Properties|Where-Object{$_.Value -eq 'MNIME.exe'})){Remove-ItemProperty -Path $owl -Name $prop.Name -ErrorAction SilentlyContinue;if($mru){$mru=$mru.Replace($prop.Name,'')}};if($mru){Set-ItemProperty -Path $owl -Name 'MRUList' -Value $mru -ErrorAction SilentlyContinue}}; $uc='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\UserChoice'; if(Test-Path $uc){$prog=(Get-ItemProperty $uc -ErrorAction SilentlyContinue).ProgId;if($prog -like '*MNIME*'){Remove-Item -Path $uc -Recurse -Force -ErrorAction SilentlyContinue}}\" >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove shortcuts\r\n"
+                f"if exist \"{desktop}\" del /f /q \"{desktop}\" >nul 2>&1\r\n"
+                f"if exist \"{start_menu}\" del /f /q \"{start_menu}\" >nul 2>&1\r\n"
+                "\r\n"
+                ":: Remove application logs\r\n"
+                f"if exist \"{localapp}\\MNIME\" rmdir /s /q \"{localapp}\\MNIME\" >nul 2>&1\r\n"
+                "\r\n"
+                ":: Refresh Windows Explorer icon cache\r\n"
+                "ie4uinit.exe -show >nul 2>&1\r\n"
+                "\r\n"
+                ":: Clean up application files via detached background cleanup\r\n"
+                f"set \"TARGET_DIR={install_dir}\"\r\n"
+                "set \"TEMP_CLEANUP=%TEMP%\\mnime_uninstall_%RANDOM%.bat\"\r\n"
+                "(\r\n"
+                "    echo @echo off\r\n"
+                "    echo :wait_loop\r\n"
+                "    echo timeout /t 1 /nobreak ^>nul\r\n"
+                "    echo rmdir /s /q \"%TARGET_DIR%\" ^>nul 2^^>^^&1\r\n"
+                "    echo if exist \"%TARGET_DIR%\" goto wait_loop\r\n"
+                "    echo del \"%%~f0\" ^>nul 2^^>^^&1\r\n"
+                ") > \"%TEMP_CLEANUP%\"\r\n"
+                "\r\n"
+                "start \"\" /b cmd /c \"%TEMP_CLEANUP%\"\r\n"
+                "echo MNIME has been successfully uninstalled.\r\n"
+                "timeout /t 2 /nobreak >nul\r\n"
+            )
             try:
-                cmd = (
-                    f'reg add "HKCU\\{key_path}" /v "DisplayName" /t REG_SZ /d "MNIME" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "DisplayVersion" /t REG_SZ /d "2.1" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "Publisher" /t REG_SZ /d "MNIME" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "InstallLocation" /t REG_SZ /d "{install_dir}" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "DisplayIcon" /t REG_SZ /d "{display_icon}" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "UninstallString" /t REG_SZ /d "\"{uninst_bat}\"" /f & '
-                    f'reg add "HKCU\\{key_path}" /v "EstimatedSize" /t REG_DWORD /d {max(1, total_size_bytes // 1024)} /f & '
-                    f'reg add "HKCU\\{key_path}" /v "NoModify" /t REG_DWORD /d 1 /f & '
-                    f'reg add "HKCU\\{key_path}" /v "NoRepair" /t REG_DWORD /d 1 /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "FriendlyAppName" /t REG_SZ /d "MNIME" /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "Treatment" /t REG_DWORD /d 2 /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\DefaultIcon" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\\System32\\imageres.dll,-102" /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\SupportedTypes" /v ".pdf" /t REG_SZ /d "" /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\shell\\open\\command" /ve /t REG_SZ /d "\"{target}\" \"%%1\"" /f & '
-                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\ShellEx\\{{8895b1c6-b41f-4c1c-a562-0d564250836f}}" /ve /t REG_SZ /d "{{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}}" /f'
-                )
-                subprocess.run(cmd, shell=True, capture_output=True)
+                with open(uninst_bat, "w", encoding="utf-8") as f:
+                    f.write(uninstaller_content)
             except Exception:
                 pass
-        
+                
+            # Register in Windows Add or Remove Programs (HKCU)
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME"
+            try:
+                import winreg
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+                    winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ, "MNIME")
+                    winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, "2.1")
+                    winreg.SetValueEx(key, "Publisher", 0, winreg.REG_SZ, "MNIME")
+                    winreg.SetValueEx(key, "InstallLocation", 0, winreg.REG_SZ, install_dir)
+                    winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, f"{display_icon},0" if display_icon.endswith('.ico') else display_icon)
+                    winreg.SetValueEx(key, "UninstallString", 0, winreg.REG_SZ, f'"{uninst_bat}"')
+                    winreg.SetValueEx(key, "QuietUninstallString", 0, winreg.REG_SZ, f'"{uninst_bat}"')
+                    winreg.SetValueEx(key, "EstimatedSize", 0, winreg.REG_DWORD, max(1, total_size_bytes // 1024))
+                    winreg.SetValueEx(key, "InstallDate", 0, winreg.REG_SZ, time.strftime("%Y%m%d"))
+                    winreg.SetValueEx(key, "NoModify", 0, winreg.REG_DWORD, 1)
+                    winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
+                    winreg.SetValueEx(key, "URLInfoAbout", 0, winreg.REG_SZ, "https://MNIME.app")
+                    winreg.SetValueEx(key, "HelpLink", 0, winreg.REG_SZ, "https://MNIME.app")
+    
+                # Register PDF document page preview presentation so Explorer displays document previews
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe") as app_key:
+                    winreg.SetValueEx(app_key, "FriendlyAppName", 0, winreg.REG_SZ, "MNIME")
+                    winreg.SetValueEx(app_key, "Treatment", 0, winreg.REG_DWORD, 2)
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\DefaultIcon") as icon_key:
+                    winreg.SetValueEx(icon_key, "", 0, winreg.REG_EXPAND_SZ, r"%SystemRoot%\System32\imageres.dll,-102")
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\SupportedTypes") as types_key:
+                    winreg.SetValueEx(types_key, ".pdf", 0, winreg.REG_SZ, "")
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\shell\open\command") as cmd_key:
+                    winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{target}" "%1"')
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\ShellEx\{8895b1c6-b41f-4c1c-a562-0d564250836f}") as sx_key:
+                    winreg.SetValueEx(sx_key, "", 0, winreg.REG_SZ, "{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}")
+            except Exception:
+                try:
+                    cmd = (
+                        f'reg add "HKCU\\{key_path}" /v "DisplayName" /t REG_SZ /d "MNIME" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "DisplayVersion" /t REG_SZ /d "2.1" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "Publisher" /t REG_SZ /d "MNIME" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "InstallLocation" /t REG_SZ /d "{install_dir}" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "DisplayIcon" /t REG_SZ /d "{display_icon}" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "UninstallString" /t REG_SZ /d "\"{uninst_bat}\"" /f & '
+                        f'reg add "HKCU\\{key_path}" /v "EstimatedSize" /t REG_DWORD /d {max(1, total_size_bytes // 1024)} /f & '
+                        f'reg add "HKCU\\{key_path}" /v "NoModify" /t REG_DWORD /d 1 /f & '
+                        f'reg add "HKCU\\{key_path}" /v "NoRepair" /t REG_DWORD /d 1 /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "FriendlyAppName" /t REG_SZ /d "MNIME" /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "Treatment" /t REG_DWORD /d 2 /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\DefaultIcon" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\\System32\\imageres.dll,-102" /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\SupportedTypes" /v ".pdf" /t REG_SZ /d "" /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\shell\\open\\command" /ve /t REG_SZ /d "\"{target}\" \"%%1\"" /f & '
+                        f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\ShellEx\\{{8895b1c6-b41f-4c1c-a562-0d564250836f}}" /ve /t REG_SZ /d "{{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}}" /f'
+                    )
+                    subprocess.run(cmd, shell=True, capture_output=True)
+                except Exception:
+                    pass
+        else:
+            time.sleep(1)
+            
         self.progress.emit(94, "Creating shortcuts...")
         
-        # Shortcut Creation
-        shortcuts_created = False
-        try:
-            import win32com.client
-            shell = win32com.client.Dispatch("WScript.Shell")
-            for lnk in [desktop, start_menu]:
-                shortcut = shell.CreateShortCut(lnk)
-                shortcut.Targetpath = target
-                shortcut.WorkingDirectory = install_dir
-                shortcut.IconLocation = f"{icon},0"
-                shortcut.save()
-            shortcuts_created = True
-        except Exception:
-            pass
-
-        if not shortcuts_created:
+        if not DRY_RUN:
+            # Shortcut Creation
+            shortcuts_created = False
             try:
-                ps_script = (
-                    f"$ws = New-Object -ComObject WScript.Shell; "
-                    f"foreach ($p in @('{desktop}', '{start_menu}')) {{ "
-                    f"$s = $ws.CreateShortcut($p); "
-                    f"$s.TargetPath = '{target}'; "
-                    f"$s.WorkingDirectory = '{install_dir}'; "
-                    f"$s.IconLocation = '{icon},0'; "
-                    f"$s.Save(); "
-                    f"}}"
-                )
-                flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
-                subprocess.run(
-                    ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
-                    creationflags=flags,
-                    timeout=10
-                )
+                import win32com.client
+                shell = win32com.client.Dispatch("WScript.Shell")
+                for lnk in [desktop, start_menu]:
+                    shortcut = shell.CreateShortCut(lnk)
+                    shortcut.Targetpath = target
+                    shortcut.WorkingDirectory = install_dir
+                    shortcut.IconLocation = f"{icon},0"
+                    shortcut.save()
+                shortcuts_created = True
             except Exception:
                 pass
+    
+            if not shortcuts_created:
+                try:
+                    ps_script = (
+                        f"$ws = New-Object -ComObject WScript.Shell; "
+                        f"foreach ($p in @('{desktop}', '{start_menu}')) {{ "
+                        f"$s = $ws.CreateShortcut($p); "
+                        f"$s.TargetPath = '{target}'; "
+                        f"$s.WorkingDirectory = '{install_dir}'; "
+                        f"$s.IconLocation = '{icon},0'; "
+                        f"$s.Save(); "
+                        f"}}"
+                    )
+                    flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+                    subprocess.run(
+                        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
+                        creationflags=flags,
+                        timeout=10
+                    )
+                except Exception:
+                    pass
+        else:
+            time.sleep(1)
             
-        self.progress.emit(100, "Installation Complete! Launching MNIME...")
+        self.progress.emit(100, "Installation Complete! Launching MNIME..." if not DRY_RUN else "Dry Run Complete!")
         time.sleep(1.0)
         
-        if os.path.exists(target):
-            try:
-                flags = getattr(subprocess, 'DETACHED_PROCESS', 0x00000008)
-                subprocess.Popen([target], cwd=install_dir, creationflags=flags)
-            except Exception:
-                pass
+        if not DRY_RUN:
+            if os.path.exists(target):
+                try:
+                    flags = getattr(subprocess, 'DETACHED_PROCESS', 0x00000008)
+                    subprocess.Popen([target], cwd=install_dir, creationflags=flags)
+                except Exception:
+                    pass
                 
         self.finished.emit()
 
@@ -367,6 +389,14 @@ class InstallerUI(QWidget):
             lf.update()
         self.little_files = [lf for lf in self.little_files if lf.t < 1.0]
         self.update()
+
+    def mousePressEvent(self, event):
+        # Consume the event to prevent frameless window drag/lag behavior
+        from PyQt6.QtCore import Qt
+        if event.button() == Qt.MouseButton.LeftButton:
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     def paintEvent(self, event):
         p = QPainter(self)

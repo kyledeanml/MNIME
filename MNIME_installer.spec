@@ -20,8 +20,9 @@ splash = Splash(
     'MNIME_banner.gif',
     binaries=a.binaries,
     datas=a.datas,
-    text_pos=None,
-    text_size=12,
+    text_pos=(20, 380),
+    text_size=10,
+    text_color='white',
     minify_script=True,
     always_on_top=True,
 )

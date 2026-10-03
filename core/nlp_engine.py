@@ -20,16 +20,16 @@ class NLPEngine:
     _instance_lock = threading.Lock()
 
     def __init__(self):
-        self.settings = QSettings("MNIME", "MNIMEApp")
         # Check for bundled model
         bundled_model = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "MNIME-Core-1.5B-Q4_K_M.gguf")
         default_path = bundled_model if os.path.exists(bundled_model) else ""
 
-        saved_path = self.settings.value("gguf_model_path", "")
+        settings = QSettings("MNIME", "MNIMEApp")
+        saved_path = settings.value("gguf_model_path", "")
         if not saved_path or not os.path.exists(saved_path):
             self.model_path = default_path
             if default_path:
-                self.settings.setValue("gguf_model_path", default_path)
+                settings.setValue("gguf_model_path", default_path)
         else:
             self.model_path = saved_path
         self.llm = None
@@ -78,7 +78,7 @@ class NLPEngine:
 
     def set_model_path(self, path: str):
         self.model_path = path
-        self.settings.setValue("gguf_model_path", path)
+        QSettings("MNIME", "MNIMEApp").setValue("gguf_model_path", path)
         self.reload_model()
 
     def reload_model(self):
@@ -130,7 +130,7 @@ class NLPEngine:
         t.start()
 
     def check_model(self, auto_load: bool = False):
-        enabled = str(self.settings.value("nlp_enabled", "true")).lower() == "true"
+        enabled = str(QSettings("MNIME", "MNIMEApp").value("nlp_enabled", "true")).lower() == "true"
         if not enabled:
             self.unload_model()
             self.error = "NLP is globally disabled via Tabs Bar toggle."

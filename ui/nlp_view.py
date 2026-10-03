@@ -129,18 +129,25 @@ class NLPQueryWorker(QThread):
     chunk_received = pyqtSignal(str)
     point_generated = pyqtSignal(float, float, str)
     stats_updated = pyqtSignal(dict)
+    new_joke_state = pyqtSignal(int)
 
-    def __init__(self, query: str, context_docs: list):
+    def __init__(self, query: str, context_docs: list, joke_state: int = 0):
         super().__init__()
         self.query = query
         self.context_docs = context_docs
+        self.joke_state = joke_state
 
     def run(self):
         import time
+        import random
         from ui.nerds import get_process_memory_mb
+        from core.jokes import KNOCK_KNOCK_JOKES
         try:
             generator = NLPEngine.get_instance().generate_response_stream(self.query, self.context_docs)
             full_response = ""
+            buffer = ""
+            is_joke_mode = False
+
             t_start_eval = time.time()
             t_first_token = None
             tokens_received = 0
@@ -151,9 +158,21 @@ class NLPQueryWorker(QThread):
                 if t_first_token is None:
                     t_first_token = now - t_start_eval
 
+                if not is_joke_mode and not full_response:
+                    buffer += chunk
+                    if "<KNOCK_KNOCK>" in buffer:
+                        is_joke_mode = True
+                        break
+                    
+                    if len(buffer) > 15:
+                        full_response += buffer
+                        self.chunk_received.emit(buffer)
+                        tokens_received += 1
+                        token_timestamps.append(now)
+                    continue
+
                 full_response += chunk
                 self.chunk_received.emit(chunk)
-
                 tokens_received += 1
                 token_timestamps.append(now)
 
@@ -175,7 +194,33 @@ class NLPQueryWorker(QThread):
                     "tokens": tokens_received
                 })
 
-            self.finished.emit(full_response)
+            if not is_joke_mode and buffer and not full_response:
+                full_response += buffer
+                self.chunk_received.emit(buffer)
+
+            if is_joke_mode:
+                if self.joke_state == 0:
+                    joke_text = "Knock, knock."
+                    self.new_joke_state.emit(1)
+                else:
+                    setup, punchline = random.choice(KNOCK_KNOCK_JOKES)
+                    joke_lines = [
+                        "Knock, knock.",
+                        "Who's there?",
+                        f"{setup}.",
+                        f"{setup} who?",
+                        f"{punchline}"
+                    ]
+                    joke_text = "\n".join(joke_lines)
+                
+                full_response = ""
+                for word in joke_text.split(" "):
+                    chunk = word + " "
+                    full_response += chunk
+                    self.chunk_received.emit(chunk)
+                    time.sleep(0.1)
+
+            self.finished.emit(full_response.strip())
         except Exception as e:
             self.finished.emit(f"Error: {e}")
 
@@ -334,13 +379,22 @@ class NLPView(QWidget):
         
         self._append_history("<div style='color:#00e5ff'><b>MNIME:</b> </div>")
         
+        if getattr(self, 'joke_state', 0) == 1:
+            self._insert_html_at_end("<span style='color:#00e5ff'>Not an answer to your out of scope question.</span><br><hr><br>")
+            self._set_input_enabled(True)
+            self.query_input.setFocus()
+            self.status_label.setText("Ready.")
+            self.joke_state = 2
+            return
+
         # 1. Semantic Search
         context_docs = SearchEngine.search(self.vectorstore, query, k=5)
         
         # 2. LLM Generation
-        self.query_worker = NLPQueryWorker(query, context_docs)
+        self.query_worker = NLPQueryWorker(query, context_docs, getattr(self, 'joke_state', 0))
         self.query_worker.chunk_received.connect(self._on_query_chunk)
         self.query_worker.finished.connect(self._on_query_response)
+        self.query_worker.new_joke_state.connect(self._set_joke_state)
         
         main_win = self.window()
         if hasattr(main_win, '_stats_dialog'):
@@ -352,6 +406,9 @@ class NLPView(QWidget):
             main_win._stats_dialog.chart.clear()
 
         self.query_worker.start()
+
+    def _set_joke_state(self, state: int):
+        self.joke_state = state
 
     def _on_query_chunk(self, chunk: str):
         import html

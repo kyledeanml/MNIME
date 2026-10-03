@@ -25,6 +25,7 @@ hiddenimports = [
     'core.file_item',
     'core.nlp_engine',
     'core.pdf_engine',
+    'core.print_engine',
     'core.search_engine',
     'core.worker',
     'ui',

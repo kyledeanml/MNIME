@@ -476,7 +476,42 @@ class ReaderDialog(QDialog):
             self._render_page()
 
     def _print_document(self):
-        """Print via the Windows shell instead of Qt's print pipeline.
+        """Print with MNIME's native print engine (Win32 GDI, up to 300 DPI).
+
+        Falls back to the Windows shell / Chrome hand-off if the native job fails.
+        """
+        index = self.file_combo.currentIndex()
+        if index < 0:
+            return
+        file_item = self.file_items[index]
+
+        from PyQt6.QtWidgets import QApplication
+        from core import print_engine
+
+        hwnd = int(self.winId())
+        title = file_item.file_name
+        try:
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            try:
+                if file_item.extension == ".pdf" and self.doc:
+                    print_engine.print_pdf(hwnd, self.doc, title)
+                    return
+                if file_item.extension in (".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"):
+                    print_engine.print_image(hwnd, file_item.file_path, title)
+                    return
+            finally:
+                QApplication.restoreOverrideCursor()
+        except print_engine.PrintCancelled:
+            return
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Print",
+                f"Direct printing failed ({e}). Falling back to the system print handler."
+            )
+        self._print_via_shell()
+
+    def _print_via_shell(self):
+        """Fallback: hand the file to Windows (or Chrome / default viewer) for printing.
 
         Uses the file's registered 'print' verb (e.g. Adobe/Edge/Photos). If no
         app handles that verb, the file is opened in its default viewer so the

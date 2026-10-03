@@ -370,7 +370,17 @@ class PDFEngine:
             try:
                 total_pages = len(render_doc)
                 for page_num in range(total_pages):
-                    pix = render_doc[page_num].get_pixmap(
+                    page = render_doc[page_num]
+                    rect = page.rect
+                    current_zoom = zoom
+                    max_dim = 8192
+                    if rect.width * current_zoom > max_dim:
+                        current_zoom = max_dim / rect.width
+                    if rect.height * current_zoom > max_dim:
+                        current_zoom = min(current_zoom, max_dim / rect.height)
+                    matrix = pymupdf.Matrix(current_zoom, current_zoom)
+                    
+                    pix = page.get_pixmap(
                         matrix=matrix, colorspace=pymupdf.csRGB, alpha=False
                     )
                     out_path = os.path.join(output_dir, f"{base_name}_page_{page_num + 1:03d}.jpg")

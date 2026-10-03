@@ -8,7 +8,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
 
-from ui.stats_for_nerds import StatsForNerdsDialog
+from ui.nerds import StatsForNerdsDialog
 
 
 def main():

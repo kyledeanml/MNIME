@@ -256,17 +256,21 @@ class NLPView(QWidget):
         self._append_history("<div style='color:#00e5ff'><b>System:</b> Indexing complete. Ready for queries.</div><br>")
 
     def _on_index_error(self, err: str):
+        import html
         self.progress_bar.setVisible(False)
         self.status_label.setText("Error during indexing.")
         self.start_over_btn.setEnabled(True)
-        self._append_history(f"<div style='color:#ff5555'><b>Error:</b> {err}</div><br>")
+        safe_err = html.escape(str(err))
+        self._append_history(f"<div style='color:#ff5555'><b>Error:</b> {safe_err}</div><br>")
 
     def _submit_query(self):
+        import html
         query = self.query_input.text().strip()
         if not query: return
         
         self.query_input.clear()
-        self._append_history(f"<div style='color:#c9d1d9'><b>You:</b> {query}</div><br>")
+        safe_query = html.escape(query)
+        self._append_history(f"<div style='color:#c9d1d9'><b>You:</b> {safe_query}</div><br>")
         self._set_input_enabled(False)
         self.status_label.setText("Generating answer...")
         
@@ -279,8 +283,10 @@ class NLPView(QWidget):
         self.query_worker.start()
 
     def _on_query_response(self, response: str):
+        import html
         # Format response with line breaks
-        response_html = response.replace("\n", "<br>")
+        safe_response = html.escape(response)
+        response_html = safe_response.replace("\n", "<br>")
         self._append_history(f"<div style='color:#00e5ff'><b>MNIME:</b> {response_html}</div><br><hr><br>")
         self._set_input_enabled(True)
         self.query_input.setFocus()

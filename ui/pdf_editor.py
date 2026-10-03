@@ -133,6 +133,12 @@ class PDFEditorDialog(QDialog):
         page = self.doc[0]
         # Use a high zoom for Retina-like sharp preview
         zoom = 4.0
+        rect = page.rect
+        max_dim = 4096
+        if rect.width * zoom > max_dim:
+            zoom = max_dim / rect.width
+        if rect.height * zoom > max_dim:
+            zoom = min(zoom, max_dim / rect.height)
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)
         

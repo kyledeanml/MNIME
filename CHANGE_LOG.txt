@@ -807,5 +807,81 @@ C. Clean Uninstallation:
    delete the program directory.
 
 ================================================================================
+SESSION: PDF Document Page Preview Presentation, Complete Uninstaller Cleanup,
+         & Telemetry HUD Renaming (nerds.py) (October 3, 2026)
+================================================================================
+
+USER GOALS:
+  1. Ensure documents displayed when MNIME is default for PDFs retain clean
+     document page previews in File Explorer instead of displaying the neon MNIME
+     application logo.
+  2. Ensure MNIME completely cleans up after itself upon uninstallation (registry,
+     file associations, user settings, logs, and shortcuts).
+  3. Rename "stats for nerds" to just "nerds" everywhere (`ui/nerds.py`).
+
+ROOT CAUSE & ANALYSIS:
+  1. When MNIME was chosen as the default PDF handler, Windows Explorer mapped the
+     extension to `Applications\MNIME.exe`. Without an explicit `DefaultIcon` and
+     document `Treatment` flag, Windows Shell defaulted to using `MNIME.exe,0`
+     (the neon cyan MN logo) for all PDF documents on the user's desktop and
+     folders.
+  2. The uninstaller scripts (`uninstall.bat`) previously only removed the uninstall
+     registry entry and install folder, leaving behind `HKCU\Software\MNIME` (QSettings),
+     `HKCU\Software\Classes\Applications\MNIME.exe`, startup run keys, and dangling
+     entries under `HKCU\...\Explorer\FileExts\.pdf` (`UserChoice`, `OpenWithProgids`,
+     `OpenWithList`).
+  3. Telemetry HUD module was titled `ui/stats_for_nerds.py`.
+
+SOLUTIONS:
+  1. PDF Document Presentation (`core/windows_integration.py`):
+     - Configured `HKCU\Software\Classes\Applications\MNIME.exe` with:
+       * `DefaultIcon` = `%SystemRoot%\System32\imageres.dll,-102` (standard clean
+         document sheet page preview icon)
+       * `Treatment` = 2 (DWORD: instructs Windows Explorer to apply document sheet
+         frame and page preview presentation)
+       * `FriendlyAppName` = "MNIME"
+       * `SupportedTypes\.pdf` = ""
+       * `ShellEx\{8895b1c6-b41f-4c1c-a562-0d564250836f}` = `{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}`
+         (preserves live rendering in Windows Explorer Preview Pane).
+     - Automated invocation in `MNIME.py` on startup, `install_mnime.bat`,
+       `custom_installer.py`, and `MNIME.iss`.
+  2. Comprehensive Uninstallation Cleanup:
+     - Updated `install_mnime.bat`, `custom_installer.py`, `MNIME.iss`, and
+       `core/windows_integration.py` uninstallation routines to:
+       * Terminate running application instances (`taskkill /F /IM MNIME.exe /T`).
+       * Delete Add/Remove Programs registry key (`HKCU\...\Uninstall\MNIME`).
+       * Delete application settings (`HKCU\Software\MNIME`).
+       * Delete application classes (`HKCU\Software\Classes\Applications\MNIME.exe`
+         and `HKCU\Software\Classes\MNIME.Document`).
+       * Delete startup autorun entry (`HKCU\...\Run\MNIME`).
+       * Clean FileExts `.pdf` associations (`OpenWithProgids`, `OpenWithList` MRU,
+         and remove `UserChoice` if pointing to MNIME so Windows reverts cleanly to
+         system default viewer).
+       * Delete Desktop and Start Menu shortcuts.
+       * Delete application logs (`%LOCALAPPDATA%\MNIME`).
+       * Flush Windows Explorer icon cache (`ie4uinit.exe -show` and `SHChangeNotify`).
+       * Execute self-deleting detached background loop to purge the install folder.
+  3. Renamed Telemetry Suite to `ui/nerds.py`:
+     - Renamed `ui/stats_for_nerds.py` -> `ui/nerds.py`.
+     - Updated imports and references in `ui/main_window.py`, `benchmark.py`,
+       `tests/test_stats_telemetry.py`, `MNIME.spec`, and `README.md`.
+     - Added `show_nerds` alias alongside `show_stats`.
+
+FILES TOUCHED:
+  - ui/stats_for_nerds.py -> ui/nerds.py
+  - core/windows_integration.py (created)
+  - tests/test_windows_integration.py (created)
+  - tests/test_stats_telemetry.py (created & updated)
+  - ui/main_window.py
+  - MNIME.py
+  - benchmark.py
+  - install_mnime.bat
+  - custom_installer.py
+  - MNIME.iss
+  - MNIME.spec
+  - README.md
+  - CHANGE_LOG.txt
+
+================================================================================
 END OF CHANGE LOG - MNIME v2.1 RELEASE BUILD
 ================================================================================

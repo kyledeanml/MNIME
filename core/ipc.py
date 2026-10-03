@@ -3,7 +3,8 @@
 import json
 from typing import List
 
-IPC_PIPE_NAME = "MNIME_SingleInstance_IPC_Server"
+import getpass
+IPC_PIPE_NAME = f"MNIME_SingleInstance_IPC_Server_{getpass.getuser()}"
 MAX_IPC_BYTES = 256 * 1024     # Anything larger is not a legitimate request
 MAX_IPC_FILES = 100            # Cap on files accepted from a single request
 MAX_PATH_CHARS = 4096

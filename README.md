@@ -179,7 +179,7 @@ MNIME/
 │   ├── output_view.py     # Real-time execution log console
 │   ├── pdf_editor.py      # Visual PDF page editor suite
 │   ├── reader_dialog.py   # Independent frameless document reader
-│   ├── stats_for_nerds.py # Real-time telemetry & performance HUD
+│   ├── nerds.py           # Real-time telemetry & performance HUD
 │   └── tabs_bar.py        # Application navigation bar
 ├── docs/                  # Media & cover artwork assets
 │   ├── changelog_cover.png# Interactive change log preview cover
@@ -223,7 +223,7 @@ MNIME/
 
 ## Empirical Benchmarking & Telemetry HUD
 
-MNIME includes a telemetry dashboard and benchmarking suite (`ui/stats_for_nerds.py` & `benchmark.py`) for analyzing on-device model performance and document processing throughput:
+MNIME includes a telemetry dashboard and benchmarking suite (`ui/nerds.py` & `benchmark.py`) for analyzing on-device model performance and document processing throughput:
 
 - **Translucent HUD**: Accessible via the `STATS` tab or directly via `.venv\Scripts\python.exe benchmark.py`.
 - **60 FPS Real-Time Vector Charts**: Live rendering of token throughput (tokens/sec), inter-token latency (ms), and memory allocation (RAM working set in MB).
@@ -264,7 +264,7 @@ MNIME includes a telemetry dashboard and benchmarking suite (`ui/stats_for_nerds
   </a>
 </p>
 
-> **MNIME Build Process & Change Log** — Interactive document outlining the complete engineering lifecycle from initial repository genesis through 5D vector mathematics, local neural engine integration, dual-installer packaging, and 22 forensic IDE conversation sessions. Dynamically compiled directly from [`CHANGE_LOG.txt`](CHANGE_LOG.txt) via `scripts/generate_changelog_pdf.py`.
+> **MNIME Build Process & Change Log** — Interactive document outlining the complete engineering lifecycle from initial repository genesis through 5D vector mathematics, local neural engine integration, dual-installer packaging, and 22 forensic IDE conversation sessions.
 
 ---
 
@@ -274,4 +274,4 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for complete licensi
 
 ---
 
-*Special thanks to the AntiGravity team at Google*
+*Special thanks to the Antigravity team at Google*

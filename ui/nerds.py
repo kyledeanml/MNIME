@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QProgressBar, QComboBox, QFrame, QSizePolicy,
     QFileDialog, QTabWidget, QGraphicsDropShadowEffect
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QPoint, QRectF
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QPoint, QRectF, QEvent, QObject
 from PyQt6.QtGui import (
     QPainter, QColor, QPen, QBrush, QLinearGradient, QFont, QPolygonF,
     QPainterPath, QCursor
@@ -436,7 +436,7 @@ class StatsBenchmarkWorker(QThread):
         self.log_message.emit(f"TTFT (Prefill Latency): {t_first_token:.3f}s" if t_first_token else "TTFT: N/A", "METRIC")
         self.log_message.emit(f"Final RAM Working Set: {get_process_memory_mb():.2f} MB", "INFO")
 
-        self.finished.emit({
+        res_data = {
             "mode": "nlp",
             "tokens": tokens_received,
             "throughput_avg": avg_throughput,
@@ -444,7 +444,10 @@ class StatsBenchmarkWorker(QThread):
             "ttft_ms": (t_first_token * 1000) if t_first_token else 0.0,
             "load_sec": load_sec,
             "ram_mb": get_process_memory_mb()
-        })
+        }
+        if self.mode != "all":
+            self.finished.emit(res_data)
+        return res_data
 
     def _run_pdf_engine_benchmark(self):
         self.log_message.emit("INITIALIZING C-ACCELERATED DOCUMENT ENGINE BENCHMARK...", "INFO")
@@ -503,71 +506,140 @@ class StatsBenchmarkWorker(QThread):
         doc.close()
 
         self.log_message.emit(f"Compaction completed in {save_sec:.3f}s (Output buffer: {len(buf)/1024:.1f} KB)", "SUCCESS")
-        self.finished.emit({
+        res_data = {
             "mode": "pdf",
             "pages": num_pages,
             "generation_speed": num_pages / gen_sec,
             "raster_speed": rast_speed,
             "compaction_sec": save_sec,
             "ram_mb": get_process_memory_mb()
-        })
+        }
+        if self.mode != "all":
+            self.finished.emit(res_data)
+        return res_data
 
-    def _run_vector_benchmark(self):
+    def _run_vector_benchmark(self) -> dict:
         self.log_message.emit("INITIALIZING FAISS VECTOR RETRIEVAL BENCHMARK...", "INFO")
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
         try:
-            from core.search_engine import SearchEngine
-            engine = SearchEngine()
-            self.log_message.emit("FAISS search engine initialized. Synthesizing semantic test vectors...", "INFO")
+            from core.search_engine import get_embedding_model_path, SearchEngine
+            from langchain_huggingface import HuggingFaceEmbeddings
+            from langchain_community.vectorstores import FAISS
+
+            emb_path = get_embedding_model_path()
+            self.log_message.emit(f"Loading local embedding model: {os.path.basename(emb_path)}...", "INFO")
+            t_load = time.time()
+            embeddings = HuggingFaceEmbeddings(model_name=emb_path)
+            self.log_message.emit(f"Embedding model ready in {time.time() - t_load:.2f}s", "SUCCESS")
         except Exception as e:
             self.log_message.emit(f"Vector search engine error: {e}", "ERROR")
-            self.finished.emit({})
-            return
+            if self.mode != "all":
+                self.finished.emit({})
+            return {}
+
+        self.log_message.emit("Synthesizing technical knowledge corpus & building FAISS L2 index...", "INFO")
+        test_corpus = [
+            "MNIME guarantees absolute user privacy through 100% offline, local neural execution. No network requests or telemetry pings leave the workstation.",
+            "The FAISS vector similarity index operates directly in system RAM using optimized dense L2 distance and inner-product projections for sub-millisecond retrieval.",
+            "Under Q4_K_M quantization, the 1.5B neural model provides high-fidelity document synthesis while keeping the working set under 2 GB.",
+            "The document engine utilizes PyMuPDF C-bindings for rapid rasterization, rendering pages at over 120 pages per second at 200 DPI.",
+            "Semantic bookmarking analyzes heading hierarchies and structural vectors to automate document table of contents generation.",
+            "Smart index sampling extracts probe terms across sampled document pages to prune dense indexing latency without sacrificing recall.",
+            "Windows OCR integration automatically kicks in when PDF pages contain rasterized or scanned image content without embedded font glyphs.",
+            "Local neural inference runs with automated GPU layer offloading and AVX2 vector instructions for multi-threaded execution.",
+            "High-concurrency document processing leverages zero-copy buffer views and compact binary serialization.",
+            "Dynamic memory management purges model weights and vector stores on tool switch to prevent RAM fragmentation."
+        ] * 4  # 40 dense vector chunks
+
+        t_index = time.time()
+        try:
+            vectorstore = FAISS.from_texts(test_corpus, embeddings)
+            index_sec = time.time() - t_index
+            self.log_message.emit(f"FAISS vectorstore built: {len(test_corpus)} vectors indexed in {index_sec:.3f}s", "SUCCESS")
+        except Exception as e:
+            self.log_message.emit(f"Failed to build FAISS index: {e}", "ERROR")
+            if self.mode != "all":
+                self.finished.emit({})
+            return {}
 
         queries = [
             "What are the privacy guarantees of local document processing?",
             "How does the FAISS vector index optimize memory footprint?",
             "What is the time-to-first-token latency under Q4_K_M quantization?",
             "Describe the architecture of the C-accelerated PDF engine.",
-            "How are semantic bookmarks generated with the bundled model?"
-        ] * 4
+            "How are semantic bookmarks generated with the bundled model?",
+            "Explain smart sampling heuristics during dense index creation.",
+            "How is OCR handled for scanned PDF pages?",
+            "What hardware acceleration modes are supported for inference?"
+        ] * 3  # 24 test queries
 
         latencies = []
         t0 = time.time()
         for i, q in enumerate(queries):
-            if self._is_cancelled: break
+            if self._is_cancelled:
+                break
             t_q = time.time()
-            res = engine.search(q, k=3)
+            res = SearchEngine.search(vectorstore, q, k=3)
             q_ms = (time.time() - t_q) * 1000
             latencies.append(q_ms)
             elapsed = time.time() - t0
-            self.point_generated.emit(elapsed, q_ms, "tok_sec")
+            q_throughput = 1000.0 / max(q_ms, 0.001)
+            cur_ram = get_process_memory_mb()
+            self.point_generated.emit(elapsed, q_throughput, "tok_sec")
+            self.point_generated.emit(elapsed, cur_ram, "ram_mb")
             self.stats_updated.emit({
-                "throughput": 1000.0 / max(q_ms, 0.001),
+                "throughput": q_throughput,
                 "ttft": q_ms,
-                "ram_mb": get_process_memory_mb(),
+                "ram_mb": cur_ram,
                 "tokens": i + 1
             })
             time.sleep(0.02)
 
         avg_lat = sum(latencies) / len(latencies) if latencies else 0.0
-        self.log_message.emit(f"Executed {len(queries)} semantic vector searches.", "SUCCESS")
-        self.log_message.emit(f"Average Query Latency: {avg_lat:.2f} ms", "METRIC")
-        self.log_message.emit(f"Peak Query Latency: {max(latencies, default=0):.2f} ms", "METRIC")
+        min_lat = min(latencies, default=0.0)
+        max_lat = max(latencies, default=0.0)
+        avg_throughput = (len(latencies) / (time.time() - t0)) if (time.time() - t0) > 0 else 0.0
 
-        self.finished.emit({
+        self.log_message.emit("\n--- FAISS VECTOR RETRIEVAL BENCHMARK COMPLETE ---", "SUCCESS")
+        self.log_message.emit(f"Executed {len(queries)} semantic vector searches over {len(test_corpus)} vectors.", "SUCCESS")
+        self.log_message.emit(f"Average Query Latency: {avg_lat:.2f} ms ({avg_throughput:.1f} queries/s)", "METRIC")
+        self.log_message.emit(f"Latency Range: min {min_lat:.2f} ms | peak {max_lat:.2f} ms", "METRIC")
+        self.log_message.emit(f"Active Process RAM Working Set: {get_process_memory_mb():.2f} MB", "INFO")
+
+        res_data = {
             "mode": "vector",
             "queries": len(queries),
+            "vectors": len(test_corpus),
             "avg_latency_ms": avg_lat,
+            "min_latency_ms": min_lat,
+            "max_latency_ms": max_lat,
+            "throughput_avg": avg_throughput,
             "ram_mb": get_process_memory_mb()
-        })
+        }
+        if self.mode != "all":
+            self.finished.emit(res_data)
+        return res_data
 
     def _run_full_suite(self):
         self.log_message.emit("=== EXECUTING COMPREHENSIVE MNIME BENCHMARK SUITE ===", "INFO")
-        self._run_pdf_engine_benchmark()
+        pdf_res = self._run_pdf_engine_benchmark()
+        if self._is_cancelled:
+            return
         time.sleep(0.5)
-        self._run_vector_benchmark()
+        vec_res = self._run_vector_benchmark()
+        if self._is_cancelled:
+            return
         time.sleep(0.5)
-        self._run_nlp_benchmark()
+        nlp_res = self._run_nlp_benchmark()
+        self.log_message.emit("\n=== COMPREHENSIVE BENCHMARK SUITE COMPLETED ===", "SUCCESS")
+        self.finished.emit({
+            "mode": "all",
+            "pdf": pdf_res,
+            "vector": vec_res,
+            "nlp": nlp_res,
+            "ram_mb": get_process_memory_mb()
+        })
 
 
 # ─── Stats Dialog UI ─────────────────────────────────────────────────────────
@@ -586,11 +658,12 @@ class StatsForNerdsDialog(QDialog):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(960, 740)
 
-        self._drag_pos = QPoint()
+        self._drag_pos: Optional[QPoint] = None
         self._worker: Optional[StatsBenchmarkWorker] = None
         self._history_results: List[Dict[str, Any]] = []
 
         self._setup_ui()
+        self._setup_dragging()
         self._start_system_monitor()
 
     def _setup_ui(self):
@@ -618,8 +691,12 @@ class StatsForNerdsDialog(QDialog):
         frame_layout.setContentsMargins(22, 18, 22, 20)
         frame_layout.setSpacing(12)
 
-        # ─── Header Bar ───────────────────────────────────────────────────────
-        header = QHBoxLayout()
+        # ─── Header Bar (Draggable Region) ───────────────────────────────────
+        self.header_widget = QWidget()
+        self.header_widget.setCursor(Qt.CursorShape.SizeAllCursor)
+        self.header_widget.setToolTip("Click and drag to move Stats window")
+        header = QHBoxLayout(self.header_widget)
+        header.setContentsMargins(0, 0, 0, 0)
         header.setSpacing(12)
 
         # Pulsing icon / title group
@@ -696,7 +773,7 @@ class StatsForNerdsDialog(QDialog):
         close_btn.clicked.connect(self.close)
         header.addWidget(close_btn)
 
-        frame_layout.addLayout(header)
+        frame_layout.addWidget(self.header_widget)
 
         # ─── KPI Telemetry Badges ─────────────────────────────────────────────
         kpi_layout = QHBoxLayout()
@@ -1186,16 +1263,79 @@ class StatsForNerdsDialog(QDialog):
             except Exception as e:
                 self._append_log(f"Failed to export telemetry: {e}", "ERROR")
 
-    # Frameless window mouse dragging
+    # ─── Frameless Window Dragging & Event Handling ──────────────────────────
+    def _setup_dragging(self):
+        """Install event filtering on frame, header, and child labels for smooth window moving."""
+        self.installEventFilter(self)
+        self.frame.installEventFilter(self)
+        if hasattr(self, "header_widget") and self.header_widget:
+            self.header_widget.installEventFilter(self)
+        for child in self.frame.findChildren(QLabel):
+            child.installEventFilter(self)
+
+    def _is_interactive(self, widget: Optional[QWidget]) -> bool:
+        """Check if widget is an interactive control that should consume its own mouse events."""
+        if widget is None:
+            return False
+        from PyQt6.QtWidgets import QPushButton, QComboBox, QTextEdit, QScrollBar, QAbstractSpinBox
+        curr = widget
+        while curr and curr != self:
+            if isinstance(curr, (QPushButton, QComboBox, QTextEdit, QScrollBar, QAbstractSpinBox, DynamicLineChart)):
+                return True
+            curr = curr.parentWidget()
+        return False
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if event.button() == Qt.MouseButton.LeftButton:
+                pos = event.globalPosition().toPoint()
+                child = self.childAt(self.mapFromGlobal(pos))
+                if not self._is_interactive(child):
+                    wh = self.windowHandle()
+                    if wh and hasattr(wh, "startSystemMove") and wh.startSystemMove():
+                        return True
+                    self._drag_pos = pos - self.pos()
+                    self.grabMouse()
+                    return True
+        elif event.type() == QEvent.Type.MouseMove:
+            if event.buttons() & Qt.MouseButton.LeftButton and hasattr(self, '_drag_pos') and self._drag_pos is not None:
+                self.move(event.globalPosition().toPoint() - self._drag_pos)
+                return True
+        elif event.type() == QEvent.Type.MouseButtonRelease:
+            if hasattr(self, '_drag_pos') and self._drag_pos is not None:
+                self._drag_pos = None
+                if self.mouseGrabber() == self:
+                    self.releaseMouse()
+                return True
+        return super().eventFilter(watched, event)
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            event.accept()
+            pos = event.globalPosition().toPoint()
+            child = self.childAt(self.mapFromGlobal(pos))
+            if not self._is_interactive(child):
+                wh = self.windowHandle()
+                if wh and hasattr(wh, "startSystemMove") and wh.startSystemMove():
+                    event.accept()
+                    return
+                self._drag_pos = pos - self.pos()
+                self.grabMouse()
+                event.accept()
+                return
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.MouseButton.LeftButton:
+        if event.buttons() & Qt.MouseButton.LeftButton and hasattr(self, '_drag_pos') and self._drag_pos is not None:
             self.move(event.globalPosition().toPoint() - self._drag_pos)
             event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._drag_pos = None
+        if self.mouseGrabber() == self:
+            self.releaseMouse()
+        super().mouseReleaseEvent(event)
 
 
 # ─── Standalone Runner Window ───────────────────────────────────────────────
@@ -1217,10 +1357,13 @@ StatsDialog = StatsForNerdsDialog
 
 
 def show_stats(parent=None) -> StatsForNerdsDialog:
-    """Helper to open the Stats dialog modal/floating."""
+    """Helper to open the Stats dialog floating/non-modal."""
     dialog = StatsForNerdsDialog(parent)
-    dialog.exec()
+    dialog.show()
+    dialog.raise_()
+    dialog.activateWindow()
     return dialog
 
 
+show_nerds = show_stats
 show_stats_for_nerds = show_stats

@@ -90,6 +90,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File create_links.ps1
 del create_links.ps1
 
 echo.
+echo Registering application and PDF document presentation in Windows...
+set "APP_KEY=HKCU\Software\Classes\Applications\MNIME.exe"
+reg add "%APP_KEY%" /v "FriendlyAppName" /t REG_SZ /d "MNIME" /f >nul
+reg add "%APP_KEY%" /v "Treatment" /t REG_DWORD /d 2 /f >nul
+reg add "%APP_KEY%\DefaultIcon" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\System32\imageres.dll,-102" /f >nul
+reg add "%APP_KEY%\SupportedTypes" /v ".pdf" /t REG_SZ /d "" /f >nul
+reg add "%APP_KEY%\shell\open\command" /ve /t REG_SZ /d "\"%EXE_PATH%\" \"%%1\"" /f >nul
+reg add "%APP_KEY%\ShellEx\{8895b1c6-b41f-4c1c-a562-0d564250836f}" /ve /t REG_SZ /d "{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}" /f >nul
+
 echo Registering uninstall entry in Add/Remove Programs...
 
 set "UNINST_KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME"
@@ -106,12 +115,33 @@ set "UNINST_BAT=%INSTALL_DIR%\uninstall.bat"
     echo :: Close running application
     echo taskkill /F /IM MNIME.exe /T ^>nul 2^>^&1
     echo.
-    echo :: Remove registry entry
+    echo :: Remove Add/Remove Programs registry entry
     echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MNIME" /f ^>nul 2^>^&1
+    echo.
+    echo :: Remove application settings
+    echo reg delete "HKCU\Software\MNIME" /f ^>nul 2^>^&1
+    echo.
+    echo :: Remove application class registrations
+    echo reg delete "HKCU\Software\Classes\Applications\MNIME.exe" /f ^>nul 2^>^&1
+    echo reg delete "HKCU\Software\Classes\MNIME.Document" /f ^>nul 2^>^&1
+    echo.
+    echo :: Remove startup autorun entry
+    echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "MNIME" /f ^>nul 2^>^&1
+    echo.
+    echo :: Clean Explorer PDF file association entries
+    echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\OpenWithProgids" /v "Applications\MNIME.exe" /f ^>nul 2^>^&1
+    echo reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\OpenWithProgids" /v "MNIME.Document" /f ^>nul 2^>^&1
+    echo powershell -NoProfile -ExecutionPolicy Bypass -Command "$owl='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\OpenWithList'; if(Test-Path $owl){$p=Get-ItemProperty $owl;$mru=$p.MRUList;foreach($prop in ($p.psobject.Properties|Where-Object{$_.Value -eq 'MNIME.exe'})){Remove-ItemProperty -Path $owl -Name $prop.Name -ErrorAction SilentlyContinue;if($mru){$mru=$mru.Replace($prop.Name,'')}};if($mru){Set-ItemProperty -Path $owl -Name 'MRUList' -Value $mru -ErrorAction SilentlyContinue}}; $uc='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\UserChoice'; if(Test-Path $uc){$prog=(Get-ItemProperty $uc -ErrorAction SilentlyContinue).ProgId;if($prog -like '*MNIME*'){Remove-Item -Path $uc -Recurse -Force -ErrorAction SilentlyContinue}}" ^>nul 2^>^&1
     echo.
     echo :: Remove shortcuts
     echo if exist "%DESKTOP_LNK%" del /f /q "%DESKTOP_LNK%" ^>nul 2^>^&1
     echo if exist "%STARTMENU_LNK%" del /f /q "%STARTMENU_LNK%" ^>nul 2^>^&1
+    echo.
+    echo :: Remove application logs
+    echo if exist "%LOCALAPPDATA%\MNIME" rmdir /s /q "%LOCALAPPDATA%\MNIME" ^>nul 2^>^&1
+    echo.
+    echo :: Refresh Windows Explorer icon cache
+    echo ie4uinit.exe -show ^>nul 2^>^&1
     echo.
     echo :: Clean up application files via detached background cleanup
     echo set "TARGET_DIR=%INSTALL_DIR%"

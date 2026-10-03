@@ -898,9 +898,26 @@ class MainWindow(QMainWindow):
         elif mode == ToolMode.BOOKMARK:
             self.action_bar.set_action_title("BOOKMARK")
         elif mode == ToolMode.STATS:
-            from ui.stats_for_nerds import StatsForNerdsDialog
-            dialog = StatsForNerdsDialog(self)
-            dialog.exec()
+            from ui.nerds import StatsForNerdsDialog
+            if getattr(self, "_stats_dialog", None) is None:
+                self._stats_dialog = StatsForNerdsDialog(self)
+
+            if self._stats_dialog.isVisible():
+                if self._stats_dialog.isActiveWindow():
+                    self._stats_dialog.hide()
+                else:
+                    self._stats_dialog.raise_()
+                    self._stats_dialog.activateWindow()
+            else:
+                geo = self.geometry()
+                diag_w, diag_h = self._stats_dialog.width(), self._stats_dialog.height()
+                x = max(geo.x() + (geo.width() - diag_w) // 2, 40)
+                y = max(geo.y() + (geo.height() - diag_h) // 2, 40)
+                self._stats_dialog.move(x, y)
+                self._stats_dialog.show()
+                self._stats_dialog.raise_()
+                self._stats_dialog.activateWindow()
+
             if self.current_mode in self.tabs_bar._buttons:
                 self.tabs_bar._buttons[self.current_mode].setChecked(True)
             return

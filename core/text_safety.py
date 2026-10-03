@@ -18,13 +18,23 @@ def sanitize_prompt_text(text: str, limit: int = MAX_CONTEXT_CHARS) -> str:
     """Strip prompt-control tokens and cap length."""
     if not text:
         return ""
-    cleaned = _CHATML.sub("", str(text))
-    return cleaned[:limit]
+    text = str(text)
+    while True:
+        cleaned = _CHATML.sub("", text)
+        if cleaned == text:
+            break
+        text = cleaned
+    return text[:limit]
 
 
 def safe_filename(name: str, fallback: str = "page", max_len: int = 120) -> str:
     """Return a Windows-safe file name stem (no path separators, no reserved names)."""
     name = _WIN_ILLEGAL.sub("_", str(name or "")).strip(" .")
+    
+    first_part = name.split(".")[0].strip().upper()
+    if first_part in _WIN_RESERVED:
+        name = f"_{name}"
+        
     parts = name.rsplit(".", 1)
     if len(parts) == 2:
         stem, ext = parts
@@ -32,9 +42,10 @@ def safe_filename(name: str, fallback: str = "page", max_len: int = 120) -> str:
     else:
         stem, ext = name, ""
         
-    if stem.upper() in _WIN_RESERVED:
-        stem = f"_{stem}"
-        
     allowed_len = max(0, max_len - len(ext))
     stem = stem[:allowed_len]
-    return (stem + ext).rstrip(" .") or fallback
+    
+    res = (stem + ext).rstrip(" .")
+    if len(res) > max_len:
+        res = res[:max_len].rstrip(" .")
+    return res or fallback

@@ -34,6 +34,10 @@ sys.excepthook = _log_uncaught
 from core.app_icon import setup_app_user_model_id, get_app_icon
 setup_app_user_model_id()
 
+# Ensure PDF files show document page previews rather than application logo
+from core.windows_integration import ensure_pdf_page_preview
+ensure_pdf_page_preview()
+
 import math
 import random
 

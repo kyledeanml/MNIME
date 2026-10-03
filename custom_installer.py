@@ -94,6 +94,7 @@ class InstallWorker(QThread):
         uninst_bat = os.path.join(install_dir, 'uninstall.bat')
         
         # Write uninstaller script into install directory
+        localapp = os.environ.get('LOCALAPPDATA', '')
         uninstaller_content = (
             "@echo off\r\n"
             "title Uninstall MNIME\r\n"
@@ -104,12 +105,33 @@ class InstallWorker(QThread):
             ":: Terminate running MNIME instances\r\n"
             "taskkill /F /IM MNIME.exe /T >nul 2>&1\r\n"
             "\r\n"
-            ":: Remove registry entry\r\n"
+            ":: Remove Add/Remove Programs registry entry\r\n"
             "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\MNIME\" /f >nul 2>&1\r\n"
+            "\r\n"
+            ":: Remove application settings\r\n"
+            "reg delete \"HKCU\\Software\\MNIME\" /f >nul 2>&1\r\n"
+            "\r\n"
+            ":: Remove application class registrations\r\n"
+            "reg delete \"HKCU\\Software\\Classes\\Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
+            "reg delete \"HKCU\\Software\\Classes\\MNIME.Document\" /f >nul 2>&1\r\n"
+            "\r\n"
+            ":: Remove startup autorun entry\r\n"
+            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \"MNIME\" /f >nul 2>&1\r\n"
+            "\r\n"
+            ":: Clean Explorer PDF file association entries\r\n"
+            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"Applications\\MNIME.exe\" /f >nul 2>&1\r\n"
+            "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithProgids\" /v \"MNIME.Document\" /f >nul 2>&1\r\n"
+            "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$owl='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\OpenWithList'; if(Test-Path $owl){$p=Get-ItemProperty $owl;$mru=$p.MRUList;foreach($prop in ($p.psobject.Properties|Where-Object{$_.Value -eq 'MNIME.exe'})){Remove-ItemProperty -Path $owl -Name $prop.Name -ErrorAction SilentlyContinue;if($mru){$mru=$mru.Replace($prop.Name,'')}};if($mru){Set-ItemProperty -Path $owl -Name 'MRUList' -Value $mru -ErrorAction SilentlyContinue}}; $uc='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\UserChoice'; if(Test-Path $uc){$prog=(Get-ItemProperty $uc -ErrorAction SilentlyContinue).ProgId;if($prog -like '*MNIME*'){Remove-Item -Path $uc -Recurse -Force -ErrorAction SilentlyContinue}}\" >nul 2>&1\r\n"
             "\r\n"
             ":: Remove shortcuts\r\n"
             f"if exist \"{desktop}\" del /f /q \"{desktop}\" >nul 2>&1\r\n"
             f"if exist \"{start_menu}\" del /f /q \"{start_menu}\" >nul 2>&1\r\n"
+            "\r\n"
+            ":: Remove application logs\r\n"
+            f"if exist \"{localapp}\\MNIME\" rmdir /s /q \"{localapp}\\MNIME\" >nul 2>&1\r\n"
+            "\r\n"
+            ":: Refresh Windows Explorer icon cache\r\n"
+            "ie4uinit.exe -show >nul 2>&1\r\n"
             "\r\n"
             ":: Clean up application files via detached background cleanup\r\n"
             f"set \"TARGET_DIR={install_dir}\"\r\n"
@@ -151,6 +173,19 @@ class InstallWorker(QThread):
                 winreg.SetValueEx(key, "NoRepair", 0, winreg.REG_DWORD, 1)
                 winreg.SetValueEx(key, "URLInfoAbout", 0, winreg.REG_SZ, "https://MNIME.app")
                 winreg.SetValueEx(key, "HelpLink", 0, winreg.REG_SZ, "https://MNIME.app")
+
+            # Register PDF document page preview presentation so Explorer displays document previews
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe") as app_key:
+                winreg.SetValueEx(app_key, "FriendlyAppName", 0, winreg.REG_SZ, "MNIME")
+                winreg.SetValueEx(app_key, "Treatment", 0, winreg.REG_DWORD, 2)
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\DefaultIcon") as icon_key:
+                winreg.SetValueEx(icon_key, "", 0, winreg.REG_EXPAND_SZ, r"%SystemRoot%\System32\imageres.dll,-102")
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\SupportedTypes") as types_key:
+                winreg.SetValueEx(types_key, ".pdf", 0, winreg.REG_SZ, "")
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\shell\open\command") as cmd_key:
+                winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{target}" "%1"')
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Classes\Applications\MNIME.exe\ShellEx\{8895b1c6-b41f-4c1c-a562-0d564250836f}") as sx_key:
+                winreg.SetValueEx(sx_key, "", 0, winreg.REG_SZ, "{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}")
         except Exception:
             try:
                 cmd = (
@@ -162,7 +197,13 @@ class InstallWorker(QThread):
                     f'reg add "HKCU\\{key_path}" /v "UninstallString" /t REG_SZ /d "\"{uninst_bat}\"" /f & '
                     f'reg add "HKCU\\{key_path}" /v "EstimatedSize" /t REG_DWORD /d {max(1, total_size_bytes // 1024)} /f & '
                     f'reg add "HKCU\\{key_path}" /v "NoModify" /t REG_DWORD /d 1 /f & '
-                    f'reg add "HKCU\\{key_path}" /v "NoRepair" /t REG_DWORD /d 1 /f'
+                    f'reg add "HKCU\\{key_path}" /v "NoRepair" /t REG_DWORD /d 1 /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "FriendlyAppName" /t REG_SZ /d "MNIME" /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe" /v "Treatment" /t REG_DWORD /d 2 /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\DefaultIcon" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\\System32\\imageres.dll,-102" /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\SupportedTypes" /v ".pdf" /t REG_SZ /d "" /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\shell\\open\\command" /ve /t REG_SZ /d "\"{target}\" \"%%1\"" /f & '
+                    f'reg add "HKCU\\Software\\Classes\\Applications\\MNIME.exe\\ShellEx\\{{8895b1c6-b41f-4c1c-a562-0d564250836f}}" /ve /t REG_SZ /d "{{3A84F9C2-6164-485C-A7D9-4B27F8AC009E}}" /f'
                 )
                 subprocess.run(cmd, shell=True, capture_output=True)
             except Exception:

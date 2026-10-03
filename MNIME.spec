@@ -3,6 +3,20 @@ import sys
 import os
 from PyInstaller.utils.hooks import collect_all
 
+if not os.path.exists('version_info.txt'):
+    with open('version_info.txt', 'w') as f:
+        f.write('''VSVersionInfo(
+  ffi=FixedFileInfo(filevers=(1, 0, 0, 0), prodvers=(1, 0, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0, 0)),
+  kids=[
+    StringFileInfo([StringTable('040904B0', [
+        StringStruct('CompanyName', 'MNIME'), StringStruct('FileDescription', 'MNIME Desktop'),
+        StringStruct('FileVersion', '1.0.0'), StringStruct('InternalName', 'MNIME'),
+        StringStruct('OriginalFilename', 'MNIME.exe'), StringStruct('ProductName', 'MNIME'),
+        StringStruct('ProductVersion', '1.0.0')])]),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)''')
+
 datas = [('MN.ico', '.'), ('models/*', 'models')]
 binaries = []
 hiddenimports = [
@@ -26,6 +40,7 @@ hiddenimports = [
     'core.pdf_engine',
     'core.print_engine',
     'core.search_engine',
+    'core.windows_integration',
     'core.worker',
     'ui',
     'ui.action_bar',
@@ -43,7 +58,7 @@ hiddenimports = [
     'ui.output_view',
     'ui.pdf_editor',
     'ui.reader_dialog',
-    'ui.stats_for_nerds',
+    'ui.nerds',
     'ui.tabs_bar',
 ]
 

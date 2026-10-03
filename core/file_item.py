@@ -27,7 +27,10 @@ class FileItem:
     def __init__(self, file_path: str):
         self.file_path = os.path.abspath(file_path)
         self.file_name = os.path.basename(file_path)
-        self.file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+        try:
+            self.file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+        except OSError:
+            self.file_size = 0
         self.extension = os.path.splitext(file_path)[1].lower()
         self.status = FileStatus.READY
         self.progress: float = 0.0
@@ -90,6 +93,12 @@ class FileItem:
                 try:
                     with open(self.file_path, "r", encoding="utf-8") as f:
                         text_preview = f.read(200)
+                except UnicodeDecodeError:
+                    try:
+                        with open(self.file_path, "r", encoding="latin-1", errors="replace") as f:
+                            text_preview = f.read(200)
+                    except Exception:
+                        text_preview = "Text Document"
                 except Exception:
                     text_preview = "Text Document"
                 d.text((10, 10), text_preview, fill=(50, 50, 50))

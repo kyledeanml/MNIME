@@ -241,13 +241,16 @@ class OutputView(QWidget):
         
         # If they haven't explicitly dragged it, we save it here
         try:
-            if os.path.isdir(self.file_path):
-                if os.path.exists(dest):
-                    shutil.rmtree(dest)
-                shutil.copytree(self.file_path, dest)
-                self.title_label.setText("Folder Saved Successfully!")
+            if os.path.abspath(self.file_path) != os.path.abspath(dest):
+                if os.path.isdir(self.file_path):
+                    if os.path.exists(dest):
+                        shutil.rmtree(dest)
+                    shutil.copytree(self.file_path, dest)
+                    self.title_label.setText("Folder Saved Successfully!")
+                else:
+                    shutil.copy2(self.file_path, dest)
+                    self.title_label.setText("Saved Successfully!")
             else:
-                shutil.copy2(self.file_path, dest)
                 self.title_label.setText("Saved Successfully!")
             self.title_label.setStyleSheet("color: #3fb950; font-size: 18px; font-weight: 800; border: none; background: transparent;")
         except Exception as e:

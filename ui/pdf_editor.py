@@ -1,5 +1,5 @@
 import os
-import fitz
+import pymupdf as fitz
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
     QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem

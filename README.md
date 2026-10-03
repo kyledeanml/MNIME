@@ -252,6 +252,12 @@ MNIME offers two powerful ways to generate document outlines and table of conten
 - **Heuristic Mode**: Rapidly analyzes PDF typography, font sizes, and structural layout to instantly build an accurate nested bookmark tree using native heuristics.
 - **NLP Mode**: Leverages the bundled MNIME-Core model to contextually understand headers, generating highly descriptive, semantic chapter summaries for each outline entry.
 
+### Empirical Benchmarking & External Validation
+MNIME bundles a standalone graphical benchmarking utility (`benchmark.py`) designed for users and researchers to independently validate on-device model throughput, latency, and hardware metrics:
+- **Interactive Performance GUI**: Launch via `.venv\Scripts\python.exe benchmark.py` to open a dedicated hardware performance console.
+- **Empirical Telemetry**: Empirically measures prompt ingestion speed, first-token latency, and sustained token generation throughput (tokens/second) against the bundled `MNIME-Core-1.5B-Q4_K_M.gguf` model.
+- **External Replication**: Allows users to ground and replicate the empirical benchmarks reported in Section 5 of the research paper directly on their own local machine without external dependencies.
+
 ---
 
 

@@ -1206,15 +1206,3 @@ class MainWindow(QMainWindow):
         self.action_bar.hide_progress()
         if hasattr(self, 'particle_overlay'):
             self.particle_overlay.clear_all()
-
-    def _on_worker_error(self, err_msg: str):
-        self.action_bar.upload_btn.setEnabled(True)
-        self.action_bar.clear_btn.setEnabled(True)
-        self.action_bar.action_btn.setEnabled(True)
-        self.action_bar.hide_progress()
-
-        QMessageBox.critical(
-            self,
-            "Error - MNIME",
-            f"An error occurred while processing:\n\n{err_msg}"
-        )

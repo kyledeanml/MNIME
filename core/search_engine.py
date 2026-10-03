@@ -60,14 +60,18 @@ class SearchEngine:
                 if ext in (".py", ".txt", ".md", ".json", ".csv", ".js", ".ts", ".html", ".css", ".cpp", ".c", ".h", ".java"):
                     fpath = os.path.join(root, fname)
                     try:
-                        with open(fpath, 'r', encoding='utf-8') as f_reader:
-                            content_str = f_reader.read()
+                        try:
+                            with open(fpath, 'r', encoding='utf-8') as f_reader:
+                                content_str = f_reader.read()
+                        except UnicodeDecodeError:
+                            with open(fpath, 'r', encoding='latin-1', errors='replace') as f_reader:
+                                content_str = f_reader.read()
                         data_list.append({
                             "path": fpath,
                             "content": content_str,
                             "lines": len(content_str.splitlines())
                         })
-                    except (UnicodeDecodeError, PermissionError):
+                    except (OSError, PermissionError):
                         continue
         return data_list
 
@@ -151,8 +155,12 @@ class SearchEngine:
                     pass
             elif file_item.extension in (".py", ".txt", ".md", ".json", ".csv", ".js", ".ts", ".html", ".css", ".cpp", ".c", ".h", ".java"):
                 try:
-                    with open(file_item.file_path, 'r', encoding='utf-8') as f_reader:
-                        content_str = f_reader.read()
+                    try:
+                        with open(file_item.file_path, 'r', encoding='utf-8') as f_reader:
+                            content_str = f_reader.read()
+                    except UnicodeDecodeError:
+                        with open(file_item.file_path, 'r', encoding='latin-1', errors='replace') as f_reader:
+                            content_str = f_reader.read()
                     data_list.append({
                         "path": file_item.file_path,
                         "content": content_str,
@@ -176,7 +184,7 @@ class SearchEngine:
             if progress_callback:
                 progress_callback(50, "Smart Indexing (Extracting Probe Terms)...")
 
-            frac = min(0.1, 1.0) if len(df) > 10 else 1.0
+            frac = 0.1 if len(df) > 10 else 1.0
             sample = df['content'].sample(frac=frac, random_state=42).tolist()
             p_terms = SearchEngine.extract_probe_terms(sample)
 

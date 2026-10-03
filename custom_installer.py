@@ -71,10 +71,10 @@ class InstallWorker(QThread):
                     shutil.copy2("MN.ico", os.path.join(install_dir, "MN.ico"))
                 except: pass
         else:
-            # Fake installation mode for testing if dist/ isn't built
-            for i in range(1, 91):
-                self.progress.emit(i, f"Simulating file extraction module_{i}.dll...")
-                time.sleep(0.03)
+            self.progress.emit(0, "Error: Application build files not found (dist/MNIME). Please build before running installer.")
+            time.sleep(2.0)
+            self.finished.emit()
+            return
                 
         self.progress.emit(92, "Creating shortcuts...")
         

@@ -11,7 +11,7 @@ import subprocess
 from typing import Optional
 from PyQt6.QtGui import QIcon, QPixmap
 
-APP_USER_MODEL_ID = "MNIME.Desktop.1.5"
+APP_USER_MODEL_ID = "MNIME.Desktop"
 
 
 def get_resource_path(relative_path: str) -> str:

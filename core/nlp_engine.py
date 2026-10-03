@@ -119,7 +119,7 @@ class NLPEngine:
         t = threading.Thread(target=self.reload_model, daemon=True)
         t.start()
 
-    def check_model(self):
+    def check_model(self, auto_load: bool = False):
         enabled = str(self.settings.value("nlp_enabled", "true")).lower() == "true"
         if not enabled:
             self.unload_model()
@@ -127,11 +127,16 @@ class NLPEngine:
             return
         
         if not self.is_loaded:
-            self.error = "Model not loaded. Click the reload button to start NLP."
-            return
+            if auto_load and not self.is_loading:
+                self.reload_model()
+                if not self.is_loaded:
+                    return
+            else:
+                self.error = "Model not loaded. Click the reload button to start NLP."
+                return
 
     def generate_response(self, prompt: str, context_docs: List[Dict[str, Any]]) -> str:
-        self.check_model()
+        self.check_model(auto_load=True)
         if not self.is_loaded:
             return f"Error: {self.error}"
 
@@ -161,7 +166,7 @@ class NLPEngine:
             return f"Error generating response: {e}"
 
     def synthesize_reference(self, source_text: str, context_docs: List[Dict[str, Any]]) -> str:
-        self.check_model()
+        self.check_model(auto_load=True)
         if not self.is_loaded:
             return f"Error: {self.error}"
 

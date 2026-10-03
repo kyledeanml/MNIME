@@ -49,12 +49,23 @@ class PDFEngine:
                     img_pdf.close()
                     img_doc.close()
                 elif ext == ".txt":
-                    with open(item.file_path, "r", encoding="utf-8") as f:
-                        text_content = f.read()
+                    try:
+                        with open(item.file_path, "r", encoding="utf-8") as f:
+                            text_content = f.read()
+                    except UnicodeDecodeError:
+                        with open(item.file_path, "r", encoding="latin-1", errors="replace") as f:
+                            text_content = f.read()
+
                     txt_pdf = pymupdf.open()
-                    page = txt_pdf.new_page()
-                    rect = pymupdf.Rect(50, 50, page.rect.width - 50, page.rect.height - 50)
-                    page.insert_textbox(rect, text_content, fontsize=12, fontname="helv")
+                    lines = text_content.splitlines()
+                    if not lines:
+                        lines = [""]
+                    lines_per_page = 45
+                    for chunk_start in range(0, len(lines), lines_per_page):
+                        page = txt_pdf.new_page()
+                        rect = pymupdf.Rect(50, 50, page.rect.width - 50, page.rect.height - 50)
+                        chunk_text = "\n".join(lines[chunk_start:chunk_start + lines_per_page])
+                        page.insert_textbox(rect, chunk_text, fontsize=11, fontname="helv")
                     merged_doc.insert_pdf(txt_pdf)
                     txt_pdf.close()
 
@@ -95,20 +106,30 @@ class PDFEngine:
                         for page in img_reader.pages:
                             writer.add_page(page)
                 elif ext == ".txt":
-                    with open(item.file_path, "r", encoding="utf-8") as f:
-                        text_content = f.read()
-                    
+                    try:
+                        with open(item.file_path, "r", encoding="utf-8") as f:
+                            text_content = f.read()
+                    except UnicodeDecodeError:
+                        with open(item.file_path, "r", encoding="latin-1", errors="replace") as f:
+                            text_content = f.read()
+
                     from PIL import Image, ImageDraw
-                    img = Image.new('RGB', (850, 1100), color=(255, 255, 255))
-                    d = ImageDraw.Draw(img)
-                    d.text((50, 50), text_content, fill=(0,0,0))
-                    
-                    temp_pdf_bytes = io.BytesIO()
-                    img.save(temp_pdf_bytes, format="PDF", resolution=150.0)
-                    temp_pdf_bytes.seek(0)
-                    txt_reader = pypdf.PdfReader(temp_pdf_bytes)
-                    for page in txt_reader.pages:
-                        writer.add_page(page)
+                    lines = text_content.splitlines()
+                    if not lines:
+                        lines = [""]
+                    lines_per_page = 45
+                    for chunk_start in range(0, len(lines), lines_per_page):
+                        img = Image.new('RGB', (850, 1100), color=(255, 255, 255))
+                        d = ImageDraw.Draw(img)
+                        chunk_text = "\n".join(lines[chunk_start:chunk_start + lines_per_page])
+                        d.text((50, 50), chunk_text, fill=(0, 0, 0))
+
+                        temp_pdf_bytes = io.BytesIO()
+                        img.save(temp_pdf_bytes, format="PDF", resolution=150.0)
+                        temp_pdf_bytes.seek(0)
+                        txt_reader = pypdf.PdfReader(temp_pdf_bytes)
+                        for page in txt_reader.pages:
+                            writer.add_page(page)
 
             if progress_callback:
                 progress_callback(95, "Writing output file...")

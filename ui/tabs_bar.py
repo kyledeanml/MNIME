@@ -251,6 +251,7 @@ class TabsBar(QWidget):
         settings.setValue("nlp_enabled", checked)
         if not checked:
             NLPEngine.get_instance().unload_model()
+        self.nlp_toggled.emit(checked)
 
     def _on_tab_clicked(self, mode: ToolMode):
         if mode == ToolMode.RELOAD_NLP:

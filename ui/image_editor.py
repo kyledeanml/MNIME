@@ -178,14 +178,11 @@ class ImageEditorDialog(QDialog):
     def update_image_display(self):
         self.scene.clear()
         
-        # Save temp to load into QPixmap
-        import tempfile, os
-        fd, temp_path = tempfile.mkstemp(suffix=".png")
-        os.close(fd)
-        self.pil_image.save(temp_path)
-        
-        pixmap = QPixmap(temp_path)
-        os.remove(temp_path)
+        import io
+        buf = io.BytesIO()
+        self.pil_image.save(buf, format="PNG")
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
         
         self.pixmap_item = QGraphicsPixmapItem(pixmap)
         self.pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)

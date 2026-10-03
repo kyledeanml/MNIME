@@ -2,10 +2,18 @@
   <img src="MNIME_banner.gif?v=2" alt="MNIME Banner" width="350">
 </p>
 
-<p align="center">MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</p>
+<p align="center"><strong>MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION</strong></p>
 <p align="center"><em><font face="Brush Script MT, Segoe Script, cursive" color="#00e5ff" size="4">nigh.mh</font></em></p>
 
-A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, it runs 100% locally and offline on your machine with zero external uploads, giving you conversational interaction over your documents.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-00e5ff.svg?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/Python-3.10%2B-00e5ff.svg?style=flat-square" alt="Python Version">
+  <img src="https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-00e5ff.svg?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/UI-PyQt6-00e5ff.svg?style=flat-square" alt="UI Framework">
+  <img src="https://img.shields.io/badge/Model-MNIME--Core--1.5B--Q4__K__M-00e5ff.svg?style=flat-square" alt="Model">
+</p>
+
+A modern, private, ultra-fast desktop interface with a fine-tuned local NLP engine built in. Engineered with Python and PyQt6, MNIME runs 100% locally and offline on your machine with zero cloud dependencies or data uploads, delivering conversational AI and document intelligence directly over your files.
 
 ---
 
@@ -29,128 +37,109 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
 
 ## Key Features
 
-1. **Merge Files**: Select up to 5000 PDF and image files, drag and drop to reorder, and merge them sequentially into a single PDF document.
-2. **Edit Suite (Images & PDFs)**: Visually crop and rotate images and all pages within PDF documents seamlessly within the app.
-3. **JPG → PDF**: Convert image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into a crisp, unified PDF document.
-4. **PDF → Images**: Extract all pages from a PDF document into high-resolution JPG images.
-5. **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
-6. **PDF → DOCX**: Convert PDF pages and text layout into editable .docx documents.
-7. **Semantic Bookmarks**: Intelligently analyze PDF typography and use the bundled NLP engine to automatically generate verbose, context-aware chapter summaries.
-8. **Local NLP Engine & Semantic Search (RAG)**: Query across all open PDFs locally using the bundled `MNIME-Core-1.5B-Q4_K_M.gguf` model — no configuration required.
-9. **Smart Document Cross-Referencing**: Highlight sections in a PDF to automatically synthesize an NLP comparative brief against other documents.
-10. **Expanded Translucent Pop-out Chat**: Double-click the NLP console to spawn a magnetic, translucent floating chat window perfectly synced with the main app.
+### 1. Document & File Processing Suite
+- **Combine PDF**: Select up to 5,000 PDF and image files, drag and drop to reorder, and merge sequentially into a unified document.
+- **Edit Suite (Images & PDFs)**: Visually crop and rotate images and all pages within PDF documents seamlessly in-app.
+- **JPG to PDF**: Convert image formats (`.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`) into crisp, vector-scaled PDFs.
+- **TXT to PDF**: Rapidly render raw text documents into formatted, searchable PDF files.
+- **PDF to JPG**: Extract all pages from a PDF document into high-resolution JPG images.
+- **Split PDF**: Separate multi-page PDFs with NLP-powered Smart Naming that analyzes page content to generate unique filenames.
+- **Compress PDF**: Optimize and reduce PDF file size by compressing content streams and duplicate objects.
+- **PDF to DOCX**: Reconstruct PDF layouts into fully editable Word documents.
+- **Semantic Bookmarks**: Intelligently analyze PDF typography and leverage the bundled NLP engine to generate context-aware chapter summaries.
 
-### Visual & Aesthetic Highlights
-- **Free-Floating Dark Metallic Design**: Seamless obsidian and brushed gunmetal interface without boxy enclosing containers.
-- **Whispy Metallic Branding**: Custom procedurally generated metallic silver and chrome logo, featuring a mathematically precise 5D Penteract projection with true depth-sorting.
-- **Clean Minimalist Dropzone**: Modern, distraction-free file drop canvas with real-time drag-and-drop feedback.
-- **Interactive File Carousel**: Horizontal card slider with smooth scroll arrows and status badges.
-- **Advanced File Explorer Dialog**: A custom, fully integrated PyQt6 file manager that replaces the generic OS popup, featuring a directory tree and clean list view matching the app's dark metallic theme.
-- **Cinematic Transitions & VFX**: Features an interactive, physics-based particle simulation with an infinitely looping high-speed file vortex during background processing, capped off with a screen-flash transition. Plus, a playful neon green file orbiting independently in 3D around the 5D core.
-- **Drag-and-Drop Reordering**: Rearrange file cards by dragging them left or right to change the processing order.
-- **Card Thumbnails & Previews**: Real-time page rendering, file names, status overlays (`Waiting...`, `Processing...`, `Ready`), and remove buttons (`X`).
+### 2. Local Intelligence & RAG Engine
+- **Local NLP Engine**: Query across all open documents locally using the fine-tuned `MNIME-Core-1.5B-Q4_K_M.gguf` model with zero network traffic.
+- **Semantic Search (RAG)**: Fast vector search powered by FAISS embeddings (`bge-small-en-v1.5`).
+- **Document Cross-Referencing**: Highlight sections in a document to synthesize an automated comparative brief against other open files.
+- **Translucent Pop-Out Console**: Double-click the NLP console to spawn a magnetic, translucent floating chat window synchronized with the primary window.
 
-### High-Performance Engine & Optimizations
-- **C-Accelerated PyMuPDF Core**: Multi-file merging, image extraction, and compression run through native C-level PyMuPDF routines (up to 50x faster than pure-Python libraries with negligible RAM footprint).
-- **O(1) Carousel Layout Operations**: Drag-and-drop card reordering and card removal execute via surgical layout index shifts rather than tearing down and rebuilding hundreds of widgets.
-- **Dynamic Memory Management**: The GGUF model and FAISS vector index are completely cleared from memory the moment NLP is toggled off or the app closes, preventing background memory hoarding.
-- **Manual NLP Control**: The bundled model waits idly until you explicitly click the **Reload NLP** button, keeping startup times instant.
-- **In-Memory Pixmap & Icon Caching**: Thumbnails and vector SVG icons are rasterized and pre-scaled once, eliminating CPU resampling during continuous scroll and hover events.
-- **Lightweight Hardware-Accelerated Cards**: Replaced heavy drop shadow bitmap textures with pure stylesheet hardware borders, keeping UI scrolling silky smooth even with 5000 files loaded.
-- **Non-blocking Background Processing**: Smooth 60 FPS UI using `QThread` workers with real-time progress bars.
+### 3. Visual & Aesthetic Architecture
+- **Free-Floating Dark Metallic Interface**: Frameless obsidian and brushed gunmetal theme built with native PyQt6 styling.
+- **5D Penteract Visual Branding**: Procedurally rendered 5D Penteract projection with true depth-sorting and an independently orbiting 3D element.
+- **Interactive Gallery Carousel**: Horizontal file card slider featuring drag-and-drop reordering, status overlays, and thumbnail pre-rendering.
+- **Custom File Explorer**: Fully integrated PyQt6 file dialog replacing generic OS file pickers to maintain dark metallic UI consistency.
+- **Cinematic Transitions & VFX**: Real-time particle physics simulation during background operations with smooth screen-flash transitions.
 
-### NLP Model — MNIME-Core
-The `MNIME-Core-1.5B-Q4_K_M.gguf` model is a fine-tuned Qwen2.5-1.5B-Instruct model, quantized to Q4_K_M, trained specifically on document-processing and cross-referencing tasks. 
+### 4. Engine & Performance Optimizations
+- **C-Accelerated PyMuPDF Core**: Native C-level document operations executing up to 50x faster than pure-Python libraries.
+- **O(1) Carousel Indexing**: Surgical layout reordering without tearing down or recreating UI widgets.
+- **Dynamic Memory Management**: Unloads LLM weights and vector indices from RAM/VRAM when NLP mode is toggled off or on exit.
+- **Non-Blocking Multithreading**: Smooth 60 FPS UI performance backed by dedicated `QThread` workers and progress tracking.
+- **In-Memory Pixmap Caching**: SVG vector icons and card thumbnails are rasterized and pre-scaled once to eliminate CPU resampling overhead.
 
-If you download the pre-built installer, it comes bundled out of the box. If you are running or building from source, you must download the model from [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) and place it in the `models/` folder.
+---
 
-MNIME auto-detects the model on startup and will pick up the hardware it can find (NVIDIA GPU layers are set to `-1` by default, meaning the runtime offloads as many layers as will fit in VRAM automatically).
+## Fine-Tuned NLP Model — MNIME-Core
+
+`MNIME-Core-1.5B-Q4_K_M.gguf` is a fine-tuned version of `Qwen2.5-1.5B-Instruct`, quantized to Q4_K_M, specialized for high-density document synthesis, extraction, and cross-referencing.
+
+- **Standalone Run**: Download the model from [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) and place it inside the `models/` directory.
+- **Pre-built Installer**: Shipped directly inside the installer bundle.
+- **Hardware Acceleration**: Automatically offloads layers to available GPU VRAM (NVIDIA CUDA / Vulkan / Metal) via `llama-cpp-python`.
 
 ---
 
 ## Setup & Installation
 
-### Option A — Standalone Installer (Recommended)
-Run one of the two pre-built installers from the `installer/` folder:
+### Option A — Pre-Built Standalone Installers (Recommended)
+
+Run one of the two pre-built Windows installers from the `installer/` directory:
 
 | Installer | Description |
 |---|---|
-| `MNIME_Setup.exe` | Classic Windows wizard installer built with Inno Setup. Creates Start Menu entries and an optional desktop shortcut. |
-| `MNIME_installer.exe` | Premium animated installer with a custom PyQt6 UI — branded dark window, animated flying-file progress bar, and automatic shortcut creation. |
+| `MNIME_Setup.exe` | Classic Windows wizard installer created with Inno Setup. Configures Start Menu entries and optional desktop shortcuts. |
+| `MNIME_installer.exe` | Custom animated installer built with PyQt6 — features a branded dark window and progress bar. |
 
-Both installers place MNIME at `%LOCALAPPDATA%\Programs\MNIME`.
+Installers deploy MNIME to `%LOCALAPPDATA%\Programs\MNIME`.
 
 ### Option B — Run from Source
 
-**1. Initial Setup (Required)**
+**1. Clone & Place Model**
+Download `MNIME-Core-1.5B-Q4_K_M.gguf` from [Hugging Face](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M) into the `models/` folder:
+```cmd
+models/MNIME-Core-1.5B-Q4_K_M.gguf
+```
 
-First, you must download the required NLP model from Hugging Face:
-- Go to [KyleDeanAI/MNIME-Core-1.5B-Q4_K_M](https://huggingface.co/KyleDeanAI/MNIME-Core-1.5B-Q4_K_M)
-- Download the `.gguf` model file.
-- Place it inside the `models/` directory in this project.
+**2. Virtual Environment Setup**
+Run `setup.bat` to initialize the Python virtual environment and install all dependencies:
+```cmd
+setup.bat
+```
 
-Next, run `setup.bat` to automatically create a Python virtual environment and install all required dependencies from `requirements.txt`.
-
-**2. Launch**
-
-Double-click `run.bat`, or from a terminal:
-
-```bat
+**3. Launch Application**
+Execute `run.bat` or run directly via Python:
+```cmd
+run.bat
+```
+Or manually:
+```cmd
 .venv\Scripts\python.exe MNIME.py
 ```
 
-**3. Pin to Taskbar**
-
-Launch MNIME, then right-click its taskbar icon and choose **Pin to taskbar**.
+**4. Run Tests**
+To run the automated test suite:
+```cmd
+run_tests.bat
+```
 
 ---
 
 ## Building the Application
 
-Run `build_app.bat` with Inno Setup 6 installed. To sign the Inno Setup installer, place `MNIMECert.pfx` in the project root and set the `MNIME_CERT_PASSWORD` environment variable first.
+Run `build_app.bat` (requires PyInstaller and Inno Setup 6):
 
-**Note:** Ensure you have downloaded the `.gguf` model from Hugging Face into the `models/` folder first, otherwise it won't be packaged into your installers!
+```cmd
+build_app.bat
+```
 
-The script will:
+To enable code signing for the Inno Setup binary, place `MNIMECert.pfx` in the project root and set the `MNIME_CERT_PASSWORD` environment variable prior to building.
 
-1. Create/update the `.venv` and install all build dependencies.
-2. Compile the app with PyInstaller using `MNIME.spec` → `dist/MNIME/`.
-3. Package it into `installer/MNIME_Setup.exe` via Inno Setup (supports optional code signing with `MNIMECert.pfx`).
-4. Build the custom animated installer `installer/MNIME_installer.exe` via PyInstaller + `custom_installer.py`.
-
----
-
-## Changelog
-
-### Launch Hardening
-- **Fixed**: PDF to JPG, Split PDF and JPG to PDF produced blank pages. PyMuPDF is not thread-safe, so these operations now run sequentially on the background worker.
-- **Fixed**: Printing from the Reader produced blank pages (float page size crash, unchecked painter). Printing now renders at 200 DPI with error reporting.
-- **Fixed**: Qt plugin path override no longer applied in packaged builds.
-- **Security**: Code signing password is read from `MNIME_CERT_PASSWORD` instead of being hardcoded; smart filenames are sanitized.
-- **Consistency**: Custom installer is named `MNIME_installer.exe` everywhere; Inno Setup reports version 2.1.
-
-### MNIME Final — Bundled NLP Model
-- **Changed**: The fine-tuned `MNIME-Core-1.5B-Q4_K_M.gguf` model is now bundled directly inside the application under `models/`. No external model download or Settings configuration is required.
-- **Removed**: The Settings gear icon and NLP hardware configuration dialog have been removed. Hardware offloading is handled automatically at runtime.
-- **Removed**: The finetuning workflow (`training/`) is no longer part of the repository. The model is shipped as a finished artifact.
-- **Added**: Two parallel installer formats — `MNIME_Setup.exe` (Inno Setup) and `MNIME_installer.exe` (custom animated PyQt6 installer).
-
-### MNIME — UI & UX Complete Overhaul
-- **Added**: Procedurally generated 5D Penteract branding logo with true mathematical 3D depth-sorting and an independent orbiting neon file.
-- **Added**: Advanced High-Resolution 4.0x Retina rendering pipeline for the PDF Reader and Edit UIs, producing razor-sharp vector text.
-- **Added**: Fluid `Ctrl+Scroll` mouse wheel zoom capabilities across all document viewer and editor viewports.
-- **Improved**: The Reader UI has been completely decoupled from the main window, featuring its own independent resizable frameless dark metallic window, automatic document fitting with margin padding, native smooth diagonal resizing, and integrated file-explorer connectivity.
-- **Improved**: The Image and PDF Edit UIs have been fully upgraded to the MNIME translucent dark metallic theme, matching the rest of the application's premium aesthetic.
-
-### Compatibility & Stability
-- **Fixed**: Model loading crash on Python 3.13+ caused by a `longdouble` overflow in NumPy 1.x `getlimits.py`.
-- **Updated**: NumPy dependency bumped to `>=2.0.0`. NumPy 2.x resolves the broken `_register_known_types` initialization on Windows with Python 3.13+.
-- **Updated**: `pyproject.toml` now correctly lists `numpy>=2.0.0` and `llama-cpp-python>=0.2.75` as explicit dependencies.
-
-### Initial Public Release
-- Full feature set: Merge, Edit, JPG↔PDF, Compress, DOCX export, Semantic Bookmarks, NLP/RAG chat, Cross-Reference engine.
-- Free-floating dark metallic PyQt6 UI with physics particle transitions.
-- Local offline GGUF model integration via `llama-cpp-python`.
+**Build Workflow:**
+1. Validates `.venv` environment and installs build packages.
+2. Compiles `MNIME.py` into a standalone binary payload (`dist/MNIME/`) via `MNIME.spec`.
+3. Packages `installer/MNIME_Setup.exe` via Inno Setup (`MNIME.iss`).
+4. Compiles custom installer `installer/MNIME_installer.exe` via `MNIME_installer.spec` and `custom_installer.py`.
 
 ---
 
@@ -160,115 +149,84 @@ The script will:
 MNIME/
 ├── core/                  # Core processing engine
 │   ├── __init__.py
-│   ├── app_icon.py        # Win32 icons & properties
-│   ├── file_item.py       # Data model & thumbnails
-│   ├── nlp_engine.py      # GGUF model integration
-│   ├── pdf_engine.py      # PDF logic & conversion
-│   ├── search_engine.py   # FAISS semantic search
-│   └── worker.py          # Async background worker
-├── models/                # Bundled NLP model
+│   ├── app_icon.py        # Win32 icons & window properties
+│   ├── file_item.py       # Data model & thumbnail caching
+│   ├── ipc.py             # Single-instance IPC mechanism
+│   ├── logging_setup.py   # Application logging setup
+│   ├── nlp_engine.py      # GGUF model integration via llama-cpp
+│   ├── pdf_engine.py      # PyMuPDF engine, DOCX & image conversion
+│   ├── print_engine.py    # High-DPI printing & rendering
+│   ├── search_engine.py   # FAISS vector indexing & RAG retrieval
+│   ├── text_safety.py     # Prompt parsing & text sanitization
+│   ├── version.py         # Application version constants
+│   └── worker.py          # Asynchronous QThread background worker
+├── models/                # Local GGUF model directory
 │   └── MNIME-Core-1.5B-Q4_K_M.gguf
-├── ui/                    # Desktop GUI (PyQt6)
+├── ui/                    # Desktop GUI components (PyQt6)
 │   ├── __init__.py
-│   ├── action_bar.py      # Action buttons & progress
-│   ├── carousel_view.py   # Horizontal file gallery
-│   ├── cursor_fx.py       # Custom cursor effects
-│   ├── document_viewer.py # Document visualizer
-│   ├── file_card.py       # Interactive file cards
-│   ├── file_dialog.py     # Dark-mode file explorer
-│   ├── icons.py           # Vector SVG icons
-│   ├── image_editor.py    # Image editor UI
-│   ├── main_window.py     # Main window coordinator
-│   ├── merge_particles.py # Physics transitions
-│   ├── minimize_animation.py # Minimize animations
-│   ├── nlp_view.py        # RAG interface
-│   ├── output_view.py     # Processing log output
-│   ├── pdf_editor.py      # PDF editor UI
-│   ├── reader_dialog.py   # Frameless document reader
-│   └── tabs_bar.py        # App mode switcher
-├── MN.ico                 # Multi-res native icon
+│   ├── action_bar.py      # Action buttons & task progress bar
+│   ├── carousel_view.py   # Horizontal file gallery slider
+│   ├── cursor_fx.py       # Custom particle cursor effects
+│   ├── document_viewer.py # Canvas renderer for documents
+│   ├── file_card.py       # Interactive card widget for queued files
+│   ├── file_dialog.py     # Dark metallic custom file browser
+│   ├── icons.py           # Vector SVG icon manager
+│   ├── image_editor.py    # Image visual editing interface
+│   ├── main_window.py     # Primary application window coordinator
+│   ├── merge_particles.py # Physics-based vortex & particle VFX
+│   ├── minimize_animation.py # Window minimize animations
+│   ├── nlp_view.py        # Local RAG & NLP chat console
+│   ├── output_view.py     # Real-time execution log console
+│   ├── pdf_editor.py      # Visual PDF page editor suite
+│   ├── reader_dialog.py   # Independent frameless document reader
+│   ├── stats_for_nerds.py # Real-time telemetry & performance HUD
+│   └── tabs_bar.py        # Application navigation bar
+├── docs/                  # Media & cover artwork assets
+│   ├── paper_cover.png
+│   └── spec_cover.png
+├── paper/                 # Research paper LaTeX source & PDF
+│   ├── MNIME_paper.pdf
+│   ├── MNIME_paper.tex
+│   └── mnime_refs.bib
+├── scripts/               # Utility scripts
+│   └── generate_mnime_pdf.py
+├── tests/                 # Automated test suite
+│   ├── test_ipc_parse.py
+│   ├── test_nlp_sanitize.py
+│   ├── test_pdf_engine.py
+│   └── test_print_engine.py
+├── MN.ico                 # Multi-resolution application icon
 ├── MNIME.py               # Application entry point
-├── custom_installer.py    # PyQt6 installer UI
-├── MNIME.iss              # Inno Setup script
-├── MNIME.spec             # PyInstaller spec
-├── MNIME_installer.spec   # Animated installer spec
-├── benchmark.py           # NLP empirical benchmark
-├── build_app.bat          # Full build pipeline
-├── install_mnime.bat      # 1-click local installer
-├── run.bat                # 1-click Windows runner
-├── setup.bat              # Python venv setup
-├── pyproject.toml         # Build configuration
-├── requirements.txt       # Python dependencies
-├── LICENSE                # Open source license
+├── custom_installer.py    # Standalone PyQt6 installer UI
+├── MNIME.iss              # Inno Setup compilation script
+├── MNIME.spec             # Main application PyInstaller spec
+├── MNIME_installer.spec   # Custom installer PyInstaller spec
+├── benchmark.py           # Standalone empirical NLP benchmarking tool
+├── build_app.bat          # Master compilation & packaging script
+├── install_mnime.bat      # One-click local installer script
+├── run.bat                # Launch application script
+├── run_tests.bat          # Test runner script
+├── setup.bat              # Virtual environment initialization script
+├── pyproject.toml         # Build system configuration
+├── requirements.txt       # Python dependency specifications
+├── LICENSE                # MIT Open Source License
 └── README.md              # Project documentation
 ```
 
 ---
 
-## Help & User Guide
+## Empirical Benchmarking & Telemetry HUD
 
-**MNIME** — your next-generation, private, high-performance offline document interface. Designed with a premium dark-metallic and neon-blue aesthetic, MNIME provides blazing-fast document processing entirely offline.
+MNIME includes a telemetry dashboard and benchmarking suite (`ui/stats_for_nerds.py` & `benchmark.py`) for analyzing on-device model performance and document processing throughput:
 
-### Core Capabilities
-
-All tools are accessible from the top **Tabs Bar**.
-
-- **Combine PDF**: Merge multiple PDF documents into a single file.
-- **JPG to PDF**: Convert image files into a high-quality PDF.
-- **TXT to PDF**: Rapidly convert raw text files into searchable, native vector PDFs.
-- **PDF to JPG**: Export pages of a PDF into high-resolution JPG images.
-- **Split PDF**: Separate a multi-page PDF into individual files. Features NLP-powered Smart Naming that reads page content to automatically generate unique, relevant filenames.
-- **Compress PDF**: Reduce the file size of heavy PDF documents.
-- **PDF to DOCX**: Convert PDFs into editable Word documents.
-- **Bookmark**: Add structured bookmarks to your PDF using either fast native heuristics or NLP-powered semantic chapter summaries.
-
-### NLP & Reference Engine
-
-MNIME ships with a fine-tuned local model that requires no setup.
-
-- **NLP**: Engage with your documents using a conversational interface powered by the bundled `MNIME-Core-1.5B-Q4_K_M.gguf` model. Click **Reload NLP** in the tabs bar to load the model into memory.
-- **Reference**: Generate synthesized briefs and cross-reference information across multiple uploaded documents.
-- **NLP Toggle**: The **"NLP"** checkbox in the tabs bar acts as a master switch. Turn it off to instantly unload the model and run the app in ultra-lightweight mode.
-
-### Interface Guide
-
-#### 1. The Drop Zone (Right Side)
-- **Drag and Drop**: Drag files over the MNIME logo to queue them for processing.
-- **Add Files Button**: Click the neon-outlined `ADD FILES` button to open the custom file browser.
-
-#### 2. Gallery Carousel (Left Side)
-Once files are added, they appear as interactive cards in the **Gallery Carousel**.
-- **Scroll & Reorder**: Scroll horizontally to view all queued files. Click and drag cards to reorder them.
-- **Clear All**: Click the neon-red **"X"** icon to clear your entire file queue.
-
-#### 3. Action Bar
-The bottom of the screen houses the **Action Bar**.
-- **Primary Action Button**: Initiates the processing engine for the selected mode (e.g., `MERGE FILES`).
-- **Progress Indicator**: A sleek progress bar appears during processing.
-
-#### 4. Document Reader & Editor
-MNIME includes a built-in high-resolution **Document Reader** and **Edit UI**.
-- **High-Res Rendering**: Documents are rendered at 4.0x Retina pixel density for ultra-sharp, anti-aliased clarity.
-- **Fluid Zooming**: Use `Ctrl + Mouse Scroll` to smoothly zoom in and out.
-- **Independent Windows**: The Reader and Editor run as fully independent, resizable, frameless dark metallic windows.
-
-### Error Handling & Validation
-If you attempt to run a tool with the wrong file type or an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
-
-### Semantic Bookmarks
-MNIME offers two powerful ways to generate document outlines and table of contents for unbookmarked PDFs:
-- **Heuristic Mode**: Rapidly analyzes PDF typography, font sizes, and structural layout to instantly build an accurate nested bookmark tree using native heuristics.
-- **NLP Mode**: Leverages the bundled MNIME-Core model to contextually understand headers, generating highly descriptive, semantic chapter summaries for each outline entry.
-
-### Stats & Empirical Benchmarking
-MNIME bundles a dedicated, high-performance telemetry dashboard and benchmarking suite (**Stats** / `benchmark.py`) designed for users and researchers to independently validate on-device model throughput, latency, and hardware metrics:
-- **Sleek Translucent HUD**: Accessible directly within MNIME via the `STATS` pulse tab or launched standalone via `.venv\Scripts\python.exe benchmark.py`. Built with the same obsidian glassmorphism aesthetic as the expanded NLP interface.
-- **Dynamic 60 FPS Line Charting**: Features hardware-accelerated real-time vector line charts with glowing neon curves and vertical gradient area fills, plotting instantaneous and rolling token throughput (tokens/sec), inter-token latency (ms), and process RAM working set (MB).
-- **Multi-Engine Empirical Telemetry**: Measures prompt ingestion speed (prefill eval), time-to-first-token (TTFT), sustained token generation throughput against `MNIME-Core-1.5B-Q4_K_M.gguf`, C-accelerated PDF rasterization speed (pages/sec), and FAISS similarity retrieval latency.
-- **External Replication & JSON Export**: Allows users to ground and replicate the empirical benchmarks reported in Section 5 of the research paper directly on their own local machine with full JSON export capabilities.
+- **Translucent HUD**: Accessible via the `STATS` tab or directly via `.venv\Scripts\python.exe benchmark.py`.
+- **60 FPS Real-Time Vector Charts**: Live rendering of token throughput (tokens/sec), inter-token latency (ms), and memory allocation (RAM working set in MB).
+- **Multi-Metric Telemetry**: Benchmarks prompt prefill processing, time-to-first-token (TTFT), sustained text generation, PyMuPDF page rasterization rate, and FAISS retrieval latency.
+- **Benchmark Replication**: Ground empirical metrics locally with exportable JSON benchmark records.
 
 ---
 
+## Research Paper
 
 <p align="center">
   <a href="MNIME_paper.pdf">
@@ -282,8 +240,10 @@ MNIME bundles a dedicated, high-performance telemetry dashboard and benchmarking
   </a>
 </p>
 
-> **MNIME Research Paper** — covering system architecture, the MNIME-Core fine-tuning methodology, NLP/RAG engine design, projected performance characteristics, and a discussion of privacy-first local document AI.
+> **MNIME Research Paper** — Details the system architecture, model fine-tuning methodology, RAG search engine implementation, empirical performance benchmarks, and privacy-first design principles.
 
 ---
 
-_MNIME_ - '26kb
+## License
+
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for complete licensing terms.

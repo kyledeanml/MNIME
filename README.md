@@ -12,7 +12,7 @@ A modern, private, and ultra-fast desktop interface with a fine-tuned local NLP 
 
 <p align="center">
   <a href="MNIME_Spec_Manual.pdf">
-    <img src="docs/spec_cover.png" alt="MNIME Specification Sheet & User Manual" width="480">
+    <img src="docs/spec_cover.png?v=2" alt="MNIME Specification Sheet & User Manual" width="480">
   </a>
 </p>
 

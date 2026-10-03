@@ -247,5 +247,18 @@ MNIME includes a built-in high-resolution **Document Reader** and **Edit UI**.
 ### Error Handling & Validation
 If you attempt to run a tool with the wrong file type or an empty queue, the application will intelligently intercept the action and provide a helpful prompt without crashing.
 
+---
+
+## Research Paper
+
+<p align="center">
+  <a href="MNIME_paper.pdf">
+    <img src="https://img.shields.io/badge/Read%20the%20Research%20Paper-PDF-00e5ff?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="Read Research Paper PDF">
+  </a>
+</p>
+
+> Click the badge above to open the **MNIME Research Paper** — covering system architecture, the MNIME-Core fine-tuning methodology, NLP/RAG engine design, projected performance characteristics, and a discussion of privacy-first local document AI.
+
+---
 
 _MNIME_ - '26kb

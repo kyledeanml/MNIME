@@ -206,47 +206,78 @@ class MetalSplashScreen(QWidget):
             painter.setOpacity(min(1.0, self.logo_scale))
             painter.drawPixmap(
                 int(cx - logo_size / 2),
-                int(cy - logo_size / 2 - 40),
+                int(cy - logo_size / 2 - 60),
                 pixmap
             )
             painter.setOpacity(1.0)
         
-        # 2. Sleek, modern, and official corporate font
-        font = QFont("Segoe UI Black", 85, QFont.Weight.Black)
-        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 5.0)
-        painter.setFont(font)
+        # 2. Sleek, widely spaced official typography matching covers
+        main_font = QFont("Segoe UI Black", 74, QFont.Weight.Black)
+        main_font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 44.0)
+        painter.setFont(main_font)
         
-        fm = QFontMetrics(font)
-        text_rect = fm.boundingRect("MNIME")
+        fm = QFontMetrics(main_font)
+        title_text = "MNIME"
+        text_w = fm.horizontalAdvance(title_text)
         
-        x = cx - text_rect.width() // 2
-        y = cy + text_rect.height() // 2 - fm.descent()
+        x = cx - text_w // 2
+        y = cy + 100
         
-        # 3. Intense neon blue ambient glow
-        glow_color = QColor(0, 210, 255, 25)
-        painter.setPen(glow_color)
-        for offset in [3, 6]:
-            painter.drawText(x - offset, y - offset, "MNIME")
-            painter.drawText(x + offset, y - offset, "MNIME")
-            painter.drawText(x - offset, y + offset, "MNIME")
-            painter.drawText(x + offset, y + offset, "MNIME")
+        # 3. Soft ambient lavender glow with cyan edge
+        glow_lavender = QColor(190, 175, 245, 30)
+        painter.setPen(glow_lavender)
+        for offset in [2, 4, 6]:
+            painter.drawText(x - offset, y - offset, title_text)
+            painter.drawText(x + offset, y - offset, title_text)
+            painter.drawText(x - offset, y + offset, title_text)
+            painter.drawText(x + offset, y + offset, title_text)
         
         # 4. Deep drop shadow for desktop separation
-        painter.setPen(QColor(0, 0, 0, 200))
-        painter.drawText(x + 5, y + 5, "MNIME")
+        painter.setPen(QColor(0, 0, 0, 220))
+        painter.drawText(x + 4, y + 4, title_text)
         
-        # 5. Dark Metallic Gradient Core
-        gradient = QLinearGradient(x, y - text_rect.height(), x, y)
-        gradient.setColorAt(0.0, QColor("#ffffff")) # Bright top edge highlight
-        gradient.setColorAt(0.2, QColor("#e1e4e8")) # Light silver
-        gradient.setColorAt(0.5, QColor("#8b949e")) # Mid titanium
-        gradient.setColorAt(0.6, QColor("#161b22")) # Sharp dark metal cut
-        gradient.setColorAt(1.0, QColor("#484f58")) # Bottom rim reflection
+        # 5. Official Typography: Light Metallic Silver with a touch of Lavender
+        gradient = QLinearGradient(x, y - fm.ascent(), x, y)
+        gradient.setColorAt(0.00, QColor("#ffffff")) # Bright silver edge
+        gradient.setColorAt(0.18, QColor("#f6f2ff")) # Luminous silver-lavender gleam
+        gradient.setColorAt(0.40, QColor("#e6e0f7")) # Soft metallic silver-lavender luster
+        gradient.setColorAt(0.65, QColor("#c2b8e0")) # Rich metallic lavender midtone
+        gradient.setColorAt(0.82, QColor("#70668e")) # Sculptured titanium lavender depth
+        gradient.setColorAt(1.00, QColor("#b0a5d2")) # Polished lower rim reflection
         
         pen = QPen()
         pen.setBrush(QBrush(gradient))
         painter.setPen(pen)
-        painter.drawText(x, y, "MNIME")
+        painter.drawText(x, y, title_text)
+
+        # 6. Subtitle expansion: MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION
+        sub_font = QFont("Segoe UI", 10, QFont.Weight.DemiBold)
+        sub_font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 5.0)
+        painter.setFont(sub_font)
+        sub_fm = QFontMetrics(sub_font)
+        sub_text = "MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION"
+        sub_w = sub_fm.horizontalAdvance(sub_text)
+        sub_x = cx - sub_w // 2
+        sub_y = y + 36
+
+        painter.setPen(QColor(0, 0, 0, 180))
+        painter.drawText(sub_x + 1, sub_y + 1, sub_text)
+        painter.setPen(QColor("#d5cef2"))
+        painter.drawText(sub_x, sub_y, sub_text)
+
+        # 7. Phonetic pronunciation: nigh.mh in elegant cursive
+        phon_font = QFont("Segoe Script", 12)
+        painter.setFont(phon_font)
+        phon_fm = QFontMetrics(phon_font)
+        phon_text = "nigh.mh"
+        phon_w = phon_fm.horizontalAdvance(phon_text)
+        phon_x = cx - phon_w // 2
+        phon_y = sub_y + 28
+
+        painter.setPen(QColor(0, 0, 0, 160))
+        painter.drawText(phon_x + 1, phon_y + 1, phon_text)
+        painter.setPen(QColor("#c3b1e1"))
+        painter.drawText(phon_x, phon_y, phon_text)
         
         painter.end()
 

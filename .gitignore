@@ -14,11 +14,11 @@ installer/
 !MNIME.spec
 !MNIME_installer.spec
 
-# IDEs
+# IDEs & Workspaces
 .idea/
 .vscode/
 *.code-workspace
-!MNIME.code-workspace
+*.workspace
 
 # Logs and temp files
 *.log

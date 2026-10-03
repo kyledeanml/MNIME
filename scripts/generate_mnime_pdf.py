@@ -276,8 +276,8 @@ class CoverPage(Flowable):
         c.circle(cx, cy_logo, 4, fill=1, stroke=0)
         c.setStrokeAlpha(1.0)
 
-        # Product name
-        c.setFillColor(WHITE)
+        # Product name — Official Typography: Light metallic silver with touch of lavender
+        c.setFillColor(colors.HexColor("#f0ecfc"))
         c.setFont("Helvetica-Bold", 38)
         c.drawCentredString(cx, h * 0.50, "M   N   I   M   E")
 
@@ -286,8 +286,8 @@ class CoverPage(Flowable):
         c.setFont("Helvetica", 8.5)
         c.drawCentredString(cx, h * 0.465, "MULTIMODAL NEURAL INTERFACE MACHINE EXTENSION")
 
-        # Phonetic pronunciation in elegant cursive/oblique
-        c.setFillColor(NEON_GREEN)
+        # Phonetic pronunciation in elegant cursive/oblique — soft lavender
+        c.setFillColor(colors.HexColor("#c8b6e2"))
         c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cx, h * 0.450, "nigh.mh")
 

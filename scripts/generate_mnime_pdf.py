@@ -659,6 +659,7 @@ def build_body(styles):
         ["RAM — NLP Active",    "~1.8–1.9 GB (model weights loaded in VRAM/RAM)"],
         ["GPU (Optional)",      "NVIDIA CUDA-capable GPU for NLP layer offloading"],
         ["GPU VRAM (Optional)", "4 GB+ recommended for full GGUF layer offload"],
+        ["Validation / Dev Bench", "AMD Ryzen 9 7950X, 64 GB DDR5 6000 MHz, RTX 3060 Ventus 12 GB"],
         ["Disk Space",          "~2 GB (application + bundled model)"],
         ["Display",             "1280×720 minimum; 1920×1080+ recommended"],
         ["File Queue Limit",    "Up to 5,000 files per session"],

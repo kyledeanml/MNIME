@@ -31,6 +31,10 @@ OMNIME Builder and Installer.txt
 # Documents and Test files
 *.pdf
 !MNIME_Spec_Manual.pdf
+!MNIME_paper.pdf
+
+# Paper source — compiled PDF lives at root; exclude the LaTeX workspace
+paper/
 *.docx
 *.jpg
 *.jpeg
